@@ -1,16 +1,49 @@
 "use client";
+
 import { useState } from "react";
 import { motion } from "framer-motion";
 
 const categories = [
-  ["Home Decor", "https://images.unsplash.com/photo-1513519245088-0e12902e5a38?auto=format&fit=crop&w=600&q=80"],
-  ["Kitchen", "https://images.unsplash.com/photo-1556911220-bff31c812dba?auto=format&fit=crop&w=600&q=80"],
-  ["Bottles", "https://images.unsplash.com/photo-1602143407151-7111542de6e8?auto=format&fit=crop&w=600&q=80"],
-  ["Lunch Box", "https://images.unsplash.com/photo-1543352634-a1c51d9f1fa7?auto=format&fit=crop&w=600&q=80"],
-  ["Storage", "https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?auto=format&fit=crop&w=600&q=80"],
-  ["Textiles", "https://images.unsplash.com/photo-1604578762246-41134e37f9cc?auto=format&fit=crop&w=600&q=80"],
-  ["Gifting", "https://images.unsplash.com/photo-1512909006721-3d6018887383?auto=format&fit=crop&w=600&q=80"],
-  ["Sale", "https://images.unsplash.com/photo-1511381939415-e44015466834?auto=format&fit=crop&w=600&q=80"],
+  {
+    name: "Home Decor",
+    count: "128 products",
+    image: "https://images.unsplash.com/photo-1513519245088-0e12902e5a38?auto=format&fit=crop&w=600&q=80",
+  },
+  {
+    name: "Kitchen",
+    count: "96 products",
+    image: "https://images.unsplash.com/photo-1556911220-bff31c812dba?auto=format&fit=crop&w=600&q=80",
+  },
+  {
+    name: "Bottles",
+    count: "42 products",
+    image: "https://images.unsplash.com/photo-1602143407151-7111542de6e8?auto=format&fit=crop&w=600&q=80",
+  },
+  {
+    name: "Lunch Box",
+    count: "38 products",
+    image: "https://images.unsplash.com/photo-1543352634-a1c51d9f1fa7?auto=format&fit=crop&w=600&q=80",
+  },
+  {
+    name: "Storage",
+    count: "74 products",
+    image: "https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?auto=format&fit=crop&w=600&q=80",
+  },
+  {
+    name: "Textiles",
+    count: "57 products",
+    image: "https://images.unsplash.com/photo-1604578762246-41134e37f9cc?auto=format&fit=crop&w=600&q=80",
+  },
+  {
+    name: "Gifting",
+    count: "34 products",
+    image: "https://images.unsplash.com/photo-1512909006721-3d6018887383?auto=format&fit=crop&w=600&q=80",
+  },
+  {
+    name: "Sale",
+    count: "24 products",
+    image: "https://images.unsplash.com/photo-1511381939415-e44015466834?auto=format&fit=crop&w=600&q=80",
+  },
 ];
 
 const products = [
@@ -19,6 +52,9 @@ const products = [
     price: "Rs. 899",
     oldPrice: "Rs. 1,199",
     badge: "New",
+    detail: "Insulated daily carry",
+    rating: "4.8",
+    reviews: "1,248",
     image: "https://images.unsplash.com/photo-1602143407151-7111542de6e8?auto=format&fit=crop&w=800&q=85",
   },
   {
@@ -26,6 +62,9 @@ const products = [
     price: "Rs. 1,450",
     badge: "Best Seller",
     badgeClass: "badge-dark",
+    detail: "Hand-finished wood",
+    rating: "4.7",
+    reviews: "864",
     image: "https://images.unsplash.com/photo-1601985705806-5b9a71f6004f?auto=format&fit=crop&w=800&q=85",
   },
   {
@@ -34,14 +73,74 @@ const products = [
     oldPrice: "Rs. 1,399",
     badge: "20% Off",
     badgeClass: "badge-discount",
+    detail: "Set of two planters",
+    rating: "4.6",
+    reviews: "519",
     image: "https://images.unsplash.com/photo-1485955900006-10f4d324d411?auto=format&fit=crop&w=800&q=85",
   },
   {
     name: "Insulated Lunch Carrier",
     price: "Rs. 799",
+    detail: "Compact workday storage",
+    rating: "4.5",
+    reviews: "410",
     image: "https://images.unsplash.com/photo-1543352634-a1c51d9f1fa7?auto=format&fit=crop&w=800&q=85",
   },
+  {
+    name: "Minimal Desk Organizer",
+    price: "Rs. 650",
+    badge: "Fresh Drop",
+    detail: "Calm desk essentials",
+    rating: "4.4",
+    reviews: "283",
+    image: "https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=800&q=85",
+  },
+  {
+    name: "Ribbed Glass Tumbler",
+    price: "Rs. 399",
+    oldPrice: "Rs. 549",
+    detail: "Everyday glassware",
+    rating: "4.6",
+    reviews: "932",
+    image: "https://images.unsplash.com/photo-1606813907291-d86efa9b94db?auto=format&fit=crop&w=800&q=85",
+  },
+  {
+    name: "Cotton Table Runner",
+    price: "Rs. 749",
+    oldPrice: "Rs. 949",
+    detail: "Soft woven cotton",
+    rating: "4.3",
+    reviews: "190",
+    image: "https://images.unsplash.com/photo-1604578762246-41134e37f9cc?auto=format&fit=crop&w=800&q=85",
+  },
+  {
+    name: "Matte Ceramic Vase",
+    price: "Rs. 1,250",
+    badge: "Limited",
+    badgeClass: "badge-dark",
+    detail: "Shelf-ready accent",
+    rating: "4.7",
+    reviews: "351",
+    image: "https://images.unsplash.com/photo-1513519245088-0e12902e5a38?auto=format&fit=crop&w=800&q=85",
+  },
 ];
+
+function getProductId(product) {
+  return product.sku || product.slug || product.name;
+}
+
+function getProductPrice(product) {
+  if (typeof product.salePrice === "number") {
+    return product.salePrice;
+  }
+
+  const rawPrice = String(product.price || "0").replace(/[^\d.]/g, "");
+  return Number(rawPrice) || 0;
+}
+
+function formatPrice(value) {
+  return `Rs. ${value.toLocaleString("en-IN")}`;
+}
 
 function SearchIcon() {
   return (
@@ -63,52 +162,130 @@ function CartIcon() {
   );
 }
 
-function ProductCard({ product, index = 0 }) {
+function MenuIcon({ open }) {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      {open ? (
+        <>
+          <path d="M6 6l12 12" />
+          <path d="M18 6 6 18" />
+        </>
+      ) : (
+        <>
+          <path d="M4 7h16" />
+          <path d="M4 12h16" />
+          <path d="M4 17h16" />
+        </>
+      )}
+    </svg>
+  );
+}
+
+function ProductCard({ product, index = 0, cartQuantity = 0, onAddToCart }) {
   return (
     <motion.article
       className="product-card"
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 18 }}
       whileInView={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay: index * 0.1 }}
+      transition={{ duration: 0.45, delay: index * 0.04 }}
       viewport={{ once: true, margin: "-50px" }}
     >
-      <div className="product-media">
+      <a className="product-media" href="#featured" aria-label={`View ${product.name}`}>
         {product.badge ? (
           <span className={`badge ${product.badgeClass || ""}`}>{product.badge}</span>
         ) : null}
+        <span className="save-button" aria-hidden="true">
+          +
+        </span>
         <img src={product.image} alt={product.name} />
+      </a>
+      <div className="product-body">
+        <p className="product-detail">{product.detail}</p>
+        <h3>{product.name}</h3>
+        <p className="rating" aria-label={`${product.rating} out of 5 stars from ${product.reviews} reviews`}>
+          <span>Star</span>
+          <span>Star</span>
+          <span>Star</span>
+          <span>Star</span>
+          <span>Star</span>
+          <strong>{product.rating}</strong>
+          <em>({product.reviews})</em>
+        </p>
+        <p className="price">
+          {product.price}
+          {product.oldPrice ? <span>{product.oldPrice}</span> : null}
+        </p>
+        <p className="delivery">Free delivery in 2-4 days</p>
+        <button className="quick-add" type="button" onClick={() => onAddToCart(product)}>
+          {cartQuantity > 0 ? `Added (${cartQuantity})` : "Add to Cart"}
+        </button>
       </div>
-      <h3>{product.name}</h3>
-      <p className="price">
-        {product.price}
-        {product.oldPrice ? <span>{product.oldPrice}</span> : null}
-      </p>
-      <p className="rating" aria-label="Rated 5 out of 5">
-        <span>Star</span>
-        <span>Star</span>
-        <span>Star</span>
-        <span>Star</span>
-        <span>Star</span>
-      </p>
     </motion.article>
   );
 }
 
 export default function Home() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [showAllCategories, setShowAllCategories] = useState(false);
+  const [showAllProducts, setShowAllProducts] = useState(false);
+  const [isCartOpen, setIsCartOpen] = useState(false);
+  const [cartItems, setCartItems] = useState([]);
+
+  const visibleCategories = showAllCategories ? categories : categories.slice(0, 6);
+  const visibleProducts = showAllProducts ? products : products.slice(0, 4);
+  const cartCount = cartItems.reduce((total, item) => total + item.quantity, 0);
+  const cartTotal = cartItems.reduce((total, item) => total + getProductPrice(item.product) * item.quantity, 0);
+
+  function addToCart(product) {
+    const productId = getProductId(product);
+
+    setCartItems((items) => {
+      const existingItem = items.find((item) => item.id === productId);
+
+      if (existingItem) {
+        return items.map((item) =>
+          item.id === productId ? { ...item, quantity: item.quantity + 1 } : item
+        );
+      }
+
+      return [...items, { id: productId, product, quantity: 1 }];
+    });
+    setIsCartOpen(true);
+  }
+
+  function updateCartQuantity(productId, nextQuantity) {
+    setCartItems((items) => {
+      if (nextQuantity <= 0) {
+        return items.filter((item) => item.id !== productId);
+      }
+
+      return items.map((item) => (item.id === productId ? { ...item, quantity: nextQuantity } : item));
+    });
+  }
+
+  function removeFromCart(productId) {
+    setCartItems((items) => items.filter((item) => item.id !== productId));
+  }
 
   return (
     <>
+      <div className="announcement-bar">
+        <span>Free shipping over Rs. 999</span>
+        <a href="#featured">Shop fresh arrivals</a>
+      </div>
+
       <header className="site-header">
         <a href="#" className="brand" aria-label="Pubesto home">
           Pubesto
         </a>
         <button
           className="mobile-menu-toggle"
-          onClick={() => setIsMenuOpen(!isMenuOpen)}
+          type="button"
+          onClick={() => setIsMenuOpen((open) => !open)}
           aria-label="Toggle menu"
+          aria-expanded={isMenuOpen}
         >
-          {isMenuOpen ? "✕" : "☰"}
+          <MenuIcon open={isMenuOpen} />
         </button>
         <div className={`header-content ${isMenuOpen ? "open" : ""}`}>
           <nav className="main-nav" aria-label="Main navigation">
@@ -120,28 +297,118 @@ export default function Home() {
               <div className="nav-panel">
                 <a href="#categories">Categories</a>
                 <a href="#featured">Featured Products</a>
+                <a href="#journal">The Edit</a>
                 <a href="#newsletter">Offers</a>
               </div>
             </details>
             <a href="#featured">New Arrivals</a>
-            <a href="#newsletter">Offers</a>
+            <a href="#journal">The Edit</a>
             <a href="#footer">Contact</a>
           </nav>
           <div className="header-tools">
-            <form className="search" role="search">
+            <form className="search" role="search" onSubmit={(event) => event.preventDefault()}>
               <SearchIcon />
               <label className="sr-only" htmlFor="site-search">
                 Search products
               </label>
               <input id="site-search" type="search" placeholder="Search decor, bottles..." />
             </form>
-            <button className="cart" type="button" aria-label="Open cart">
+            <button
+              className="cart"
+              type="button"
+              aria-label={`Open cart with ${cartCount} item${cartCount === 1 ? "" : "s"}`}
+              aria-expanded={isCartOpen}
+              onClick={() => setIsCartOpen(true)}
+            >
               <CartIcon />
-              <span className="cart-dot" />
+              {cartCount > 0 ? (
+                <span className="cart-count">{cartCount}</span>
+              ) : (
+                <span className="cart-dot" />
+              )}
             </button>
           </div>
         </div>
       </header>
+
+      {isCartOpen ? (
+        <div className="cart-layer">
+          <button
+            className="cart-backdrop"
+            type="button"
+            aria-label="Close cart"
+            onClick={() => setIsCartOpen(false)}
+          />
+          <aside className="cart-drawer" role="dialog" aria-modal="true" aria-label="Shopping cart">
+            <div className="cart-drawer-header">
+              <div>
+                <p className="eyebrow">Your cart</p>
+                <h2>{cartCount} item{cartCount === 1 ? "" : "s"} selected</h2>
+              </div>
+              <button type="button" onClick={() => setIsCartOpen(false)} aria-label="Close cart">
+                Close
+              </button>
+            </div>
+
+            {cartItems.length > 0 ? (
+              <>
+                <div className="cart-items">
+                  {cartItems.map((item) => (
+                    <article className="cart-item" key={item.id}>
+                      <div className="cart-item-media">
+                        {item.product.image ? (
+                          <img src={item.product.image} alt={item.product.name} />
+                        ) : (
+                          <span>Image pending</span>
+                        )}
+                      </div>
+                      <div className="cart-item-body">
+                        <h3>{item.product.name}</h3>
+                        <p>{formatPrice(getProductPrice(item.product))}</p>
+                        <div className="quantity-control" aria-label={`Quantity for ${item.product.name}`}>
+                          <button
+                            type="button"
+                            onClick={() => updateCartQuantity(item.id, item.quantity - 1)}
+                            aria-label={`Decrease ${item.product.name} quantity`}
+                          >
+                            -
+                          </button>
+                          <span>{item.quantity}</span>
+                          <button
+                            type="button"
+                            onClick={() => updateCartQuantity(item.id, item.quantity + 1)}
+                            aria-label={`Increase ${item.product.name} quantity`}
+                          >
+                            +
+                          </button>
+                        </div>
+                      </div>
+                      <button className="remove-item" type="button" onClick={() => removeFromCart(item.id)}>
+                        Remove
+                      </button>
+                    </article>
+                  ))}
+                </div>
+                <div className="cart-summary">
+                  <div>
+                    <span>Subtotal</span>
+                    <strong>{formatPrice(cartTotal)}</strong>
+                  </div>
+                  <button type="button">Checkout</button>
+                </div>
+              </>
+            ) : (
+              <div className="empty-cart">
+                <h3>Your cart is empty</h3>
+                <p>Add products from the featured section to see them here.</p>
+                <button type="button" onClick={() => setIsCartOpen(false)}>
+                  Continue shopping
+                </button>
+              </div>
+            )}
+          </aside>
+        </div>
+      ) : null}
 
       <main>
         <section className="hero-grid" aria-label="Featured collections">
@@ -159,14 +426,24 @@ export default function Home() {
             <div className="hero-copy">
               <p className="eyebrow">Curated Living</p>
               <h1>Artisanal essentials for calmer everyday spaces</h1>
-              <p>Bring home warm textures, crafted storage, and refined daily-use pieces.</p>
+              <p>Warm textures, crafted storage, and refined daily-use pieces selected for modern homes.</p>
+            </div>
+            <div className="hero-actions">
               <a className="primary-button" href="#featured">
                 Shop Now
               </a>
+              <a className="secondary-button" href="#categories">
+                Explore Categories
+              </a>
+            </div>
+            <div className="hero-note" aria-label="Store highlights">
+              <strong>2-day dispatch</strong>
+              <span>Premium picks from Rs. 399</span>
             </div>
           </motion.article>
+
           <motion.article
-            className="hero-card"
+            className="hero-card promo-card"
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
@@ -175,15 +452,17 @@ export default function Home() {
               src="https://images.unsplash.com/photo-1603204077779-bed963ea7d0e?auto=format&fit=crop&w=900&q=85"
               alt=""
             />
-            <div className="shade" />
+            <div className="shade compact-shade" />
             <div className="promo-copy">
+              <p className="eyebrow">Table Edit</p>
               <h2>Serveware</h2>
-              <p>Table pieces with quiet detail.</p>
+              <p>Quiet pieces for thoughtful hosting.</p>
               <a href="#categories">Explore collection</a>
             </div>
           </motion.article>
+
           <motion.article
-            className="hero-card"
+            className="hero-card promo-card"
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6, delay: 0.4 }}
@@ -192,44 +471,126 @@ export default function Home() {
               src="https://images.unsplash.com/photo-1594223274512-ad4803739b7c?auto=format&fit=crop&w=900&q=85"
               alt=""
             />
-            <div className="shade" />
+            <div className="shade compact-shade" />
             <div className="promo-copy">
-              <h2>Daily Carry</h2>
-              <p>Bottles and lunch storage for workdays.</p>
+              <p className="eyebrow">Daily Carry</p>
+              <h2>Bags, bottles, lunch storage</h2>
+              <p>Workday essentials with a cleaner finish.</p>
               <a href="#featured">View essentials</a>
             </div>
           </motion.article>
         </section>
 
-        <section id="categories" className="category-strip" aria-label="Shop by category">
-          {categories.map(([name, image], index) => (
-            <motion.a
-              className={`category-tile ${name === "Sale" ? "sale" : ""}`}
-              href="#featured"
-              key={name}
-              initial={{ opacity: 0, scale: 0.9 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.4, delay: index * 0.05 }}
-              viewport={{ once: true }}
+        <section className="service-strip" aria-label="Store benefits">
+          <div>
+            <strong>Fast Shipping</strong>
+            <span>Dispatch on most orders within 24 hours</span>
+          </div>
+          <div>
+            <strong>Easy Returns</strong>
+            <span>Simple support for exchanges and returns</span>
+          </div>
+          <div>
+            <strong>Curated Quality</strong>
+            <span>Useful materials, calm forms, refined finishes</span>
+          </div>
+          <div>
+            <strong>Gift Ready</strong>
+            <span>Thoughtful picks for homes, hosts, and workdays</span>
+          </div>
+        </section>
+
+        <section id="categories" className="category-section">
+          <div className="section-heading">
+            <div>
+              <p className="eyebrow">Shop the range</p>
+              <h2>Browse by category</h2>
+            </div>
+            <button
+              className="view-all"
+              type="button"
+              onClick={() => setShowAllCategories((visible) => !visible)}
+              aria-expanded={showAllCategories}
             >
-              <img src={image} alt="" />
-              <span>{name}</span>
-            </motion.a>
-          ))}
+              {showAllCategories ? "Show less" : "View all"} <span aria-hidden="true">&gt;</span>
+            </button>
+          </div>
+          <div className="category-strip" aria-label="Shop by category">
+            {visibleCategories.map((category, index) => (
+              <motion.a
+                className={`category-tile ${category.name === "Sale" ? "sale" : ""}`}
+                href="#featured"
+                key={category.name}
+                initial={{ opacity: 0, y: 14 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: index * 0.04 }}
+                viewport={{ once: true }}
+              >
+                <img src={category.image} alt="" />
+                <span>{category.name}</span>
+                <small>{category.count}</small>
+              </motion.a>
+            ))}
+          </div>
         </section>
 
         <section id="featured" className="product-section">
           <div className="section-heading">
-            <h2>Featured Products</h2>
-            <a className="view-all" href="#categories">
-              View all <span aria-hidden="true">&gt;</span>
-            </a>
+            <div>
+              <p className="eyebrow">Customer favourites</p>
+              <h2>Featured products</h2>
+            </div>
+            <button
+              className="view-all"
+              type="button"
+              onClick={() => setShowAllProducts((visible) => !visible)}
+              aria-expanded={showAllProducts}
+            >
+              {showAllProducts ? "Show less" : "See more"} <span aria-hidden="true">&gt;</span>
+            </button>
           </div>
           <div className="product-grid">
-            {products.map((product, idx) => (
-              <ProductCard product={product} key={product.name} index={idx} />
+            {visibleProducts.map((product, idx) => (
+              <ProductCard
+                product={product}
+                key={product.name}
+                index={idx}
+                cartQuantity={cartItems.find((item) => item.id === getProductId(product))?.quantity || 0}
+                onAddToCart={addToCart}
+              />
             ))}
           </div>
+        </section>
+
+        <section id="journal" className="editorial-section" aria-label="Pubesto style edit">
+          <div className="editorial-image">
+            <img
+              src="https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?auto=format&fit=crop&w=1200&q=85"
+              alt=""
+            />
+          </div>
+          <div className="editorial-copy">
+            <p className="eyebrow">The Pubesto Edit</p>
+            <h2>Small upgrades that make everyday routines feel considered.</h2>
+            <p>
+              Layer storage, ceramics, drinkware, and soft textiles to create a home that feels
+              composed without feeling formal.
+            </p>
+            <a className="secondary-button inverse" href="#featured">
+              Shop the edit
+            </a>
+          </div>
+        </section>
+
+        <section className="select-banner" aria-label="Pubesto Select offer">
+          <div>
+            <p className="eyebrow">Pubesto Select</p>
+            <h2>Black Friday energy, everyday essentials.</h2>
+            <p>Clean silhouettes, dependable materials, and useful pieces built for daily homes.</p>
+          </div>
+          <a className="secondary-button inverse" href="#featured">
+            Explore Select
+          </a>
         </section>
 
         <motion.section
@@ -245,7 +606,7 @@ export default function Home() {
             <h2>Receive new launches and seasonal offers</h2>
             <p>Sign up for notes on home accents, kitchen updates, gifting edits, and limited discounts.</p>
           </div>
-          <form>
+          <form onSubmit={(event) => event.preventDefault()}>
             <label className="sr-only" htmlFor="newsletter-email">
               Email address
             </label>
@@ -279,7 +640,7 @@ export default function Home() {
         <div>
           <h2>Newsletter</h2>
           <p>Get early access to fresh drops and festive edits.</p>
-          <form className="footer-form">
+          <form className="footer-form" onSubmit={(event) => event.preventDefault()}>
             <label className="sr-only" htmlFor="footer-email">
               Email address
             </label>
