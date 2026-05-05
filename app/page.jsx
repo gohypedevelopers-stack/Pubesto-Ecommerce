@@ -20,6 +20,11 @@ const categories = [
     image: "https://images.unsplash.com/photo-1602143407151-7111542de6e8?auto=format&fit=crop&w=600&q=80",
   },
   {
+    name: "Fans",
+    count: "2 products",
+    image: "https://images.unsplash.com/photo-1556911220-bff31c812dba?auto=format&fit=crop&w=600&q=80",
+  },
+  {
     name: "Lunch Box",
     count: "38 products",
     image: "https://images.unsplash.com/photo-1543352634-a1c51d9f1fa7?auto=format&fit=crop&w=600&q=80",
@@ -53,6 +58,7 @@ const products = [
     oldPrice: "Rs. 1,199",
     badge: "New",
     detail: "Insulated daily carry",
+    categories: ["Bottles", "Daily Carry"],
     rating: "4.8",
     reviews: "1,248",
     image: "https://images.unsplash.com/photo-1602143407151-7111542de6e8?auto=format&fit=crop&w=800&q=85",
@@ -63,6 +69,7 @@ const products = [
     badge: "Best Seller",
     badgeClass: "badge-dark",
     detail: "Hand-finished wood",
+    categories: ["Kitchen", "Home Decor"],
     rating: "4.7",
     reviews: "864",
     image: "https://images.unsplash.com/photo-1601985705806-5b9a71f6004f?auto=format&fit=crop&w=800&q=85",
@@ -74,6 +81,7 @@ const products = [
     badge: "20% Off",
     badgeClass: "badge-discount",
     detail: "Set of two planters",
+    categories: ["Home Decor", "Storage"],
     rating: "4.6",
     reviews: "519",
     image: "https://images.unsplash.com/photo-1485955900006-10f4d324d411?auto=format&fit=crop&w=800&q=85",
@@ -82,6 +90,7 @@ const products = [
     name: "Insulated Lunch Carrier",
     price: "Rs. 799",
     detail: "Compact workday storage",
+    categories: ["Lunch Box", "Storage"],
     rating: "4.5",
     reviews: "410",
     image: "https://images.unsplash.com/photo-1543352634-a1c51d9f1fa7?auto=format&fit=crop&w=800&q=85",
@@ -91,6 +100,7 @@ const products = [
     price: "Rs. 650",
     badge: "Fresh Drop",
     detail: "Calm desk essentials",
+    categories: ["Home Decor", "Storage"],
     rating: "4.4",
     reviews: "283",
     image: "https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=800&q=85",
@@ -100,6 +110,7 @@ const products = [
     price: "Rs. 399",
     oldPrice: "Rs. 549",
     detail: "Everyday glassware",
+    categories: ["Kitchen", "Bottles"],
     rating: "4.6",
     reviews: "932",
     image: "https://images.unsplash.com/photo-1606813907291-d86efa9b94db?auto=format&fit=crop&w=800&q=85",
@@ -109,6 +120,7 @@ const products = [
     price: "Rs. 749",
     oldPrice: "Rs. 949",
     detail: "Soft woven cotton",
+    categories: ["Textiles", "Home Decor"],
     rating: "4.3",
     reviews: "190",
     image: "https://images.unsplash.com/photo-1604578762246-41134e37f9cc?auto=format&fit=crop&w=800&q=85",
@@ -119,9 +131,117 @@ const products = [
     badge: "Limited",
     badgeClass: "badge-dark",
     detail: "Shelf-ready accent",
+    categories: ["Home Decor", "Gifting"],
     rating: "4.7",
     reviews: "351",
     image: "https://images.unsplash.com/photo-1513519245088-0e12902e5a38?auto=format&fit=crop&w=800&q=85",
+  },
+  {
+    name: "V8 OTG Fan",
+    slug: "v8-otg-fan",
+    price: "Rs. 16",
+    oldPrice: "Rs. 22",
+    salePrice: 16,
+    originalPrice: 22,
+    badge: "27% Off",
+    badgeClass: "badge-discount",
+    detail: "OTG Fan | Mobile Fan",
+    description: "Compact OTG fan for quick personal cooling while using compatible mobile devices.",
+    categories: ["Fans"],
+    rating: "4.8",
+    reviews: "0",
+    stock: 100,
+    active: true,
+    inStock: true,
+    photoCount: "2 photos",
+    image: "/images/products/new-products/v8-otg-fan.svg",
+    imageFilename: "v8-otg-fan.svg",
+  },
+  {
+    name: "RL-7064 Table Fan",
+    slug: "rl-7064-table-fan",
+    price: "Rs. 495",
+    oldPrice: "Rs. 595",
+    salePrice: 495,
+    originalPrice: 595,
+    badge: "17% Off",
+    badgeClass: "badge-discount",
+    detail: "Table Fan | Portable Fan",
+    description: "Portable table fan for desk, bedside, and small-room personal cooling.",
+    categories: ["Fans"],
+    rating: "4.8",
+    reviews: "0",
+    stock: 100,
+    active: true,
+    inStock: true,
+    photoCount: "2 photos",
+    image: "/images/products/new-products/rl-7064-table-fan.svg",
+    imageFilename: "rl-7064-table-fan.svg",
+  },
+  {
+    name: "B-84 Unicorn Printed Temperature Bottle (Imported)",
+    slug: "b-84-unicorn-printed-temperature-bottle-imported",
+    price: "Rs. 132",
+    oldPrice: "Rs. 195",
+    salePrice: 132,
+    originalPrice: 195,
+    badge: "32% Off",
+    badgeClass: "badge-discount",
+    stockBadge: "Out of Stock",
+    detail: "Temperature Bottle | Kids Bottle",
+    description: "Imported unicorn printed temperature bottle for kids and daily carry.",
+    categories: ["Bottles"],
+    rating: "4.8",
+    reviews: "0",
+    stock: 0,
+    active: true,
+    inStock: false,
+    photoCount: "3 photos",
+    image: "/images/products/new-products/b-84-unicorn-printed-temperature-bottle.svg",
+    imageFilename: "b-84-unicorn-printed-temperature-bottle.svg",
+  },
+  {
+    name: "Transparent Leak Proof Lunch Box",
+    slug: "transparent-leak-proof-lunch-box",
+    price: "Rs. 55",
+    oldPrice: "Rs. 95",
+    salePrice: 55,
+    originalPrice: 95,
+    badge: "42% Off",
+    badgeClass: "badge-discount",
+    stockBadge: "Out of Stock",
+    detail: "Lunch Box | Leak Proof",
+    description: "Transparent leak proof lunch box for compact meal storage and daily use.",
+    categories: ["Lunch Box", "Storage"],
+    rating: "4.8",
+    reviews: "0",
+    stock: 0,
+    active: true,
+    inStock: false,
+    image: "/images/products/new-products/transparent-leak-proof-lunch-box.svg",
+    imageFilename: "transparent-leak-proof-lunch-box.svg",
+  },
+  {
+    name: "B-07 Premium Nice Glass Bottle",
+    slug: "b-07-premium-nice-glass-bottle",
+    price: "Rs. 52",
+    oldPrice: "Rs. 95",
+    salePrice: 52,
+    originalPrice: 95,
+    badge: "45% Off",
+    badgeClass: "badge-discount",
+    stockBadge: "Out of Stock",
+    detail: "Glass Bottle | Drinkware",
+    description: "Premium glass bottle with a clean look for gifting, carry, and everyday drinkware.",
+    categories: ["Bottles", "Gifting"],
+    rating: "4.8",
+    reviews: "0",
+    stock: 0,
+    active: true,
+    inStock: false,
+    photoCount: "5 photos",
+    image: "/images/products/new-products/b-07-premium-nice-glass-bottle.svg",
+    imageFilename: "b-07-premium-nice-glass-bottle.svg",
   },
 ];
 
@@ -162,6 +282,26 @@ function CartIcon() {
   );
 }
 
+function UserIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="7" r="4" />
+      <path d="M4 21v-2a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v2" />
+    </svg>
+  );
+}
+
+
+
+function StoreIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+      <polyline points="9 22 9 12 15 12 15 22" />
+    </svg>
+  );
+}
+
 function MenuIcon({ open }) {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -194,14 +334,26 @@ function ProductCard({ product, index = 0, cartQuantity = 0, onAddToCart }) {
         {product.badge ? (
           <span className={`badge ${product.badgeClass || ""}`}>{product.badge}</span>
         ) : null}
-        <span className="save-button" aria-hidden="true">
-          +
-        </span>
-        <img src={product.image} alt={product.name} />
+        {product.stockBadge ? <span className="stock-badge">{product.stockBadge}</span> : null}
+        {!product.stockBadge ? (
+          <span className="save-button" aria-hidden="true">
+            +
+          </span>
+        ) : null}
+        {product.image ? (
+          <img src={product.image} alt={product.name} />
+        ) : (
+          <span className="product-image-todo">
+            <strong>Product image pending</strong>
+            <small>{product.imageFilename}</small>
+          </span>
+        )}
+        {product.photoCount ? <span className="photo-count">{product.photoCount}</span> : null}
       </a>
       <div className="product-body">
         <p className="product-detail">{product.detail}</p>
         <h3>{product.name}</h3>
+        {product.description ? <p className="product-description">{product.description}</p> : null}
         <p className="rating" aria-label={`${product.rating} out of 5 stars from ${product.reviews} reviews`}>
           <span>Star</span>
           <span>Star</span>
@@ -216,8 +368,13 @@ function ProductCard({ product, index = 0, cartQuantity = 0, onAddToCart }) {
           {product.oldPrice ? <span>{product.oldPrice}</span> : null}
         </p>
         <p className="delivery">Free delivery in 2-4 days</p>
-        <button className="quick-add" type="button" onClick={() => onAddToCart(product)}>
-          {cartQuantity > 0 ? `Added (${cartQuantity})` : "Add to Cart"}
+        <button
+          className="quick-add"
+          type="button"
+          onClick={() => onAddToCart(product)}
+          disabled={product.inStock === false}
+        >
+          {product.inStock === false ? "Out of Stock" : cartQuantity > 0 ? `Added (${cartQuantity})` : "Add to Cart"}
         </button>
       </div>
     </motion.article>
@@ -230,9 +387,18 @@ export default function Home() {
   const [showAllProducts, setShowAllProducts] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [cartItems, setCartItems] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState(null);
 
   const visibleCategories = showAllCategories ? categories : categories.slice(0, 6);
-  const visibleProducts = showAllProducts ? products : products.slice(0, 4);
+  const activeProducts = products.filter((product) => product.inStock !== false);
+  const filteredProducts = selectedCategory
+    ? activeProducts.filter((product) =>
+        selectedCategory.name === "Sale"
+          ? product.oldPrice
+          : product.categories?.includes(selectedCategory.name)
+      )
+    : activeProducts;
+  const visibleProducts = showAllProducts ? filteredProducts : filteredProducts.slice(0, 4);
   const cartCount = cartItems.reduce((total, item) => total + item.quantity, 0);
   const cartTotal = cartItems.reduce((total, item) => total + getProductPrice(item.product) * item.quantity, 0);
 
@@ -267,67 +433,93 @@ export default function Home() {
     setCartItems((items) => items.filter((item) => item.id !== productId));
   }
 
+  function showCategoryProducts(category) {
+    setSelectedCategory(category);
+    setShowAllProducts(true);
+    window.setTimeout(() => {
+      document.getElementById("featured")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 0);
+  }
+
   return (
     <>
-      <div className="announcement-bar">
-        <span>Free shipping over Rs. 999</span>
-        <a href="#featured">Shop fresh arrivals</a>
-      </div>
+
 
       <header className="site-header">
-        <a href="#" className="brand" aria-label="Pubesto home">
-          Pubesto
-        </a>
-        <button
-          className="mobile-menu-toggle"
-          type="button"
-          onClick={() => setIsMenuOpen((open) => !open)}
-          aria-label="Toggle menu"
-          aria-expanded={isMenuOpen}
-        >
-          <MenuIcon open={isMenuOpen} />
-        </button>
-        <div className={`header-content ${isMenuOpen ? "open" : ""}`}>
-          <nav className="main-nav" aria-label="Main navigation">
-            <a className="active" href="#">
-              Home
-            </a>
-            <details className="nav-dropdown">
-              <summary>Shop</summary>
-              <div className="nav-panel">
-                <a href="#categories">Categories</a>
-                <a href="#featured">Featured Products</a>
-                <a href="#journal">The Edit</a>
-                <a href="#newsletter">Offers</a>
+        <div className="header-top">
+          <div className="header-container">
+            <div className="brand-section">
+              <a href="#" className="brand" aria-label="Pubesto home">
+                Pubesto
+              </a>
+            </div>
+            
+            <div className="search-section">
+              <form className="search" role="search" onSubmit={(event) => event.preventDefault()}>
+                <SearchIcon />
+                <label className="sr-only" htmlFor="site-search">
+                  Search products
+                </label>
+                <input id="site-search" type="search" placeholder="Try 'Lunch Box' or Search by Product..." />
+              </form>
+            </div>
+
+            <div className="actions-section">
+
+              <div className="action-item supplier">
+                <span>Become a Supplier</span>
               </div>
-            </details>
-            <a href="#featured">New Arrivals</a>
-            <a href="#journal">The Edit</a>
-            <a href="#footer">Contact</a>
-          </nav>
-          <div className="header-tools">
-            <form className="search" role="search" onSubmit={(event) => event.preventDefault()}>
-              <SearchIcon />
-              <label className="sr-only" htmlFor="site-search">
-                Search products
-              </label>
-              <input id="site-search" type="search" placeholder="Search decor, bottles..." />
-            </form>
+              <div className="divider" />
+              <button className="action-item profile">
+                <UserIcon />
+                <span>Profile</span>
+              </button>
+              <button
+                className="action-item cart-action"
+                type="button"
+                aria-label={`Open cart with ${cartCount} item${cartCount === 1 ? "" : "s"}`}
+                aria-expanded={isCartOpen}
+                onClick={() => setIsCartOpen(true)}
+              >
+                <div className="cart-icon-wrapper">
+                  <CartIcon />
+                  {cartCount > 0 && <span className="cart-count">{cartCount}</span>}
+                </div>
+                <span>Cart</span>
+              </button>
+            </div>
+            
             <button
-              className="cart"
+              className="mobile-menu-toggle"
               type="button"
-              aria-label={`Open cart with ${cartCount} item${cartCount === 1 ? "" : "s"}`}
-              aria-expanded={isCartOpen}
-              onClick={() => setIsCartOpen(true)}
+              onClick={() => setIsMenuOpen((open) => !open)}
+              aria-label="Toggle menu"
+              aria-expanded={isMenuOpen}
             >
-              <CartIcon />
-              {cartCount > 0 ? (
-                <span className="cart-count">{cartCount}</span>
-              ) : (
-                <span className="cart-dot" />
-              )}
+              <MenuIcon open={isMenuOpen} />
             </button>
           </div>
+        </div>
+
+        <nav className="category-nav">
+          <div className="header-container">
+            <a href="#categories">Home Decor</a>
+            <a href="#categories">Kitchen & Dining</a>
+            <a href="#categories">Bottles & Drinkware</a>
+            <a href="#categories">Lunch Storage</a>
+            <a href="#categories">Textiles</a>
+            <a href="#categories">Gifting</a>
+            <a href="#categories" className="sale-link">Sale</a>
+          </div>
+        </nav>
+        
+        {/* Mobile menu content */}
+        <div className={`mobile-nav-content ${isMenuOpen ? "open" : ""}`}>
+           <a href="#categories">Categories</a>
+           <a href="#featured">Featured products</a>
+           <a href="#newsletter">Offers</a>
+           <a href="#featured">New arrivals</a>
+           <a href="#footer">Contact</a>
         </div>
       </header>
 
@@ -432,13 +624,6 @@ export default function Home() {
               <a className="primary-button" href="#featured">
                 Shop Now
               </a>
-              <a className="secondary-button" href="#categories">
-                Explore Categories
-              </a>
-            </div>
-            <div className="hero-note" aria-label="Store highlights">
-              <strong>2-day dispatch</strong>
-              <span>Premium picks from Rs. 399</span>
             </div>
           </motion.article>
 
@@ -510,56 +695,94 @@ export default function Home() {
               className="view-all"
               type="button"
               onClick={() => setShowAllCategories((visible) => !visible)}
+
               aria-expanded={showAllCategories}
             >
               {showAllCategories ? "Show less" : "View all"} <span aria-hidden="true">&gt;</span>
             </button>
           </div>
-          <div className="category-strip" aria-label="Shop by category">
-            {visibleCategories.map((category, index) => (
-              <motion.a
-                className={`category-tile ${category.name === "Sale" ? "sale" : ""}`}
-                href="#featured"
-                key={category.name}
-                initial={{ opacity: 0, y: 14 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: index * 0.04 }}
-                viewport={{ once: true }}
-              >
-                <img src={category.image} alt="" />
-                <span>{category.name}</span>
-                <small>{category.count}</small>
-              </motion.a>
-            ))}
+          <div className={showAllCategories ? "category-grid" : "category-scroll-container"}>
+            <motion.div 
+              className={showAllCategories ? "category-grid-inner" : "category-marquee"}
+              animate={showAllCategories ? {} : {
+                x: [0, -50 + "%"]
+              }}
+              transition={{
+                x: {
+                  repeat: Infinity,
+                  repeatType: "loop",
+                  duration: 30,
+                  ease: "linear",
+                },
+              }}
+            >
+              {(showAllCategories ? categories : [...categories, ...categories]).map((category, index) => (
+                <button
+                  className={`category-tile ${category.name === "Sale" ? "sale" : ""} ${
+                    selectedCategory?.name === category.name ? "selected" : ""
+                  }`}
+                  type="button"
+                  onClick={() => showCategoryProducts(category)}
+                  key={`${category.name}-${index}`}
+                >
+                  <img src={category.image} alt="" />
+                  <span>{category.name}</span>
+                  <small>{category.count}</small>
+                </button>
+              ))}
+            </motion.div>
           </div>
         </section>
 
         <section id="featured" className="product-section">
           <div className="section-heading">
             <div>
-              <p className="eyebrow">Customer favourites</p>
-              <h2>Featured products</h2>
+              <p className="eyebrow">
+                {selectedCategory ? `Showing ${selectedCategory.count}` : "Customer favourites"}
+              </p>
+              <h2>{selectedCategory ? `${selectedCategory.name} products` : "Featured products"}</h2>
             </div>
-            <button
-              className="view-all"
-              type="button"
-              onClick={() => setShowAllProducts((visible) => !visible)}
-              aria-expanded={showAllProducts}
-            >
-              {showAllProducts ? "Show less" : "See more"} <span aria-hidden="true">&gt;</span>
-            </button>
+            <div className="section-actions">
+              {selectedCategory ? (
+                <button
+                  className="view-all"
+                  type="button"
+                  onClick={() => {
+                    setSelectedCategory(null);
+                    setShowAllProducts(false);
+                  }}
+                >
+                  All products <span aria-hidden="true">&gt;</span>
+                </button>
+              ) : null}
+              <button
+                className="view-all"
+                type="button"
+                onClick={() => setShowAllProducts((visible) => !visible)}
+                aria-expanded={showAllProducts}
+              >
+                {showAllProducts ? "Show less" : "See more"} <span aria-hidden="true">&gt;</span>
+              </button>
+            </div>
           </div>
-          <div className="product-grid">
-            {visibleProducts.map((product, idx) => (
-              <ProductCard
-                product={product}
-                key={product.name}
-                index={idx}
-                cartQuantity={cartItems.find((item) => item.id === getProductId(product))?.quantity || 0}
-                onAddToCart={addToCart}
-              />
-            ))}
-          </div>
+          {visibleProducts.length > 0 ? (
+            <div className="product-grid">
+              {visibleProducts.map((product, idx) => (
+                <ProductCard
+                  product={product}
+                  key={product.name}
+                  index={idx}
+                  cartQuantity={cartItems.find((item) => item.id === getProductId(product))?.quantity || 0}
+                  onAddToCart={addToCart}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="empty-products">
+              <h3>No products available yet</h3>
+              <p>{selectedCategory?.name} products can appear here after they are added to the catalog.</p>
+            </div>
+          )}
         </section>
 
         <section id="journal" className="editorial-section" aria-label="Pubesto style edit">
