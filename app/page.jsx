@@ -2,6 +2,17 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
+import {
+  ArrowRight,
+  AtSign,
+  Camera,
+  Clock8,
+  Feather,
+  MapPinned,
+  PackageCheck,
+  Play,
+  ShieldCheck,
+} from "lucide-react";
 
 const categories = [
   {
@@ -50,6 +61,22 @@ const categories = [
     image: "https://images.unsplash.com/photo-1511381939415-e44015466834?auto=format&fit=crop&w=600&q=80",
   },
 ];
+
+const navLabelByCategory = {
+  Kitchen: "Kitchen & Dining",
+  Bottles: "Bottles & Drinkware",
+  "Lunch Box": "Lunch Storage",
+};
+
+const primaryNavCategoryNames = ["Home Decor", "Kitchen", "Bottles", "Lunch Box", "Textiles", "Gifting", "Sale"];
+
+const primaryNavItems = categories
+  .filter((category) => primaryNavCategoryNames.includes(category.name))
+  .sort((a, b) => primaryNavCategoryNames.indexOf(a.name) - primaryNavCategoryNames.indexOf(b.name))
+  .map((category) => ({
+    ...category,
+    label: navLabelByCategory[category.name] || category.name,
+  }));
 
 const products = [
   {
@@ -245,6 +272,144 @@ const products = [
   },
 ];
 
+const heroSlides = [
+  {
+    eyebrow: "Payday Sale",
+    title: "Buy 1 Get 1",
+    copy: "+ Up to 45% off on bottles, fans, and lunch storage.",
+    cta: "Shop Offers",
+    image: "https://images.unsplash.com/photo-1618220179428-22790b461013?auto=format&fit=crop&w=1800&q=88",
+    productImage: "/images/products/new-products/b-07-premium-nice-glass-bottle.svg",
+    productName: "Premium Glass Bottle",
+    productDetail: "Glass Bottle | Drinkware",
+    price: "Rs. 52",
+    oldPrice: "Rs. 95",
+  },
+  {
+    eyebrow: "Bottle Week",
+    title: "Up to 45% Off",
+    copy: "Clean bottles for school, work, gifting, and everyday carry with fast dispatch.",
+    cta: "View Bottles",
+    image: "https://images.unsplash.com/photo-1602143407151-7111542de6e8?auto=format&fit=crop&w=1800&q=88",
+    productImage: "/images/products/new-products/b-84-unicorn-printed-temperature-bottle.svg",
+    productName: "Unicorn Temperature Bottle",
+    productDetail: "Kids Bottle | Imported",
+    price: "Rs. 132",
+    oldPrice: "Rs. 195",
+  },
+  {
+    eyebrow: "Cooling Drop",
+    title: "Fan Deals Live",
+    copy: "Compact cooling picks for workdays, bedside use, and on-the-go comfort.",
+    cta: "Shop Fans",
+    image: "https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=1800&q=88",
+    productImage: "/images/products/new-products/rl-7064-table-fan.svg",
+    productName: "RL Table Fan",
+    productDetail: "Table Fan | Portable Fan",
+    price: "Rs. 495",
+    oldPrice: "Rs. 595",
+  },
+];
+
+const peopleChoiceVideos = [
+  {
+    title: "Dive Club - 50ML",
+    price: "Rs. 1,299",
+    oldPrice: "Rs. 1,999",
+    image: "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=600&q=86",
+    thumb: "/images/products/new-products/b-07-premium-nice-glass-bottle.svg",
+  },
+  {
+    title: "Oak & Smoke Eau De Parfum",
+    price: "Rs. 1,299",
+    oldPrice: "Rs. 1,999",
+    image: "https://images.unsplash.com/photo-1514222709107-a180c68d72b4?auto=format&fit=crop&w=600&q=86",
+    thumb: "/images/products/new-products/transparent-leak-proof-lunch-box.svg",
+  },
+  {
+    title: "After Hours Eau De Parfum",
+    price: "Rs. 1,299",
+    oldPrice: "Rs. 1,999",
+    image: "https://images.unsplash.com/photo-1507914464562-6ff4ac29692f?auto=format&fit=crop&w=600&q=86",
+    thumb: "/images/products/new-products/rl-7064-table-fan.svg",
+  },
+  {
+    title: "Spoiled Sweet Daily Pick",
+    price: "Rs. 1,299",
+    oldPrice: "Rs. 1,999",
+    image: "https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?auto=format&fit=crop&w=600&q=86",
+    thumb: "/images/products/new-products/b-84-unicorn-printed-temperature-bottle.svg",
+  },
+  {
+    title: "Dive Club Gift Box",
+    price: "Rs. 1,299",
+    oldPrice: "Rs. 1,999",
+    image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=600&q=86",
+    thumb: "/images/products/new-products/v8-otg-fan.svg",
+  },
+  {
+    title: "Premium Glass Bottle",
+    price: "Rs. 52",
+    oldPrice: "Rs. 95",
+    image: "https://images.unsplash.com/photo-1511988617509-a57c8a288659?auto=format&fit=crop&w=600&q=86",
+    thumb: "/images/products/new-products/b-07-premium-nice-glass-bottle.svg",
+  },
+];
+
+const pubestoTrustFeatures = [
+  {
+    label: "Quality-checked products",
+    mark: "QC",
+  },
+  {
+    label: "Made for Indian homes",
+    Icon: MapPinned,
+  },
+  {
+    label: "Secure packaging",
+    Icon: PackageCheck,
+  },
+  {
+    label: "Fast dispatch on most orders",
+    Icon: Clock8,
+  },
+  {
+    label: "Easy returns and support",
+    Icon: ShieldCheck,
+  },
+  {
+    label: "Useful daily essentials",
+    Icon: Feather,
+  },
+  {
+    label: "Value pricing on trusted picks",
+    mark: "Rs",
+  },
+];
+
+const socialGalleryItems = [
+  {
+    title: "Carry it clean",
+    caption: "Bottles for desk, school, and daily errands.",
+    image: "https://images.unsplash.com/photo-1602143407151-7111542de6e8?auto=format&fit=crop&w=900&q=86",
+  },
+  {
+    title: "Pack the day",
+    caption: "Lunch storage that keeps workdays simple.",
+    image: "https://images.unsplash.com/photo-1543352634-a1c51d9f1fa7?auto=format&fit=crop&w=900&q=86",
+  },
+  {
+    title: "Cool corners",
+    caption: "Compact fans and comfort picks for home.",
+    image: "https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=900&q=86",
+  },
+  {
+    title: "Everyday edits",
+    caption: "Useful finds styled for Indian homes.",
+    image: "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?auto=format&fit=crop&w=900&q=86",
+  },
+];
+
 function getProductId(product) {
   return product.sku || product.slug || product.name;
 }
@@ -386,21 +551,65 @@ export default function Home() {
   const [showAllCategories, setShowAllCategories] = useState(false);
   const [showAllProducts, setShowAllProducts] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isSupplierOpen, setIsSupplierOpen] = useState(false);
   const [cartItems, setCartItems] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [profileNotice, setProfileNotice] = useState("");
+  const [supplierNotice, setSupplierNotice] = useState("");
 
   const visibleCategories = showAllCategories ? categories : categories.slice(0, 6);
+  const normalizedSearchQuery = searchQuery.trim().toLowerCase();
   const activeProducts = products.filter((product) => product.inStock !== false);
-  const filteredProducts = selectedCategory
+  const categoryFilteredProducts = selectedCategory
     ? activeProducts.filter((product) =>
         selectedCategory.name === "Sale"
           ? product.oldPrice
           : product.categories?.includes(selectedCategory.name)
       )
     : activeProducts;
-  const visibleProducts = showAllProducts ? filteredProducts : filteredProducts.slice(0, 4);
+  const filteredProducts = normalizedSearchQuery
+    ? categoryFilteredProducts.filter((product) =>
+        [
+          product.name,
+          product.detail,
+          product.description,
+          product.price,
+          product.oldPrice,
+          ...(product.categories || []),
+        ]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase()
+          .includes(normalizedSearchQuery)
+      )
+    : categoryFilteredProducts;
+  const visibleProducts = showAllProducts || normalizedSearchQuery ? filteredProducts : filteredProducts.slice(0, 4);
   const cartCount = cartItems.reduce((total, item) => total + item.quantity, 0);
   const cartTotal = cartItems.reduce((total, item) => total + getProductPrice(item.product) * item.quantity, 0);
+  const productEyebrow = normalizedSearchQuery
+    ? `${filteredProducts.length} result${filteredProducts.length === 1 ? "" : "s"} for "${searchQuery.trim()}"`
+    : selectedCategory
+      ? `Showing ${selectedCategory.count}`
+      : "Customer favourites";
+  const productHeading = normalizedSearchQuery
+    ? "Search results"
+    : selectedCategory
+      ? `${selectedCategory.name} products`
+      : "Featured products";
+
+  function closeUtilityPanels() {
+    setIsCartOpen(false);
+    setIsProfileOpen(false);
+    setIsSupplierOpen(false);
+  }
+
+  function scrollToFeatured() {
+    window.setTimeout(() => {
+      document.getElementById("featured")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 0);
+  }
 
   function addToCart(product) {
     const productId = getProductId(product);
@@ -416,6 +625,8 @@ export default function Home() {
 
       return [...items, { id: productId, product, quantity: 1 }];
     });
+    setIsProfileOpen(false);
+    setIsSupplierOpen(false);
     setIsCartOpen(true);
   }
 
@@ -435,10 +646,30 @@ export default function Home() {
 
   function showCategoryProducts(category) {
     setSelectedCategory(category);
+    setSearchQuery("");
     setShowAllProducts(true);
-    window.setTimeout(() => {
-      document.getElementById("featured")?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 0);
+    setIsMenuOpen(false);
+    scrollToFeatured();
+  }
+
+  function resetStoreView() {
+    setSelectedCategory(null);
+    setSearchQuery("");
+    setShowAllProducts(false);
+    setIsMenuOpen(false);
+  }
+
+  function submitSearch(event) {
+    event.preventDefault();
+    setSelectedCategory(null);
+    setShowAllProducts(true);
+    setIsMenuOpen(false);
+    scrollToFeatured();
+  }
+
+  function clearSearch() {
+    setSearchQuery("");
+    setShowAllProducts(false);
   }
 
   return (
@@ -449,28 +680,62 @@ export default function Home() {
         <div className="header-top">
           <div className="header-container">
             <div className="brand-section">
-              <a href="#" className="brand" aria-label="Pubesto home">
+              <a href="#" className="brand" aria-label="Pubesto home" onClick={resetStoreView}>
                 Pubesto
               </a>
             </div>
             
             <div className="search-section">
-              <form className="search" role="search" onSubmit={(event) => event.preventDefault()}>
+              <form className="search" role="search" onSubmit={submitSearch}>
                 <SearchIcon />
                 <label className="sr-only" htmlFor="site-search">
                   Search products
                 </label>
-                <input id="site-search" type="search" placeholder="Try 'Lunch Box' or Search by Product..." />
+                <input
+                  id="site-search"
+                  type="search"
+                  placeholder="Try 'Lunch Box' or Search by Product..."
+                  value={searchQuery}
+                  onChange={(event) => {
+                    setSearchQuery(event.target.value);
+                    setSelectedCategory(null);
+                    setShowAllProducts(true);
+                  }}
+                />
+                {searchQuery ? (
+                  <button className="search-clear" type="button" onClick={clearSearch} aria-label="Clear search">
+                    x
+                  </button>
+                ) : null}
               </form>
             </div>
 
             <div className="actions-section">
 
-              <div className="action-item supplier">
+              <button
+                className="action-item supplier"
+                type="button"
+                onClick={() => {
+                  closeUtilityPanels();
+                  setSupplierNotice("");
+                  setIsSupplierOpen(true);
+                }}
+                aria-expanded={isSupplierOpen}
+              >
+                <StoreIcon />
                 <span>Become a Supplier</span>
-              </div>
+              </button>
               <div className="divider" />
-              <button className="action-item profile">
+              <button
+                className="action-item profile"
+                type="button"
+                onClick={() => {
+                  closeUtilityPanels();
+                  setProfileNotice("");
+                  setIsProfileOpen(true);
+                }}
+                aria-expanded={isProfileOpen}
+              >
                 <UserIcon />
                 <span>Profile</span>
               </button>
@@ -479,7 +744,10 @@ export default function Home() {
                 type="button"
                 aria-label={`Open cart with ${cartCount} item${cartCount === 1 ? "" : "s"}`}
                 aria-expanded={isCartOpen}
-                onClick={() => setIsCartOpen(true)}
+                onClick={() => {
+                  closeUtilityPanels();
+                  setIsCartOpen(true);
+                }}
               >
                 <div className="cart-icon-wrapper">
                   <CartIcon />
@@ -503,23 +771,89 @@ export default function Home() {
 
         <nav className="category-nav">
           <div className="header-container">
-            <a href="#categories">Home Decor</a>
-            <a href="#categories">Kitchen & Dining</a>
-            <a href="#categories">Bottles & Drinkware</a>
-            <a href="#categories">Lunch Storage</a>
-            <a href="#categories">Textiles</a>
-            <a href="#categories">Gifting</a>
-            <a href="#categories" className="sale-link">Sale</a>
+            {primaryNavItems.map((category) => (
+              <button
+                className={`${category.name === "Sale" ? "sale-link" : ""} ${
+                  selectedCategory?.name === category.name ? "active" : ""
+                }`}
+                type="button"
+                onClick={() => showCategoryProducts(category)}
+                aria-current={selectedCategory?.name === category.name ? "page" : undefined}
+                key={category.name}
+              >
+                {category.label}
+              </button>
+            ))}
           </div>
         </nav>
         
         {/* Mobile menu content */}
         <div className={`mobile-nav-content ${isMenuOpen ? "open" : ""}`}>
-           <a href="#categories">Categories</a>
-           <a href="#featured">Featured products</a>
-           <a href="#newsletter">Offers</a>
-           <a href="#featured">New arrivals</a>
-           <a href="#footer">Contact</a>
+          <form className="mobile-search" role="search" onSubmit={submitSearch}>
+            <label className="sr-only" htmlFor="mobile-site-search">
+              Search products
+            </label>
+            <input
+              id="mobile-site-search"
+              type="search"
+              placeholder="Search products"
+              value={searchQuery}
+              onChange={(event) => {
+                setSearchQuery(event.target.value);
+                setSelectedCategory(null);
+                setShowAllProducts(true);
+              }}
+            />
+            <button type="submit">Search</button>
+          </form>
+          {primaryNavItems.map((category) => (
+            <button
+              className={category.name === "Sale" ? "sale-link" : ""}
+              type="button"
+              onClick={() => showCategoryProducts(category)}
+              key={`mobile-${category.name}`}
+            >
+              {category.label}
+            </button>
+          ))}
+          <a href="#newsletter" onClick={() => setIsMenuOpen(false)}>
+            Offers
+          </a>
+          <button
+            type="button"
+            onClick={() => {
+              setIsMenuOpen(false);
+              closeUtilityPanels();
+              setSupplierNotice("");
+              setIsSupplierOpen(true);
+            }}
+          >
+            Become a Supplier
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setIsMenuOpen(false);
+              closeUtilityPanels();
+              setProfileNotice("");
+              setIsProfileOpen(true);
+            }}
+          >
+            Profile
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setIsMenuOpen(false);
+              closeUtilityPanels();
+              setIsCartOpen(true);
+            }}
+          >
+            Cart ({cartCount})
+          </button>
+          <a href="#footer" onClick={() => setIsMenuOpen(false)}>
+            Contact
+          </a>
         </div>
       </header>
 
@@ -586,7 +920,15 @@ export default function Home() {
                     <span>Subtotal</span>
                     <strong>{formatPrice(cartTotal)}</strong>
                   </div>
-                  <button type="button">Checkout</button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsCartOpen(false);
+                      setIsProfileOpen(true);
+                    }}
+                  >
+                    Checkout
+                  </button>
                 </div>
               </>
             ) : (
@@ -602,68 +944,203 @@ export default function Home() {
         </div>
       ) : null}
 
+      {isProfileOpen ? (
+        <div className="cart-layer">
+          <button
+            className="cart-backdrop"
+            type="button"
+            aria-label="Close profile panel"
+            onClick={() => setIsProfileOpen(false)}
+          />
+          <aside className="cart-drawer utility-drawer" role="dialog" aria-modal="true" aria-label="Profile">
+            <div className="cart-drawer-header">
+              <div>
+                <p className="eyebrow">Your account</p>
+                <h2>Profile</h2>
+              </div>
+              <button type="button" onClick={() => setIsProfileOpen(false)} aria-label="Close profile panel">
+                Close
+              </button>
+            </div>
+
+            <div className="utility-panel-body">
+              <div className="profile-summary">
+                <span aria-hidden="true">
+                  <UserIcon />
+                </span>
+                <div>
+                  <strong>Welcome to Pubesto</strong>
+                  <p>Sign in to track orders, save addresses, and manage your wishlist.</p>
+                </div>
+              </div>
+
+              <form
+                className="utility-form"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  setProfileNotice("Sign-in request received.");
+                }}
+              >
+                <label htmlFor="profile-phone">Mobile number or email</label>
+                <input id="profile-phone" type="text" placeholder="Enter mobile number or email" />
+                <button type="submit">Continue</button>
+              </form>
+              {profileNotice ? <p className="utility-notice">{profileNotice}</p> : null}
+
+              <div className="utility-link-list" aria-label="Profile shortcuts">
+                <a href="#featured" onClick={() => setIsProfileOpen(false)}>
+                  Orders
+                </a>
+                <a href="#featured" onClick={() => setIsProfileOpen(false)}>
+                  Wishlist
+                </a>
+                <a href="#footer" onClick={() => setIsProfileOpen(false)}>
+                  Help & support
+                </a>
+              </div>
+            </div>
+          </aside>
+        </div>
+      ) : null}
+
+      {isSupplierOpen ? (
+        <div className="cart-layer">
+          <button
+            className="cart-backdrop"
+            type="button"
+            aria-label="Close supplier panel"
+            onClick={() => setIsSupplierOpen(false)}
+          />
+          <aside className="cart-drawer utility-drawer" role="dialog" aria-modal="true" aria-label="Become a supplier">
+            <div className="cart-drawer-header">
+              <div>
+                <p className="eyebrow">Sell with Pubesto</p>
+                <h2>Become a Supplier</h2>
+              </div>
+              <button type="button" onClick={() => setIsSupplierOpen(false)} aria-label="Close supplier panel">
+                Close
+              </button>
+            </div>
+
+            <div className="utility-panel-body">
+              <div className="supplier-steps" role="list">
+                <div role="listitem">
+                  <strong>1</strong>
+                  <span>Share your product range</span>
+                </div>
+                <div role="listitem">
+                  <strong>2</strong>
+                  <span>Get quality and pricing review</span>
+                </div>
+                <div role="listitem">
+                  <strong>3</strong>
+                  <span>Start listing on Pubesto</span>
+                </div>
+              </div>
+
+              <form
+                className="utility-form"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  setSupplierNotice("Thanks. Your supplier request is ready for review.");
+                }}
+              >
+                <label htmlFor="supplier-brand">Business name</label>
+                <input id="supplier-brand" type="text" placeholder="Your store or brand name" />
+                <label htmlFor="supplier-contact">Contact number</label>
+                <input id="supplier-contact" type="tel" placeholder="Mobile number" />
+                <label htmlFor="supplier-category">Product category</label>
+                <select id="supplier-category" defaultValue="">
+                  <option value="" disabled>
+                    Select category
+                  </option>
+                  {categories
+                    .filter((category) => category.name !== "Sale")
+                    .map((category) => (
+                      <option value={category.name} key={category.name}>
+                        {category.name}
+                      </option>
+                    ))}
+                </select>
+                <button type="submit">Register interest</button>
+              </form>
+              {supplierNotice ? <p className="utility-notice">{supplierNotice}</p> : null}
+            </div>
+          </aside>
+        </div>
+      ) : null}
+
       <main>
-        <section className="hero-grid" aria-label="Featured collections">
-          <motion.article
-            className="hero-card hero-main"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-          >
-            <img
-              src="https://images.unsplash.com/photo-1618220179428-22790b461013?auto=format&fit=crop&w=1600&q=85"
-              alt=""
-            />
-            <div className="shade" />
-            <div className="hero-copy">
-              <p className="eyebrow">Curated Living</p>
-              <h1>Artisanal essentials for calmer everyday spaces</h1>
-              <p>Warm textures, crafted storage, and refined daily-use pieces selected for modern homes.</p>
+        <section className="hero-carousel" aria-label="Featured offers">
+          <div className="hero-marquee">
+            <div className="hero-track">
+              {[...heroSlides, heroSlides[0]].map((slide, index) => {
+                const isDuplicateSlide = index === heroSlides.length;
+
+                return (
+                  <article
+                    className="hero-slide"
+                    aria-hidden={isDuplicateSlide}
+                    key={`${slide.title}-${index}`}
+                  >
+                    <img className="hero-bg" src={slide.image} alt="" />
+                    <div className="hero-slide-shade" />
+                    <div className="hero-slide-content">
+                      <p className="eyebrow hero-eyebrow">{slide.eyebrow}</p>
+                      {index === 0 ? <h1>{slide.title}</h1> : <h2>{slide.title}</h2>}
+                      <p>{slide.copy}</p>
+                      <a
+                        className="primary-button hero-cta"
+                        href="#featured"
+                        tabIndex={isDuplicateSlide ? -1 : undefined}
+                      >
+                        {slide.cta}
+                      </a>
+                    </div>
+                    <aside className="hero-product-showcase" aria-label={slide.productName}>
+                      <div className="hero-product-image">
+                        <img src={slide.productImage} alt="" />
+                      </div>
+                      <div className="hero-product-info">
+                        <strong>{slide.productName}</strong>
+                        <span>{slide.productDetail}</span>
+                        <p>
+                          <b>{slide.price}</b>
+                          <s>{slide.oldPrice}</s>
+                        </p>
+                      </div>
+                    </aside>
+                  </article>
+                );
+              })}
             </div>
-            <div className="hero-actions">
-              <a className="primary-button" href="#featured">
-                Shop Now
+          </div>
+        </section>
+
+        <section className="video-choice-section" aria-labelledby="people-choice-title">
+          <div className="video-choice-heading">
+            <p>Shop from videos</p>
+            <h2 id="people-choice-title">People&apos;s choice</h2>
+          </div>
+          <div className="video-choice-scroll" role="list">
+            {peopleChoiceVideos.map((item) => (
+              <a className="video-choice-card" href="#featured" role="listitem" key={item.title}>
+                <img className="video-choice-image" src={item.image} alt={item.title} />
+                <span className="video-choice-gradient" aria-hidden="true" />
+                <span className="video-choice-product">
+                  <span className="video-choice-thumb">
+                    <img src={item.thumb} alt="" />
+                  </span>
+                  <span className="video-choice-copy">
+                    <strong>{item.title}</strong>
+                    <span>
+                      {item.price} <s>{item.oldPrice}</s>
+                    </span>
+                  </span>
+                </span>
               </a>
-            </div>
-          </motion.article>
-
-          <motion.article
-            className="hero-card promo-card"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-          >
-            <img
-              src="https://images.unsplash.com/photo-1603204077779-bed963ea7d0e?auto=format&fit=crop&w=900&q=85"
-              alt=""
-            />
-            <div className="shade compact-shade" />
-            <div className="promo-copy">
-              <p className="eyebrow">Table Edit</p>
-              <h2>Serveware</h2>
-              <p>Quiet pieces for thoughtful hosting.</p>
-              <a href="#categories">Explore collection</a>
-            </div>
-          </motion.article>
-
-          <motion.article
-            className="hero-card promo-card"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-          >
-            <img
-              src="https://images.unsplash.com/photo-1594223274512-ad4803739b7c?auto=format&fit=crop&w=900&q=85"
-              alt=""
-            />
-            <div className="shade compact-shade" />
-            <div className="promo-copy">
-              <p className="eyebrow">Daily Carry</p>
-              <h2>Bags, bottles, lunch storage</h2>
-              <p>Workday essentials with a cleaner finish.</p>
-              <a href="#featured">View essentials</a>
-            </div>
-          </motion.article>
+            ))}
+          </div>
         </section>
 
         <section className="service-strip" aria-label="Store benefits">
@@ -737,18 +1214,17 @@ export default function Home() {
         <section id="featured" className="product-section">
           <div className="section-heading">
             <div>
-              <p className="eyebrow">
-                {selectedCategory ? `Showing ${selectedCategory.count}` : "Customer favourites"}
-              </p>
-              <h2>{selectedCategory ? `${selectedCategory.name} products` : "Featured products"}</h2>
+              <p className="eyebrow">{productEyebrow}</p>
+              <h2>{productHeading}</h2>
             </div>
             <div className="section-actions">
-              {selectedCategory ? (
+              {selectedCategory || normalizedSearchQuery ? (
                 <button
                   className="view-all"
                   type="button"
                   onClick={() => {
                     setSelectedCategory(null);
+                    setSearchQuery("");
                     setShowAllProducts(false);
                   }}
                 >
@@ -779,10 +1255,32 @@ export default function Home() {
             </div>
           ) : (
             <div className="empty-products">
-              <h3>No products available yet</h3>
-              <p>{selectedCategory?.name} products can appear here after they are added to the catalog.</p>
+              <h3>{normalizedSearchQuery ? "No products found" : "No products available yet"}</h3>
+              <p>
+                {normalizedSearchQuery
+                  ? "Try a different product name, category, or material."
+                  : `${selectedCategory?.name} products can appear here after they are added to the catalog.`}
+              </p>
             </div>
           )}
+        </section>
+
+        <section className="why-pubesto-section" aria-labelledby="why-pubesto-title">
+          <span className="why-pubesto-wave" aria-hidden="true" />
+          <div className="why-pubesto-heading">
+            <p>Useful. Reliable. Everyday.</p>
+            <h2 id="why-pubesto-title">Why Choose Pubesto</h2>
+          </div>
+          <div className="why-pubesto-card" role="list">
+            {pubestoTrustFeatures.map((feature) => (
+              <div className="why-pubesto-feature" role="listitem" key={feature.label}>
+                <span className="why-pubesto-icon" aria-hidden="true">
+                  {feature.mark ? <span className="why-pubesto-mark">{feature.mark}</span> : <feature.Icon />}
+                </span>
+                <span>{feature.label}</span>
+              </div>
+            ))}
+          </div>
         </section>
 
         <section id="journal" className="editorial-section" aria-label="Pubesto style edit">
@@ -837,41 +1335,88 @@ export default function Home() {
             <button type="submit">Subscribe</button>
           </form>
         </motion.section>
+
+        <section className="social-circle-section" aria-labelledby="social-circle-title">
+          <span className="social-circle-wave" aria-hidden="true" />
+          <span className="social-circle-object" aria-hidden="true">
+            <img src="/images/products/new-products/b-07-premium-nice-glass-bottle.svg" alt="" />
+          </span>
+          <div className="social-circle-heading">
+            <h2 id="social-circle-title">Join the Pubesto Home Circle</h2>
+            <p>Follow Us</p>
+          </div>
+          <div className="social-gallery" role="list">
+            {socialGalleryItems.map((item) => (
+              <a className="social-gallery-card" href="#featured" role="listitem" key={item.title}>
+                <img src={item.image} alt="" />
+                <span className="social-gallery-shade" aria-hidden="true" />
+                <span className="social-gallery-copy">
+                  <strong>{item.title}</strong>
+                  <span>{item.caption}</span>
+                </span>
+              </a>
+            ))}
+          </div>
+        </section>
       </main>
 
       <footer id="footer" className="site-footer">
-        <div>
-          <a href="#" className="brand">
-            Pubesto
-          </a>
-          <p>Homeware, lunch storage, drinkware, and thoughtful daily essentials.</p>
+        <div className="footer-mail-visual" aria-hidden="true">
+          <span className="footer-envelope">
+            <span className="footer-seal">P</span>
+          </span>
         </div>
-        <div>
-          <h2>Shop</h2>
-          <a href="#categories">Home Decor</a>
-          <a href="#featured">Kitchen</a>
-          <a href="#featured">Bottles</a>
-          <a href="#featured">Lunch Storage</a>
+
+        <div className="footer-grid">
+          <nav className="footer-column" aria-label="Fine print">
+            <h2>Fine Print</h2>
+            <a href="#">Privacy Policy</a>
+            <a href="#">Shipping Policy</a>
+            <a href="#">Terms of Service</a>
+            <a href="#">Refund Policy</a>
+          </nav>
+
+          <nav className="footer-column" aria-label="Learn more">
+            <h2>Learn More</h2>
+            <a href="#">About Us</a>
+            <a href="#">Contact Us</a>
+            <a href="#">FAQ</a>
+            <a href="#journal">Blogs</a>
+          </nav>
+
+          <div className="footer-column footer-offers">
+            <h2>Subscribe for Offers</h2>
+            <p>Be the first to know about new drops, useful home finds, and exclusive Pubesto deals.</p>
+            <form className="footer-form" onSubmit={(event) => event.preventDefault()}>
+              <label className="sr-only" htmlFor="footer-email">
+                Email address
+              </label>
+              <input id="footer-email" type="email" placeholder="Email" />
+              <button type="submit" aria-label="Subscribe">
+                <span>Join</span>
+                <ArrowRight size={16} aria-hidden="true" />
+              </button>
+            </form>
+
+            <nav className="footer-socials" aria-label="Social links">
+              <a href="#" aria-label="Instagram">
+                <Camera size={18} />
+              </a>
+              <a href="#" aria-label="Facebook">
+                <AtSign size={18} />
+              </a>
+              <a href="#" aria-label="YouTube">
+                <Play size={17} />
+              </a>
+            </nav>
+          </div>
         </div>
-        <div>
-          <h2>Support</h2>
-          <a href="#">Shipping</a>
-          <a href="#">Returns</a>
-          <a href="#">Track Order</a>
-          <a href="#">Care Guide</a>
+
+        <div className="footer-brand-endcap" aria-label="Pubesto">
+          <span aria-hidden="true">PUBESTO</span>
         </div>
-        <div>
-          <h2>Newsletter</h2>
-          <p>Get early access to fresh drops and festive edits.</p>
-          <form className="footer-form" onSubmit={(event) => event.preventDefault()}>
-            <label className="sr-only" htmlFor="footer-email">
-              Email address
-            </label>
-            <input id="footer-email" type="email" placeholder="Email" />
-            <button type="submit" aria-label="Subscribe">
-              &gt;
-            </button>
-          </form>
+        <div className="footer-copyright">
+          &copy; 2026 PUBESTO . ALL RIGHTS RESERVED.
         </div>
       </footer>
     </>
