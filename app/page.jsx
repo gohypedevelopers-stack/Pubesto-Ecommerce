@@ -1,17 +1,21 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import {
   ArrowRight,
   AtSign,
   Camera,
+  Check,
   Clock8,
   Feather,
   MapPinned,
   PackageCheck,
   Play,
+  Plus,
   ShieldCheck,
+  ShoppingBag,
+  Sparkles,
 } from "lucide-react";
 
 const categories = [
@@ -317,6 +321,7 @@ const peopleChoiceVideos = [
     price: "Rs. 1,299",
     oldPrice: "Rs. 1,999",
     image: "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=600&q=86",
+    video: "https://videos.pexels.com/video-files/7815759/7815759-sd_960_540_25fps.mp4",
     thumb: "/images/products/new-products/b-07-premium-nice-glass-bottle.svg",
   },
   {
@@ -324,6 +329,7 @@ const peopleChoiceVideos = [
     price: "Rs. 1,299",
     oldPrice: "Rs. 1,999",
     image: "https://images.unsplash.com/photo-1514222709107-a180c68d72b4?auto=format&fit=crop&w=600&q=86",
+    video: "https://videos.pexels.com/video-files/7250670/7250670-sd_540_960_25fps.mp4",
     thumb: "/images/products/new-products/transparent-leak-proof-lunch-box.svg",
   },
   {
@@ -331,6 +337,7 @@ const peopleChoiceVideos = [
     price: "Rs. 1,299",
     oldPrice: "Rs. 1,999",
     image: "https://images.unsplash.com/photo-1507914464562-6ff4ac29692f?auto=format&fit=crop&w=600&q=86",
+    video: "https://videos.pexels.com/video-files/7815963/7815963-sd_960_540_25fps.mp4",
     thumb: "/images/products/new-products/rl-7064-table-fan.svg",
   },
   {
@@ -338,6 +345,7 @@ const peopleChoiceVideos = [
     price: "Rs. 1,299",
     oldPrice: "Rs. 1,999",
     image: "https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?auto=format&fit=crop&w=600&q=86",
+    video: "https://videos.pexels.com/video-files/7815962/7815962-sd_540_960_25fps.mp4",
     thumb: "/images/products/new-products/b-84-unicorn-printed-temperature-bottle.svg",
   },
   {
@@ -345,6 +353,7 @@ const peopleChoiceVideos = [
     price: "Rs. 1,299",
     oldPrice: "Rs. 1,999",
     image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=600&q=86",
+    video: "https://videos.pexels.com/video-files/6214216/6214216-sd_540_960_30fps.mp4",
     thumb: "/images/products/new-products/v8-otg-fan.svg",
   },
   {
@@ -352,6 +361,7 @@ const peopleChoiceVideos = [
     price: "Rs. 52",
     oldPrice: "Rs. 95",
     image: "https://images.unsplash.com/photo-1511988617509-a57c8a288659?auto=format&fit=crop&w=600&q=86",
+    video: "https://videos.pexels.com/video-files/4962806/4962806-sd_540_960_25fps.mp4",
     thumb: "/images/products/new-products/b-07-premium-nice-glass-bottle.svg",
   },
 ];
@@ -487,6 +497,26 @@ function MenuIcon({ open }) {
 }
 
 function ProductCard({ product, index = 0, cartQuantity = 0, onAddToCart }) {
+  const [addEffectKey, setAddEffectKey] = useState(null);
+
+  function showAddAnimation() {
+    const nextKey = Date.now();
+
+    setAddEffectKey(nextKey);
+    window.setTimeout(() => {
+      setAddEffectKey((currentKey) => (currentKey === nextKey ? null : currentKey));
+    }, 1050);
+  }
+
+  function handleAddToCart(options) {
+    if (product.inStock === false) {
+      return;
+    }
+
+    showAddAnimation();
+    onAddToCart(product, options);
+  }
+
   return (
     <motion.article
       className="product-card"
@@ -495,26 +525,69 @@ function ProductCard({ product, index = 0, cartQuantity = 0, onAddToCart }) {
       transition={{ duration: 0.45, delay: index * 0.04 }}
       viewport={{ once: true, margin: "-50px" }}
     >
-      <a className="product-media" href="#featured" aria-label={`View ${product.name}`}>
+      <div className="product-media">
+        <a className="product-media-link" href="#featured" aria-label={`View ${product.name}`}>
+          {product.image ? (
+            <img src={product.image} alt={product.name} />
+          ) : (
+            <span className="product-image-todo">
+              <strong>Product image pending</strong>
+              <small>{product.imageFilename}</small>
+            </span>
+          )}
+          {product.photoCount ? <span className="photo-count">{product.photoCount}</span> : null}
+        </a>
         {product.badge ? (
           <span className={`badge ${product.badgeClass || ""}`}>{product.badge}</span>
         ) : null}
         {product.stockBadge ? <span className="stock-badge">{product.stockBadge}</span> : null}
         {!product.stockBadge ? (
-          <span className="save-button" aria-hidden="true">
-            +
-          </span>
+          <motion.button
+            className={`save-button ${cartQuantity > 0 ? "active" : ""}`}
+            type="button"
+            onClick={() => handleAddToCart({ openCart: false })}
+            whileTap={{ scale: 0.86 }}
+            aria-label={`Add ${product.name} to cart`}
+          >
+            {cartQuantity > 0 ? <Check /> : <Plus />}
+          </motion.button>
         ) : null}
-        {product.image ? (
-          <img src={product.image} alt={product.name} />
-        ) : (
-          <span className="product-image-todo">
-            <strong>Product image pending</strong>
-            <small>{product.imageFilename}</small>
-          </span>
-        )}
-        {product.photoCount ? <span className="photo-count">{product.photoCount}</span> : null}
-      </a>
+        <AnimatePresence>
+          {addEffectKey ? (
+            <motion.div
+              className="premium-add-animation"
+              key={addEffectKey}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: [0, 1, 1, 0] }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 1.05, ease: "easeOut" }}
+              aria-hidden="true"
+            >
+              <span className="premium-add-glow" />
+              <span className="premium-add-ring ring-one" />
+              <span className="premium-add-ring ring-two" />
+              <span className="premium-add-sparkle sparkle-one">
+                <Sparkles />
+              </span>
+              <span className="premium-add-sparkle sparkle-two">
+                <Sparkles />
+              </span>
+              <span className="premium-add-sparkle sparkle-three">
+                <Sparkles />
+              </span>
+              <motion.span
+                className="premium-add-chip"
+                initial={{ opacity: 0, y: 16, scale: 0.9 }}
+                animate={{ opacity: [0, 1, 1, 0], y: [16, 0, -6, -18], scale: [0.9, 1, 1, 0.96] }}
+                transition={{ duration: 1.05, ease: "easeOut" }}
+              >
+                <ShoppingBag />
+                Added
+              </motion.span>
+            </motion.div>
+          ) : null}
+        </AnimatePresence>
+      </div>
       <div className="product-body">
         <p className="product-detail">{product.detail}</p>
         <h3>{product.name}</h3>
@@ -536,7 +609,7 @@ function ProductCard({ product, index = 0, cartQuantity = 0, onAddToCart }) {
         <button
           className="quick-add"
           type="button"
-          onClick={() => onAddToCart(product)}
+          onClick={() => handleAddToCart()}
           disabled={product.inStock === false}
         >
           {product.inStock === false ? "Out of Stock" : cartQuantity > 0 ? `Added (${cartQuantity})` : "Add to Cart"}
@@ -554,6 +627,7 @@ export default function Home() {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isSupplierOpen, setIsSupplierOpen] = useState(false);
   const [cartItems, setCartItems] = useState([]);
+  const [cartPulseKey, setCartPulseKey] = useState(0);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [profileNotice, setProfileNotice] = useState("");
@@ -611,8 +685,9 @@ export default function Home() {
     }, 0);
   }
 
-  function addToCart(product) {
+  function addToCart(product, options = {}) {
     const productId = getProductId(product);
+    const shouldOpenCart = options.openCart !== false;
 
     setCartItems((items) => {
       const existingItem = items.find((item) => item.id === productId);
@@ -625,9 +700,12 @@ export default function Home() {
 
       return [...items, { id: productId, product, quantity: 1 }];
     });
+    setCartPulseKey((key) => key + 1);
     setIsProfileOpen(false);
     setIsSupplierOpen(false);
-    setIsCartOpen(true);
+    if (shouldOpenCart) {
+      setIsCartOpen(true);
+    }
   }
 
   function updateCartQuantity(productId, nextQuantity) {
@@ -749,10 +827,19 @@ export default function Home() {
                   setIsCartOpen(true);
                 }}
               >
-                <div className="cart-icon-wrapper">
+                <motion.div
+                  key={cartPulseKey}
+                  className="cart-icon-wrapper"
+                  animate={
+                    cartPulseKey
+                      ? { scale: [1, 1.18, 1], rotate: [0, -5, 4, 0] }
+                      : { scale: 1, rotate: 0 }
+                  }
+                  transition={{ duration: 0.5, ease: "easeOut" }}
+                >
                   <CartIcon />
                   {cartCount > 0 && <span className="cart-count">{cartCount}</span>}
-                </div>
+                </motion.div>
                 <span>Cart</span>
               </button>
             </div>
@@ -1123,9 +1210,26 @@ export default function Home() {
             <h2 id="people-choice-title">People&apos;s choice</h2>
           </div>
           <div className="video-choice-scroll" role="list">
-            {peopleChoiceVideos.map((item) => (
-              <a className="video-choice-card" href="#featured" role="listitem" key={item.title}>
-                <img className="video-choice-image" src={item.image} alt={item.title} />
+            {peopleChoiceVideos.slice(0, 4).map((item) => (
+              <a
+                className="video-choice-card"
+                href="#featured"
+                role="listitem"
+                aria-label={`Shop ${item.title}`}
+                key={item.title}
+              >
+                <video
+                  className="video-choice-video"
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  preload="metadata"
+                  poster={item.image}
+                  aria-hidden="true"
+                >
+                  <source src={item.video} type="video/mp4" />
+                </video>
                 <span className="video-choice-gradient" aria-hidden="true" />
                 <span className="video-choice-product">
                   <span className="video-choice-thumb">
@@ -1140,25 +1244,6 @@ export default function Home() {
                 </span>
               </a>
             ))}
-          </div>
-        </section>
-
-        <section className="service-strip" aria-label="Store benefits">
-          <div>
-            <strong>Fast Shipping</strong>
-            <span>Dispatch on most orders within 24 hours</span>
-          </div>
-          <div>
-            <strong>Easy Returns</strong>
-            <span>Simple support for exchanges and returns</span>
-          </div>
-          <div>
-            <strong>Curated Quality</strong>
-            <span>Useful materials, calm forms, refined finishes</span>
-          </div>
-          <div>
-            <strong>Gift Ready</strong>
-            <span>Thoughtful picks for homes, hosts, and workdays</span>
           </div>
         </section>
 

@@ -1288,22 +1288,15 @@ main {
 }
 
 .video-choice-scroll {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 12px;
-  overflow-x: auto;
-  padding-bottom: 4px;
-  scroll-snap-type: x proximity;
-  scrollbar-width: none;
-  -webkit-overflow-scrolling: touch;
-}
-
-.video-choice-scroll::-webkit-scrollbar {
-  display: none;
+  width: min(860px, 100%);
+  margin: 0 auto;
 }
 
 .video-choice-card {
   position: relative;
-  flex: 0 0 clamp(186px, 16vw, 205px);
   height: clamp(330px, 28vw, 360px);
   overflow: hidden;
   border-radius: 8px;
@@ -1320,12 +1313,14 @@ main {
   box-shadow: 0 24px 46px rgba(72, 54, 47, 0.22);
 }
 
-.video-choice-image {
+.video-choice-video {
   position: absolute;
   inset: 0;
+  display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
+  background: #3c332f;
 }
 
 .video-choice-gradient {
@@ -1540,39 +1535,6 @@ main {
   font-size: 16px;
   font-weight: 550;
   line-height: 1.45;
-}
-
-.service-strip {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 1px;
-  margin: 8px 24px 0;
-  overflow: hidden;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: var(--line);
-}
-
-.service-strip div {
-  display: grid;
-  gap: 4px;
-  min-height: 94px;
-  align-content: center;
-  padding: 20px;
-  background: rgba(246, 244, 242, 0.88);
-}
-
-.service-strip strong {
-  color: var(--deep);
-  font-size: 12px;
-  font-weight: 900;
-  letter-spacing: 1.1px;
-  text-transform: uppercase;
-}
-
-.service-strip span {
-  color: var(--muted);
-  font-size: 13px;
 }
 
 .category-section,
@@ -1799,6 +1761,14 @@ main {
   aspect-ratio: 1 / 0.82;
   overflow: hidden;
   background: var(--panel);
+  isolation: isolate;
+}
+
+.product-media-link {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  display: block;
 }
 
 .badge {
@@ -1845,18 +1815,189 @@ main {
   position: absolute;
   top: 10px;
   right: 10px;
-  z-index: 1;
+  z-index: 4;
   display: grid;
   width: 30px;
   height: 30px;
   place-items: center;
+  padding: 0;
   border: 1px solid rgba(211, 201, 189, 0.9);
   border-radius: 50%;
   background: rgba(246, 244, 242, 0.92);
   color: var(--gold);
-  font-size: 19px;
   line-height: 1;
   box-shadow: 0 10px 24px rgba(66, 62, 59, 0.1);
+  transition: background 180ms ease, border-color 180ms ease, color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+}
+
+.save-button svg {
+  width: 16px;
+  height: 16px;
+  stroke-width: 1.8;
+}
+
+.save-button:hover,
+.save-button:focus {
+  border-color: rgba(180, 152, 107, 0.74);
+  background: #fff;
+  color: var(--deep);
+  box-shadow: 0 14px 30px rgba(66, 62, 59, 0.16);
+}
+
+.save-button.active {
+  border-color: rgba(180, 152, 107, 0.82);
+  background: var(--deep);
+  color: #fff;
+}
+
+.premium-add-animation {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 78% 16%, rgba(255, 255, 255, 0.72), transparent 16%),
+    radial-gradient(circle at 50% 46%, rgba(180, 152, 107, 0.22), transparent 42%),
+    linear-gradient(180deg, rgba(246, 244, 242, 0.02), rgba(66, 62, 59, 0.18));
+}
+
+.premium-add-glow {
+  position: absolute;
+  width: 108px;
+  height: 108px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 238, 193, 0.9), rgba(180, 152, 107, 0.2) 58%, transparent 70%);
+  filter: blur(2px);
+  animation: premium-glow 1050ms ease-out forwards;
+}
+
+.premium-add-ring {
+  position: absolute;
+  border: 1px solid rgba(255, 238, 193, 0.86);
+  border-radius: 50%;
+  box-shadow: 0 0 34px rgba(180, 152, 107, 0.24);
+  animation: premium-ring 1050ms ease-out forwards;
+}
+
+.premium-add-ring.ring-one {
+  width: 74px;
+  height: 74px;
+}
+
+.premium-add-ring.ring-two {
+  width: 116px;
+  height: 116px;
+  animation-delay: 90ms;
+}
+
+.premium-add-sparkle {
+  position: absolute;
+  display: grid;
+  width: 24px;
+  height: 24px;
+  place-items: center;
+  color: #f6dba5;
+  filter: drop-shadow(0 8px 14px rgba(66, 62, 59, 0.2));
+  animation: premium-sparkle 1050ms ease-out forwards;
+}
+
+.premium-add-sparkle svg {
+  width: 18px;
+  height: 18px;
+  stroke-width: 1.8;
+}
+
+.premium-add-sparkle.sparkle-one {
+  top: 24%;
+  left: 25%;
+}
+
+.premium-add-sparkle.sparkle-two {
+  top: 27%;
+  right: 26%;
+  animation-delay: 80ms;
+}
+
+.premium-add-sparkle.sparkle-three {
+  right: 34%;
+  bottom: 25%;
+  animation-delay: 150ms;
+}
+
+.premium-add-chip {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 38px;
+  padding: 0 15px;
+  border: 1px solid rgba(255, 238, 193, 0.42);
+  border-radius: 999px;
+  background: rgba(66, 62, 59, 0.9);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 900;
+  box-shadow: 0 18px 42px rgba(66, 62, 59, 0.28);
+  backdrop-filter: blur(12px);
+}
+
+.premium-add-chip svg {
+  width: 15px;
+  height: 15px;
+  stroke-width: 2;
+}
+
+@keyframes premium-glow {
+  0% {
+    opacity: 0;
+    transform: scale(0.35);
+  }
+
+  38% {
+    opacity: 0.9;
+    transform: scale(0.82);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(1.24);
+  }
+}
+
+@keyframes premium-ring {
+  0% {
+    opacity: 0;
+    transform: scale(0.48);
+  }
+
+  42% {
+    opacity: 0.82;
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(1.46);
+  }
+}
+
+@keyframes premium-sparkle {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 12px, 0) scale(0.55) rotate(0deg);
+  }
+
+  38% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1) rotate(10deg);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate3d(0, -22px, 0) scale(1.16) rotate(24deg);
+  }
 }
 
 .product-image-todo {
@@ -2598,11 +2739,6 @@ main {
     max-width: none;
   }
 
-  .service-strip {
-    grid-template-columns: repeat(2, 1fr);
-    margin-inline: 20px;
-  }
-
   .video-choice-section {
     padding-inline: 20px;
   }
@@ -2733,14 +2869,9 @@ main {
     font-size: 24px;
   }
 
-  .service-strip,
   .category-strip,
   .product-grid {
     grid-template-columns: 1fr;
-  }
-
-  .service-strip {
-    margin-inline: 14px;
   }
 
   .video-choice-section {
@@ -2762,13 +2893,12 @@ main {
   }
 
   .video-choice-scroll {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 10px;
-    margin-inline: -14px;
-    padding-inline: 14px;
+    width: 100%;
   }
 
   .video-choice-card {
-    flex-basis: 176px;
     height: 318px;
   }
 
