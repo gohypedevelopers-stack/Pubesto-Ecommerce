@@ -1,0 +1,239 @@
+"use client";
+
+import { useState, useMemo } from "react";
+import Header from "../../components/Header";
+import Footer from "../../components/Footer";
+import Drawers from "../../components/Drawers";
+import { StoreProvider, useStore } from "../../components/StoreContext";
+import { products } from "../../lib/data";
+import { motion, AnimatePresence } from "framer-motion";
+import { Plus } from "lucide-react";
+
+const shopFamilies = [
+  { label: "Home Decor", value: "Home Decor" },
+  { label: "OTG Fans", value: "Fans" },
+  { label: "Lunch Box", value: "lunch box" },
+  { label: "Water Bottles", value: "water bottles" },
+];
+
+const shopFamilyValues = shopFamilies.map((family) => family.value);
+
+function getShopProductKey(product) {
+  return product.sku || product.slug || product.name;
+}
+
+function uniqueProductsByKey(productList) {
+  const seen = new Set();
+
+  return productList.filter((product) => {
+    const key = getShopProductKey(product);
+    if (seen.has(key)) {
+      return false;
+    }
+    seen.add(key);
+    return true;
+  });
+}
+
+function ShopContent() {
+  const { addToCart } = useStore();
+  const [selectedFamilies, setSelectedFamilies] = useState([]);
+  const [priceRange, setPriceRange] = useState("all");
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  const filteredProducts = useMemo(() => {
+    // Filter by the requested categories first
+    const relevantProducts = uniqueProductsByKey(
+      products.filter((product) =>
+        product.categories.some((category) => shopFamilyValues.includes(category))
+      )
+    );
+
+    return relevantProducts.filter((product) => {
+      const familyMatch = selectedFamilies.length === 0 || 
+        product.categories.some((category) => selectedFamilies.includes(category));
+      
+      // Handle price filtering (assuming price string like "Rs. 899")
+      const numericPrice = Number(product.price?.replace(/[^\d]/g, "")) || 0;
+      
+      let priceMatch = true;
+      if (priceRange === "under-500") priceMatch = numericPrice < 500;
+      else if (priceRange === "500-1000") priceMatch = numericPrice >= 500 && numericPrice <= 1000;
+      else if (priceRange === "over-1000") priceMatch = numericPrice > 1000;
+
+      return familyMatch && priceMatch;
+    });
+  }, [selectedFamilies, priceRange]);
+
+  const toggleFamily = (family) => {
+    setSelectedFamilies((prev) =>
+      prev.includes(family) ? prev.filter((f) => f !== family) : [...prev, family]
+    );
+  };
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } }
+  };
+
+  return (
+    <main className="shop-page">
+      <header className="shop-header">
+        <motion.div 
+          className="shop-header-content"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+        >
+          <motion.h1 
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
+          >
+            The Collection
+          </motion.h1>
+          <p>
+            Explore our curated selection of home essentials, artisanal lunch boxes, and premium water bottles. 
+            Meticulously designed for your everyday lifestyle.
+          </p>
+        </motion.div>
+      </header>
+
+      <div className="shop-container">
+        {/* Sidebar Filters */}
+        <aside className={`shop-sidebar ${isSidebarOpen ? 'open' : ''}`}>
+          <div className="filter-group">
+            <h3 className="filter-title">Categories</h3>
+            <div className="filter-options">
+              {shopFamilies.map((family) => (
+                <label key={family.value} className="filter-label">
+                  <input
+                    type="checkbox"
+                    checked={selectedFamilies.includes(family.value)}
+                    onChange={() => toggleFamily(family.value)}
+                  />
+                  <span>{family.label}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          <div className="filter-group">
+            <h3 className="filter-title">Price Range</h3>
+            <div className="filter-options">
+              {[
+                { label: "All Prices", value: "all" },
+                { label: "Under Rs. 500", value: "under-500" },
+                { label: "Rs. 500 - 1000", value: "500-1000" },
+                { label: "Over Rs. 1000", value: "over-1000" }
+              ].map((range) => (
+                <label key={range.value} className="filter-label">
+                  <input
+                    type="radio"
+                    name="price"
+                    checked={priceRange === range.value}
+                    onChange={() => setPriceRange(range.value)}
+                  />
+                  <span>{range.label}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+        </aside>
+
+        {/* Product Grid */}
+        <div className="shop-content">
+          <motion.div 
+            className="shop-grid"
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            key={selectedFamilies.join('-') + priceRange}
+          >
+            <AnimatePresence mode="popLayout">
+              {filteredProducts.map((product) => (
+                <motion.article 
+                  key={getShopProductKey(product)}
+                  className="shop-product-card"
+                  variants={itemVariants}
+                  layout
+                >
+                  {product.badge && <div className="shop-product-badge">{product.badge}</div>}
+                  <button className="shop-product-plus" onClick={() => addToCart(product)}>
+                    <Plus size={18} />
+                  </button>
+                  
+                  <div className="shop-product-media">
+                    <img src={product.image} alt={product.name} />
+                  </div>
+                  
+                  <div className="shop-product-content">
+                    <span className="shop-product-detail-tag">{product.detail}</span>
+                    <h3 className="shop-product-name">{product.name}</h3>
+                    <div className="shop-product-price-row">
+                      <span className="shop-current-price">{product.price}</span>
+                      {product.oldPrice && <span className="shop-old-price">{product.oldPrice}</span>}
+                    </div>
+                    <button 
+                      className="shop-add-btn"
+                      onClick={() => addToCart(product)}
+                    >
+                      Add to Cart
+                    </button>
+                  </div>
+                </motion.article>
+              ))}
+            </AnimatePresence>
+          </motion.div>
+
+          {filteredProducts.length === 0 && (
+            <motion.div 
+              className="no-results"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+            >
+              <p>No products match your current filters.</p>
+              <button className="clear-filters-btn" onClick={() => { setSelectedFamilies([]); setPriceRange("all"); }}>
+                Clear All Filters
+              </button>
+            </motion.div>
+          )}
+
+          {filteredProducts.length > 0 && (
+            <div className="shop-actions">
+              <motion.button 
+                className="secondary-button discover-more"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                Load More Items
+              </motion.button>
+            </div>
+          )}
+        </div>
+      </div>
+    </main>
+  );
+}
+
+export default function ShopPage() {
+  return (
+    <StoreProvider>
+      <Header />
+      <Drawers />
+      <ShopContent />
+      <Footer />
+    </StoreProvider>
+  );
+}
+
