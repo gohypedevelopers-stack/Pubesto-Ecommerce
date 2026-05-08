@@ -3,6 +3,9 @@
 import { useStore } from "./StoreContext";
 import { UserIcon } from "./Icons";
 import { formatPrice } from "../lib/utils";
+import { motion, AnimatePresence } from "framer-motion";
+import { ChevronRight, LogOut, Package, Heart, HelpCircle } from "lucide-react";
+import { useState } from "react";
 
 export default function Drawers() {
   const {
@@ -13,6 +16,9 @@ export default function Drawers() {
     profileNotice, setProfileNotice,
     getProductPrice
   } = useStore();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [emailInput, setEmailInput] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (!isCartOpen && !isProfileOpen) return null;
 
@@ -106,60 +112,147 @@ export default function Drawers() {
 
       {isProfileOpen && (
         <div className="cart-layer">
-          <button
+          <motion.button
             className="cart-backdrop"
-            type="button"
-            aria-label="Close profile panel"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
             onClick={() => setIsProfileOpen(false)}
           />
-          <aside className="cart-drawer utility-drawer" role="dialog" aria-modal="true" aria-label="Profile">
-            <div className="cart-drawer-header">
+          <motion.aside 
+            className="cart-drawer utility-drawer"
+            initial={{ x: "100%" }}
+            animate={{ x: 0 }}
+            exit={{ x: "100%" }}
+            transition={{ type: "spring", damping: 25, stiffness: 200 }}
+          >
+            <div className="cart-drawer-header premium-gradient">
               <div>
-                <p className="eyebrow">Your account</p>
-                <h2>Profile</h2>
+                <p className="eyebrow" style={{ color: 'rgba(255,255,255,0.7)' }}>Your account</p>
+                <h2 style={{ color: '#fff' }}>{isLoggedIn ? "Account Dashboard" : "Profile"}</h2>
               </div>
-              <button type="button" onClick={() => setIsProfileOpen(false)} aria-label="Close profile panel">
+              <button 
+                type="button" 
+                onClick={() => setIsProfileOpen(false)} 
+                style={{ background: 'rgba(255,255,255,0.1)', color: '#fff', border: '1px solid rgba(255,255,255,0.2)' }}
+              >
                 Close
               </button>
             </div>
 
             <div className="utility-panel-body">
-              <div className="profile-summary">
-                <span aria-hidden="true">
-                  <UserIcon />
-                </span>
-                <div>
-                  <strong>Welcome to Pubesto</strong>
-                  <p>Sign in to track orders, save addresses, and manage your wishlist.</p>
-                </div>
-              </div>
+              <AnimatePresence mode="wait">
+                {!isLoggedIn ? (
+                  <motion.div 
+                    key="login"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    className="login-view"
+                  >
+                    <div className="profile-summary premium-card">
+                      <div className="avatar-glow">
+                        <UserIcon />
+                      </div>
+                      <div>
+                        <strong>Welcome to Pubesto</strong>
+                        <p>Sign in to track orders, save addresses, and manage your wishlist.</p>
+                      </div>
+                    </div>
 
-              <form
-                className="utility-form"
-                onSubmit={(event) => {
-                  event.preventDefault();
-                  setProfileNotice("Sign-in request received.");
-                }}
-              >
-                <label htmlFor="profile-phone">Mobile number or email</label>
-                <input id="profile-phone" type="text" placeholder="Enter mobile number or email" />
-                <button type="submit">Continue</button>
-              </form>
-              {profileNotice ? <p className="utility-notice">{profileNotice}</p> : null}
+                    <form
+                      className="utility-form premium-form"
+                      onSubmit={(event) => {
+                        event.preventDefault();
+                        if (!emailInput) return;
+                        setIsSubmitting(true);
+                        setTimeout(() => {
+                          setIsLoggedIn(true);
+                          setIsSubmitting(false);
+                          setProfileNotice("Successfully signed in!");
+                        }, 1200);
+                      }}
+                    >
+                      <div className="form-group">
+                        <label htmlFor="profile-phone">Mobile number or email</label>
+                        <input 
+                          id="profile-phone" 
+                          type="text" 
+                          placeholder="e.g. hello@artisanal.com" 
+                          value={emailInput}
+                          onChange={(e) => setEmailInput(e.target.value)}
+                          required
+                        />
+                      </div>
+                      <button type="submit" disabled={isSubmitting} className="action-button">
+                        {isSubmitting ? "Processing..." : "Continue"}
+                      </button>
+                    </form>
+                  </motion.div>
+                ) : (
+                  <motion.div 
+                    key="dashboard"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    className="dashboard-view"
+                  >
+                    <div className="user-header">
+                      <div className="user-avatar">{emailInput[0]?.toUpperCase() || "U"}</div>
+                      <div className="user-info">
+                        <h3>Artisanal Member</h3>
+                        <p>{emailInput}</p>
+                      </div>
+                    </div>
 
-              <div className="utility-link-list" aria-label="Profile shortcuts">
-                <a href="#featured" onClick={() => setIsProfileOpen(false)}>
-                  Orders
-                </a>
-                <a href="#featured" onClick={() => setIsProfileOpen(false)}>
-                  Wishlist
-                </a>
-                <a href="#footer" onClick={() => setIsProfileOpen(false)}>
-                  Help & support
-                </a>
-              </div>
+                    <div className="dashboard-stats">
+                      <div className="stat-card">
+                        <span>0</span>
+                        <p>Orders</p>
+                      </div>
+                      <div className="stat-card">
+                        <span>0</span>
+                        <p>Wishlist</p>
+                      </div>
+                    </div>
+
+                    <div className="utility-link-list interactive-list">
+                      <button onClick={() => setIsProfileOpen(false)}>
+                        <div className="link-icon"><Package size={18} /></div>
+                        <span>My Orders</span>
+                        <ChevronRight size={16} className="chevron" />
+                      </button>
+                      <button onClick={() => setIsProfileOpen(false)}>
+                        <div className="link-icon"><Heart size={18} /></div>
+                        <span>Wishlist</span>
+                        <ChevronRight size={16} className="chevron" />
+                      </button>
+                      <button onClick={() => setIsProfileOpen(false)}>
+                        <div className="link-icon"><HelpCircle size={18} /></div>
+                        <span>Help & Support</span>
+                        <ChevronRight size={16} className="chevron" />
+                      </button>
+                    </div>
+
+                    <button className="logout-button" onClick={() => setIsLoggedIn(false)}>
+                      <LogOut size={16} />
+                      <span>Sign Out</span>
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+              
+              {profileNotice && (
+                <motion.p 
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="utility-notice success"
+                >
+                  {profileNotice}
+                </motion.p>
+              )}
             </div>
-          </aside>
+          </motion.aside>
         </div>
       )}
     </>
