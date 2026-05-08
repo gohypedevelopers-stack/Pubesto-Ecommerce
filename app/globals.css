@@ -2287,6 +2287,7 @@ main {
   position: relative;
   isolation: isolate;
   margin-top: 130px;
+  margin-bottom: 120px;
   overflow: hidden;
   border-top: 8px solid var(--deep);
   border-radius: 24px 24px 0 0;
@@ -2999,6 +3000,7 @@ main {
 
   .social-circle-section {
     margin-top: 42px;
+    margin-bottom: 80px;
     border-top-width: 6px;
     border-radius: 18px 18px 0 0;
   }
