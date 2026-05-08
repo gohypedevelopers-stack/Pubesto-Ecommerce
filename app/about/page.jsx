@@ -69,17 +69,39 @@ export default function AboutPage() {
           </motion.div>
           <motion.div
             className="about-hero-media"
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+            initial={{ opacity: 0, x: 100, rotateY: 15 }}
+            animate={{ opacity: 1, x: 0, rotateY: 0 }}
+            transition={{ duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
+            whileHover={{ rotateY: -8, rotateX: 5, scale: 1.05 }}
           >
             <div className="about-composite-frame">
               <motion.img
                 src="https://images.unsplash.com/photo-1618220179428-22790b461013?auto=format&fit=crop&w=1200&q=88"
                 alt="Styled home decor setup with warm everyday interiors"
+                animate={{ 
+                  y: [0, -20, 0],
+                }}
+                transition={{ 
+                  duration: 8, 
+                  repeat: Infinity, 
+                  ease: "easeInOut" 
+                }}
                 style={{ scale: heroImageScale }}
               />
+              <div className="glass-reflection" />
             </div>
+            <motion.div 
+              className="media-3d-shadow"
+              animate={{ 
+                scale: [1, 1.1, 1],
+                opacity: [0.2, 0.3, 0.2]
+              }}
+              transition={{ 
+                duration: 8, 
+                repeat: Infinity, 
+                ease: "easeInOut" 
+              }}
+            />
           </motion.div>
         </section>
 

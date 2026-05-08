@@ -188,15 +188,19 @@ function HomeContent() {
                 return (
                   <article className="hero-slide" aria-hidden={isDuplicateSlide} key={`${slide.title}-${index}`}>
                     <img className="hero-bg" src={slide.image} alt="" />
-                    <div className="hero-slide-shade" />
-                    <div className="hero-slide-content">
-                      <p className="eyebrow hero-eyebrow">{slide.eyebrow}</p>
-                      {index === 0 ? <h1>{slide.title}</h1> : <h2>{slide.title}</h2>}
-                      <p>{slide.copy}</p>
-                      <a className="primary-button hero-cta" href="#featured" tabIndex={isDuplicateSlide ? -1 : undefined}>
-                        {slide.cta}
-                      </a>
-                    </div>
+                    {slide.title && <div className="hero-slide-shade" />}
+                    {slide.title && (
+                      <div className="hero-slide-content">
+                        <p className="eyebrow hero-eyebrow">{slide.eyebrow}</p>
+                        {index === 0 ? <h1>{slide.title}</h1> : <h2>{slide.title}</h2>}
+                        <p>{slide.copy}</p>
+                        {slide.cta && (
+                          <a className="primary-button hero-cta" href="#featured" tabIndex={isDuplicateSlide ? -1 : undefined}>
+                            {slide.cta}
+                          </a>
+                        )}
+                      </div>
+                    )}
                   </article>
                 );
               })}

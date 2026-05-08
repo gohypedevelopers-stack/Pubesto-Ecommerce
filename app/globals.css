@@ -5969,3 +5969,142 @@ body,
 .stat-card span {
   font-size: 16px !important;
 }
+
+/* Refined Section Headings */
+.section-heading {
+  margin-bottom: 48px !important;
+  border-bottom: 1px solid rgba(63, 100, 105, 0.1) !important;
+  padding-bottom: 16px !important;
+  display: flex !important;
+  align-items: flex-end !important;
+  justify-content: space-between !important;
+}
+
+.section-heading .eyebrow {
+  font-size: 11px !important;
+  text-transform: uppercase !important;
+  letter-spacing: 2px !important;
+  color: var(--brand-color) !important;
+  opacity: 0.6 !important;
+  margin-bottom: 6px !important;
+  font-weight: 700 !important;
+  display: block !important;
+}
+
+.section-heading h2 {
+  font-family: var(--font-display) !important;
+  font-size: 38px !important;
+  line-height: 1.1 !important;
+  margin: 0 !important;
+  color: var(--brand-color) !important;
+  font-style: italic !important;
+  font-weight: 400 !important;
+}
+
+/* 3D Hero Media Styles */
+.about-hero-media {
+  perspective: 1200px !important;
+  z-index: 1 !important;
+}
+
+.about-composite-frame {
+  position: relative !important;
+  transform-style: preserve-3d !important;
+  width: 100% !important;
+  height: 580px !important;
+  border-radius: 24px !important;
+  overflow: hidden !important;
+  box-shadow: 0 40px 100px rgba(63, 100, 105, 0.2) !important;
+  background: var(--off-white) !important;
+}
+
+.about-composite-frame img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.about-hero {
+  grid-template-columns: 1fr 1.2fr !important;
+  gap: 100px !important;
+  padding-top: 120px !important;
+  padding-bottom: 120px !important;
+}
+
+.media-3d-shadow {
+  position: absolute !important;
+  bottom: -40px !important;
+  left: 5% !important;
+  width: 90% !important;
+  height: 20px !important;
+  background: radial-gradient(ellipse at center, rgba(63, 100, 105, 0.4) 0%, rgba(63, 100, 105, 0) 70%) !important;
+  filter: blur(15px) !important;
+  z-index: -1 !important;
+}
+
+.glass-reflection {
+  position: absolute !important;
+  inset: 0 !important;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0) 40%, rgba(255, 255, 255, 0) 60%, rgba(255, 255, 255, 0.1) 100%) !important;
+  pointer-events: none !important;
+}
+
+/* Final Hero Image Fit and Animation Removal */
+.hero-track {
+  animation: none !important;
+  width: 100vw !important;
+  transform: none !important;
+}
+
+.hero-bg {
+  object-fit: contain !important;
+  background-color: #fce7eb !important; /* Matching pink tone from the image */
+  filter: none !important;
+  transform: none !important;
+}
+
+.hero-slide {
+  height: clamp(380px, 40vw, 480px) !important;
+  background: #fce7eb !important;
+}
+
+.hero-slide::after {
+  display: none !important; /* Removing the bottom gradient bar for a cleaner look */
+}
+
+/* Adjusting Hero to be Full-Bleed and Aspect-Ratio Correct */
+.hero-carousel {
+  padding: 0 !important;
+  height: auto !important;
+  min-height: unset !important;
+}
+
+.hero-slide {
+  height: auto !important;
+  aspect-ratio: 16 / 7 !important;
+  min-height: 400px !important;
+}
+
+.hero-bg {
+  position: relative !important;
+  object-fit: cover !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Re-adjusting Hero for Square Promotional Image */
+.hero-slide {
+  aspect-ratio: 1 / 1 !important;
+  max-height: 80vh !important;
+  min-height: 500px !important;
+}
+
+.hero-bg {
+  object-fit: cover !important;
+  object-position: center !important;
+}
+
+.hero-slide-content {
+  display: none !important; /* Hiding the overlay text as it is already baked into the promotional image */
+}
