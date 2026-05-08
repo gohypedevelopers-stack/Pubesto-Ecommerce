@@ -8,6 +8,7 @@ import { StoreProvider, useStore } from "../../components/StoreContext";
 import { products } from "../../lib/data";
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus } from "lucide-react";
+import Link from "next/link";
 
 const shopFamilies = [
   { label: "Home Decor", value: "Home Decor" },
@@ -173,13 +174,15 @@ function ShopContent() {
                     <Plus size={18} />
                   </button>
                   
-                  <div className="shop-product-media">
+                  <Link className="shop-product-media" href={`/product/${product.slug}`}>
                     <img src={product.image} alt={product.name} />
-                  </div>
+                  </Link>
                   
                   <div className="shop-product-content">
                     <span className="shop-product-detail-tag">{product.detail}</span>
-                    <h3 className="shop-product-name">{product.name}</h3>
+                    <Link href={`/product/${product.slug}`}>
+                      <h3 className="shop-product-name">{product.name}</h3>
+                    </Link>
                     <div className="shop-product-price-row">
                       <span className="shop-current-price">{product.price}</span>
                       {product.oldPrice && <span className="shop-old-price">{product.oldPrice}</span>}

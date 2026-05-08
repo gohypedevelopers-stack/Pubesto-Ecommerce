@@ -8,6 +8,7 @@ import {
   Plus,
   Check
 } from "lucide-react";
+import Link from "next/link";
 import { StoreProvider, useStore } from "../components/StoreContext";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
@@ -50,10 +51,10 @@ function ProductCard({ product, index = 0 }) {
       viewport={{ once: true, margin: "-50px" }}
     >
       <div className="product-media">
-        <a className="product-media-link" href="#featured" aria-label={`View ${product.name}`}>
+        <Link className="product-media-link" href={`/product/${product.slug}`} aria-label={`View ${product.name}`}>
           <img src={product.image} alt={product.name} />
           {product.photoCount ? <span className="photo-count">{product.photoCount}</span> : null}
-        </a>
+        </Link>
         {product.badge ? (
           <span className={`badge ${product.badgeClass || ""}`}>{product.badge}</span>
         ) : null}
@@ -101,7 +102,9 @@ function ProductCard({ product, index = 0 }) {
       </div>
       <div className="product-body">
         <p className="product-detail">{product.detail}</p>
-        <h3>{product.name}</h3>
+        <Link href={`/product/${product.slug}`}>
+          <h3>{product.name}</h3>
+        </Link>
         <p className="price">
           {product.price}
           {product.oldPrice ? <span>{product.oldPrice}</span> : null}
@@ -146,7 +149,7 @@ function HomeContent() {
       )
     : categoryFilteredProducts;
 
-  const visibleProducts = filteredProducts;
+  const visibleProducts = showAllProducts ? filteredProducts : filteredProducts.slice(0, 8);
 
   const productEyebrow = normalizedSearchQuery
     ? `${filteredProducts.length} result${filteredProducts.length === 1 ? "" : "s"} for "${searchQuery.trim()}"`
