@@ -146,7 +146,7 @@ function HomeContent() {
       )
     : categoryFilteredProducts;
 
-  const visibleProducts = showAllProducts || normalizedSearchQuery ? filteredProducts : filteredProducts.slice(0, 4);
+  const visibleProducts = filteredProducts;
 
   const productEyebrow = normalizedSearchQuery
     ? `${filteredProducts.length} result${filteredProducts.length === 1 ? "" : "s"} for "${searchQuery.trim()}"`
