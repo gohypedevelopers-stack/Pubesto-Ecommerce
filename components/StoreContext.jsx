@@ -1,10 +1,11 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect } from "react";
+import { getShopifyProducts, createShopifyCart, addToShopifyCart } from "../lib/shopify";
 
 const StoreContext = createContext();
 
-export function StoreProvider({ children, categories = [], products = [] }) {
+export function StoreProvider({ children, categories: initialCategories = [], products: initialProducts = [] }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -15,6 +16,31 @@ export function StoreProvider({ children, categories = [], products = [] }) {
   const [profileNotice, setProfileNotice] = useState("");
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [showAllProducts, setShowAllProducts] = useState(false);
+  const [shopifyCart, setShopifyCart] = useState(null);
+  const [products, setProducts] = useState(initialProducts);
+  const [categories, setCategories] = useState(initialCategories);
+
+  useEffect(() => {
+    async function syncShopify() {
+      if (process.env.NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN && process.env.NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN !== 'your_token') {
+        const shopifyProducts = await getShopifyProducts();
+        if (shopifyProducts.length > 0) {
+          setProducts(shopifyProducts);
+          // Optionally extract categories from shopifyProducts if they are different from local ones
+        }
+      }
+    }
+    syncShopify();
+
+    const savedCart = localStorage.getItem("shopify_cart");
+    if (savedCart) {
+      try {
+        setShopifyCart(JSON.parse(savedCart));
+      } catch (e) {
+        console.error("Error parsing saved cart", e);
+      }
+    }
+  }, []);
   const [footerPanel, setFooterPanel] = useState(null);
 
   function getProductId(product) {
@@ -49,8 +75,41 @@ export function StoreProvider({ children, categories = [], products = [] }) {
     });
     setCartPulseKey((key) => key + 1);
     setIsProfileOpen(false);
+    
+    // Shopify Sync
+    if (process.env.NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN && product.sku?.includes('gid://shopify/')) {
+      handleShopifyAddToCart(product);
+    }
+
     if (shouldOpenCart) {
       setIsCartOpen(true);
+    }
+  }
+
+  async function handleShopifyAddToCart(product) {
+    try {
+      let currentCart = shopifyCart;
+      if (!currentCart) {
+        currentCart = await createShopifyCart();
+        setShopifyCart(currentCart);
+        localStorage.setItem("shopify_cart", JSON.stringify(currentCart));
+      }
+      const updatedCart = await addToShopifyCart(currentCart.id, product.sku);
+      setShopifyCart(updatedCart);
+      localStorage.setItem("shopify_cart", JSON.stringify(updatedCart));
+    } catch (error) {
+      console.error("Shopify Add to Cart Error:", error);
+    }
+  }
+
+  function checkout() {
+    if (shopifyCart?.checkoutUrl) {
+      window.location.href = shopifyCart.checkoutUrl;
+    } else {
+      // Fallback or generic checkout notice
+      setIsCartOpen(false);
+      setProfileNotice("Checkout is currently being processed through Shopify.");
+      setIsProfileOpen(true);
     }
   }
 
@@ -84,7 +143,7 @@ export function StoreProvider({ children, categories = [], products = [] }) {
     footerPanel, setFooterPanel,
     cartCount, cartTotal,
     getProductId, getProductPrice,
-    closeUtilityPanels, addToCart, updateCartQuantity, removeFromCart,
+    closeUtilityPanels, addToCart, updateCartQuantity, removeFromCart, checkout,
     categories, products
   };
 

@@ -57,26 +57,6 @@ function ProductPageContent() {
           >
             <img src={product.image} alt={product.name} />
           </motion.div>
-          <div className="gallery-grid">
-            <motion.div 
-              className="gallery-thumb"
-              initial={{ opacity: 0, scale: 0.9 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-            >
-              <img src="https://images.unsplash.com/photo-1601985705806-5b9a71f6004f?auto=format&fit=crop&w=600&q=80" alt="Related: Acacia Serving Bowl" />
-            </motion.div>
-            <motion.div 
-              className="gallery-thumb"
-              initial={{ opacity: 0, scale: 0.9 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8, delay: 0.3 }}
-            >
-              <img src="https://images.unsplash.com/photo-1485955900006-10f4d324d411?auto=format&fit=crop&w=600&q=80" alt="Related: Stoneware Planter Set" />
-            </motion.div>
-          </div>
         </div>
 
         <div className="product-info-panel">
@@ -106,7 +86,13 @@ function ProductPageContent() {
               >
                 {product.inStock === false ? "Out of Stock" : "ADD TO CART"}
               </button>
-              <button className="secondary-button buy-now-button">BUY NOW</button>
+              <button 
+                className={`secondary-button buy-now-button ${product.inStock === false ? 'disabled' : ''}`}
+                onClick={() => handleAddToCart({ openCart: true })}
+                disabled={product.inStock === false}
+              >
+                BUY NOW
+              </button>
             </div>
 
             <div className="product-extra-info">

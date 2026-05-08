@@ -4,6 +4,7 @@ import { useStore } from "./StoreContext";
 import { InstagramIcon, FacebookIcon } from "./Icons";
 import { ArrowRight } from "lucide-react";
 import { useState } from "react";
+import Link from "next/link";
 
 const footerLinkGroups = [
   {
@@ -20,7 +21,7 @@ const footerLinkGroups = [
     title: "Learn More",
     label: "Learn more links",
     links: [
-      { label: "About Us", panel: "about" },
+      { label: "About Us", href: "/about" },
       { label: "Contact Us", panel: "contact" },
       { label: "FAQ", panel: "faq" },
     ],
@@ -113,15 +114,26 @@ export default function Footer() {
           <nav className="footer-column" aria-label={group.label} key={group.title}>
             <h2>{group.title}</h2>
             {group.links.map((link) => (
-              <button
-                className="footer-link-button"
-                type="button"
-                onClick={() => setFooterPanel(link.panel)}
-                aria-expanded={footerPanel === link.panel}
-                key={link.label}
-              >
-                {link.label}
-              </button>
+              link.href ? (
+                <Link
+                  href={link.href}
+                  className="footer-link-button"
+                  key={link.label}
+                  style={{ display: 'block', textAlign: 'left', textDecoration: 'none' }}
+                >
+                  {link.label}
+                </Link>
+              ) : (
+                <button
+                  className="footer-link-button"
+                  type="button"
+                  onClick={() => setFooterPanel(link.panel)}
+                  aria-expanded={footerPanel === link.panel}
+                  key={link.label}
+                >
+                  {link.label}
+                </button>
+              )
             ))}
           </nav>
         ))}
@@ -161,17 +173,17 @@ export default function Footer() {
       </div>
 
       {activeFooterPanel ? (
-        <section className="footer-info-panel" aria-labelledby="footer-info-title">
-          <div>
+        <section className="footer-info-panel" aria-labelledby="footer-info-title" onClick={() => setFooterPanel(null)}>
+          <div onClick={(e) => e.stopPropagation()}>
             <p className="eyebrow">{activeFooterPanel.eyebrow}</p>
             <h2 id="footer-info-title">{activeFooterPanel.title}</h2>
             {activeFooterPanel.body.map((paragraph) => (
               <p key={paragraph}>{paragraph}</p>
             ))}
+            <button type="button" onClick={() => setFooterPanel(null)} aria-label="Close footer information">
+              Close
+            </button>
           </div>
-          <button type="button" onClick={() => setFooterPanel(null)} aria-label="Close footer information">
-            Close
-          </button>
         </section>
       ) : null}
 

@@ -6,6 +6,7 @@ import {
   ShoppingBag,
   Sparkles,
   Plus,
+  Minus,
   Check
 } from "lucide-react";
 import Link from "next/link";
@@ -23,7 +24,7 @@ import {
 import { formatPrice } from "../lib/utils";
 
 function ProductCard({ product, index = 0 }) {
-  const { cartItems, addToCart, getProductId } = useStore();
+  const { cartItems, addToCart, removeFromCart, getProductId } = useStore();
   const [addEffectKey, setAddEffectKey] = useState(null);
 
   const cartQuantity = cartItems.find((item) => item.id === getProductId(product))?.quantity || 0;
@@ -40,6 +41,10 @@ function ProductCard({ product, index = 0 }) {
     if (product.inStock === false) return;
     showAddAnimation();
     addToCart(product, options);
+  }
+
+  function handleRemoveFromCart() {
+    removeFromCart(getProductId(product));
   }
 
   return (
@@ -63,11 +68,18 @@ function ProductCard({ product, index = 0 }) {
           <motion.button
             className={`save-button ${cartQuantity > 0 ? "active" : ""}`}
             type="button"
-            onClick={() => handleAddToCart({ openCart: false })}
+            onClick={(e) => {
+              e.preventDefault();
+              if (cartQuantity > 0) {
+                handleRemoveFromCart();
+              } else {
+                handleAddToCart({ openCart: false });
+              }
+            }}
             whileTap={{ scale: 0.86 }}
-            aria-label={`Add ${product.name} to cart`}
+            aria-label={cartQuantity > 0 ? `Remove ${product.name} from cart` : `Add ${product.name} to cart`}
           >
-            {cartQuantity > 0 ? <Check /> : <Plus />}
+            {cartQuantity > 0 ? <Minus /> : <Plus />}
           </motion.button>
         ) : null}
         <AnimatePresence>

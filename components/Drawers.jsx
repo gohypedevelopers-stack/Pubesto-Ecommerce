@@ -9,7 +9,7 @@ export default function Drawers() {
     isCartOpen, setIsCartOpen,
     isProfileOpen, setIsProfileOpen,
     cartItems, cartCount, cartTotal,
-    updateCartQuantity, removeFromCart,
+    updateCartQuantity, removeFromCart, checkout,
     profileNotice, setProfileNotice,
     getProductPrice
   } = useStore();
@@ -84,8 +84,7 @@ export default function Drawers() {
                   <button
                     type="button"
                     onClick={() => {
-                      setIsCartOpen(false);
-                      setIsProfileOpen(true);
+                      checkout();
                     }}
                   >
                     Checkout
