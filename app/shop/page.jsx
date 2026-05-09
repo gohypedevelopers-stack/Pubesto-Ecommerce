@@ -7,7 +7,7 @@ import Drawers from "../../components/Drawers";
 import { StoreProvider, useStore } from "../../components/StoreContext";
 import { products } from "../../lib/data";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus } from "lucide-react";
+import { Plus, Minus } from "lucide-react";
 import Link from "next/link";
 
 const shopFamilies = [
@@ -37,16 +37,29 @@ function uniqueProductsByKey(productList) {
 }
 
 function ShopContent() {
-  const { addToCart } = useStore();
+  const { 
+    addToCart, updateCartQuantity, cartItems, getProductId,
+    userPhone, setIsLeadModalOpen, setPendingProduct 
+  } = useStore();
   const [selectedFamilies, setSelectedFamilies] = useState([]);
   const [priceRange, setPriceRange] = useState("all");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  const handleAddToCart = (product) => {
+    if (!userPhone) {
+      setPendingProduct(product);
+      setIsLeadModalOpen(true);
+      return;
+    }
+    addToCart(product);
+  };
 
   const filteredProducts = useMemo(() => {
     // Filter by the requested categories first
     const relevantProducts = uniqueProductsByKey(
       products.filter((product) =>
-        product.categories.some((category) => shopFamilyValues.includes(category))
+        product.categories.some((category) => shopFamilyValues.includes(category)) &&
+        product.image.startsWith('/images/')
       )
     );
 
@@ -170,7 +183,7 @@ function ShopContent() {
                   layout
                 >
                   {product.badge && <div className="shop-product-badge">{product.badge}</div>}
-                  <button className="shop-product-plus" onClick={() => addToCart(product)}>
+                  <button className="shop-product-plus" onClick={() => handleAddToCart(product)}>
                     <Plus size={18} />
                   </button>
                   
@@ -187,12 +200,35 @@ function ShopContent() {
                       <span className="shop-current-price">{product.price}</span>
                       {product.oldPrice && <span className="shop-old-price">{product.oldPrice}</span>}
                     </div>
-                    <button 
-                      className="shop-add-btn"
-                      onClick={() => addToCart(product)}
-                    >
-                      Add to Cart
-                    </button>
+                    {(() => {
+                      const cartQuantity = cartItems.find((item) => item.id === getProductId(product))?.quantity || 0;
+                      return cartQuantity > 0 ? (
+                        <div className="shop-quantity-selector">
+                          <button 
+                            type="button" 
+                            onClick={() => updateCartQuantity(getProductId(product), cartQuantity - 1)}
+                            aria-label="Decrease quantity"
+                          >
+                            <Minus size={14} />
+                          </button>
+                          <span>{cartQuantity}</span>
+                          <button 
+                            type="button" 
+                            onClick={() => updateCartQuantity(getProductId(product), cartQuantity + 1)}
+                            aria-label="Increase quantity"
+                          >
+                            <Plus size={14} />
+                          </button>
+                        </div>
+                      ) : (
+                        <button 
+                          className="shop-add-btn"
+                          onClick={() => handleAddToCart(product)}
+                        >
+                          Add to Cart
+                        </button>
+                      );
+                    })()}
                   </div>
                 </motion.article>
               ))}

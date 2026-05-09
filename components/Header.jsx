@@ -80,9 +80,6 @@ export default function Header() {
           <Link href="/" onClick={resetStoreView}>
             Home
           </Link>
-          <Link href="/about" onClick={() => setIsMenuOpen(false)}>
-            About Us
-          </Link>
           <Link href="/shop" onClick={() => setIsMenuOpen(false)}>
             Shop
           </Link>
@@ -187,9 +184,6 @@ export default function Header() {
       <div className={`mobile-nav-content ${isMenuOpen ? "open" : ""}`}>
         <Link href="/" onClick={resetStoreView}>
           Home
-        </Link>
-        <Link href="/about" onClick={() => setIsMenuOpen(false)}>
-          About Us
         </Link>
         <Link href="/shop" onClick={() => setIsMenuOpen(false)}>
           Shop

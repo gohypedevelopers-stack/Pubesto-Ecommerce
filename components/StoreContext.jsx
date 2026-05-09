@@ -19,6 +19,9 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
   const [shopifyCart, setShopifyCart] = useState(null);
   const [products, setProducts] = useState(initialProducts);
   const [categories, setCategories] = useState(initialCategories);
+  const [isLeadModalOpen, setIsLeadModalOpen] = useState(false);
+  const [pendingProduct, setPendingProduct] = useState(null);
+  const [userPhone, setUserPhone] = useState("");
 
   useEffect(() => {
     async function syncShopify() {
@@ -144,7 +147,10 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
     cartCount, cartTotal,
     getProductId, getProductPrice,
     closeUtilityPanels, addToCart, updateCartQuantity, removeFromCart, checkout,
-    categories, products
+    categories, products,
+    isLeadModalOpen, setIsLeadModalOpen,
+    pendingProduct, setPendingProduct,
+    userPhone, setUserPhone
   };
 
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;

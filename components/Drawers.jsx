@@ -7,6 +7,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ChevronRight, LogOut, Package, Heart, HelpCircle } from "lucide-react";
 import { useState } from "react";
 
+import LeadModal from "./LeadModal";
+
 export default function Drawers() {
   const {
     isCartOpen, setIsCartOpen,
@@ -20,10 +22,13 @@ export default function Drawers() {
   const [emailInput, setEmailInput] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  if (!isCartOpen && !isProfileOpen) return null;
+  if (!isCartOpen && !isProfileOpen) {
+    return <LeadModal />;
+  }
 
   return (
     <>
+      <LeadModal />
       {isCartOpen && (
         <div className="cart-layer">
           <button

@@ -7,15 +7,28 @@ import Footer from "../../../components/Footer";
 import Drawers from "../../../components/Drawers";
 import { useParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { ShoppingBag, ChevronDown, Check, Plus, ArrowRight } from "lucide-react";
-import { useState } from "react";
+import { ShoppingBag, ChevronDown, Check, Plus, Minus, ArrowRight, ShieldCheck, Sparkles } from "lucide-react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 
 function ProductPageContent() {
   const { slug } = useParams();
-  const { addToCart, cartItems, getProductId } = useStore();
+  const { 
+    addToCart, cartItems, getProductId,
+    isLeadModalOpen, setIsLeadModalOpen,
+    pendingProduct, setPendingProduct,
+    userPhone
+  } = useStore();
   const [activeTab, setActiveTab] = useState("specifications");
   const [addEffectKey, setAddEffectKey] = useState(null);
+
+  useEffect(() => {
+    // Force scroll to top with a slight delay to ensure content is ready
+    const timer = setTimeout(() => {
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    }, 10);
+    return () => clearTimeout(timer);
+  }, [slug]);
 
   const product = products.find((p) => p.slug === slug);
 
@@ -32,6 +45,14 @@ function ProductPageContent() {
 
   function handleAddToCart(options) {
     if (product.inStock === false) return;
+    
+    // Check if we need to show the lead modal
+    if (!userPhone) {
+      setPendingProduct(product);
+      setIsLeadModalOpen(true);
+      return;
+    }
+
     const nextKey = Date.now();
     setAddEffectKey(nextKey);
     window.setTimeout(() => {
@@ -40,37 +61,72 @@ function ProductPageContent() {
     addToCart(product, options);
   }
 
-  // Related products (Curated Companions)
+  // Related products (Curated Companions) - Only showing real products with local images
   const relatedProducts = products
-    .filter((p) => p.slug !== product.slug)
-    .slice(0, 2);
+    .filter((p) => p.slug !== product.slug && p.image.startsWith('/images/'))
+    .slice(0, 4);
 
   return (
-    <main className="product-details-page">
+    <motion.main 
+      className="product-details-page"
+      initial={{ y: -50, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+    >
       <div className="product-hero-container">
         <div className="product-gallery">
-          <motion.div 
-            className="main-image"
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
-          >
-            <img src={product.image} alt={product.name} />
-          </motion.div>
+          {product.gallery ? (
+            product.gallery.map((img, idx) => (
+              <motion.div 
+                className="main-image"
+                key={idx}
+                initial={{ opacity: 0, y: -30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 1, delay: idx * 0.1 }}
+              >
+                <img src={img} alt={`${product.name} - View ${idx + 1}`} />
+              </motion.div>
+            ))
+          ) : (
+            <motion.div 
+              className="main-image"
+              initial={{ opacity: 0, y: -30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+            >
+              <div className="image-glow" />
+              <img src={product.image} alt={product.name} />
+            </motion.div>
+          )}
         </div>
 
         <div className="product-info-panel">
           <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, ease: [0.16, 1, 0.3, 1], delay: 0.2 }}
           >
-            <p className="eyebrow">{product.detail || "Artisanal Collection"}</p>
-            <h1 className="product-title">{product.name}</h1>
-            <div className="price-tag">
-              <span className="current-price">{product.price}</span>
-              {product.oldPrice && <span className="old-price">{product.oldPrice}</span>}
+            <div className="functional-price-table">
+              <div className="price-row">
+                <span>Price</span>
+                <span>: {product.oldPrice || product.price}</span>
+              </div>
+              <div className="price-row highlight">
+                <span>Discounted price</span>
+                <span>: {product.price}</span>
+              </div>
+              <div className="price-row savings">
+                <span>You save</span>
+                <span>: Rs. {(product.originalPrice || 0) - (product.salePrice || 0)} ({product.discountPercent || "20% off"})</span>
+              </div>
+              <div className="moq-tag">
+                MOQ: {product.moq || 2}
+              </div>
             </div>
+
+            <h1 className="product-title bold-title">{product.name}</h1>
+            <p className="sku-tag">SKU : {product.sku || "JA-CC0000"}</p>
 
             <div className="product-description">
               <p>
@@ -79,20 +135,34 @@ function ProductPageContent() {
             </div>
 
             <div className="purchase-actions">
-              <button 
-                className={`primary-button buy-button ${product.inStock === false ? 'disabled' : ''}`}
-                onClick={() => handleAddToCart()}
-                disabled={product.inStock === false}
-              >
-                {product.inStock === false ? "Out of Stock" : "ADD TO CART"}
-              </button>
-              <button 
-                className={`secondary-button buy-now-button ${product.inStock === false ? 'disabled' : ''}`}
-                onClick={() => handleAddToCart({ openCart: true })}
-                disabled={product.inStock === false}
-              >
-                BUY NOW
-              </button>
+              {product.inStock === false ? (
+                <button className="primary-button buy-button disabled" disabled>Out of Stock</button>
+              ) : cartQuantity > 0 ? (
+                <div className="product-page-quantity-selector">
+                  <button 
+                    type="button" 
+                    onClick={() => updateCartQuantity(getProductId(product), cartQuantity - 1)}
+                    aria-label="Decrease quantity"
+                  >
+                    <Minus size={20} />
+                  </button>
+                  <span className="quantity-display">{cartQuantity}</span>
+                  <button 
+                    type="button" 
+                    onClick={() => updateCartQuantity(getProductId(product), cartQuantity + 1)}
+                    aria-label="Increase quantity"
+                  >
+                    <Plus size={20} />
+                  </button>
+                </div>
+              ) : (
+                <button 
+                  className="primary-button buy-button"
+                  onClick={() => handleAddToCart()}
+                >
+                  ADD TO CART
+                </button>
+              )}
             </div>
 
             <div className="product-extra-info">
@@ -126,47 +196,41 @@ function ProductPageContent() {
                 </AnimatePresence>
               </div>
             </div>
+
+            <div className="product-features-grid">
+              <div className="feature-item">
+                <div className="feature-icon"><Sparkles size={18} /></div>
+                <span>Premium Quality</span>
+              </div>
+              <div className="feature-item">
+                <div className="feature-icon"><Check size={18} /></div>
+                <span>Leak Proof</span>
+              </div>
+              <div className="feature-item">
+                <div className="feature-icon"><ShieldCheck size={18} /></div>
+                <span>BPA Free</span>
+              </div>
+            </div>
           </motion.div>
-        </div>
       </div>
+    </div>
 
-      <motion.section 
-        className="craft-section"
-        initial={{ opacity: 0, y: 50 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: "-100px" }}
-        transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
-      >
-        <div className="craft-container">
-          <div className="craft-content">
-            <p className="eyebrow">The Craft</p>
-            <h2>Handmade Perfection</h2>
-            <p>
-              Utilizing techniques passed down through generations, master craftspeople painstakingly shape each vessel. 
-              The mesmerizing texture interacts beautifully with light, embodying the essence of artisanal design.
-            </p>
-          </div>
-          <div className="craft-media">
-            <img src="https://images.unsplash.com/photo-1605276374104-dee2a0ed3cd6?auto=format&fit=crop&w=1200&q=80" alt="Artisan craftsmanship" />
-          </div>
-        </div>
-      </motion.section>
-
-      <motion.section 
-        className="curated-companions"
+    <motion.section 
+      className="curated-companions"
         initial={{ opacity: 0 }}
         whileInView={{ opacity: 1 }}
         viewport={{ once: true }}
         transition={{ duration: 1 }}
       >
         <div className="section-heading centered">
+          <p className="eyebrow">Discover More</p>
           <h2>Curated Companions</h2>
         </div>
         <div className="companions-grid">
           {relatedProducts.map((p, i) => (
             <motion.div
               key={p.slug}
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: -20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: i * 0.1 }}
@@ -177,14 +241,14 @@ function ProductPageContent() {
                 </div>
                 <div className="companion-body">
                   <h3>{p.name}</h3>
-                  <p>{p.price}</p>
+                  <p className="price">{p.price}</p>
                 </div>
               </Link>
             </motion.div>
           ))}
         </div>
       </motion.section>
-    </main>
+    </motion.main>
   );
 }
 
