@@ -39,7 +39,8 @@ function uniqueProductsByKey(productList) {
 function ShopContent() {
   const { 
     addToCart, updateCartQuantity, cartItems, getProductId,
-    userPhone, setIsLeadModalOpen, setPendingProduct 
+    userPhone, setIsLeadModalOpen, setPendingProduct,
+    searchQuery 
   } = useStore();
   const [selectedFamilies, setSelectedFamilies] = useState([]);
   const [priceRange, setPriceRange] = useState("all");
@@ -47,7 +48,7 @@ function ShopContent() {
 
   const handleAddToCart = (product) => {
     if (!userPhone) {
-      setPendingProduct(product);
+      setPendingProduct({ product, options: {} });
       setIsLeadModalOpen(true);
       return;
     }
@@ -55,29 +56,30 @@ function ShopContent() {
   };
 
   const filteredProducts = useMemo(() => {
-    // Filter by the requested categories first
-    const relevantProducts = uniqueProductsByKey(
-      products.filter((product) =>
-        product.categories.some((category) => shopFamilyValues.includes(category)) &&
-        product.image.startsWith('/images/')
-      )
-    );
+    // 1. Initial filter for real products with valid categories
+    const baseProducts = products.filter((p) => p.image.startsWith('/images/'));
 
-    return relevantProducts.filter((product) => {
+    return baseProducts.filter((product) => {
+      // Family filter
       const familyMatch = selectedFamilies.length === 0 || 
-        product.categories.some((category) => selectedFamilies.includes(category));
+        product.categories.some((cat) => selectedFamilies.some(sf => cat.toLowerCase().includes(sf.toLowerCase())));
       
-      // Handle price filtering (assuming price string like "Rs. 899")
+      // Price filter
       const numericPrice = Number(product.price?.replace(/[^\d]/g, "")) || 0;
-      
       let priceMatch = true;
       if (priceRange === "under-500") priceMatch = numericPrice < 500;
       else if (priceRange === "500-1000") priceMatch = numericPrice >= 500 && numericPrice <= 1000;
       else if (priceRange === "over-1000") priceMatch = numericPrice > 1000;
 
-      return familyMatch && priceMatch;
+      // Search filter
+      const searchMatch = !searchQuery || 
+        product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        product.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        product.categories.some(cat => cat.toLowerCase().includes(searchQuery.toLowerCase()));
+
+      return familyMatch && priceMatch && searchMatch;
     });
-  }, [selectedFamilies, priceRange]);
+  }, [selectedFamilies, priceRange, searchQuery]);
 
   const toggleFamily = (family) => {
     setSelectedFamilies((prev) =>

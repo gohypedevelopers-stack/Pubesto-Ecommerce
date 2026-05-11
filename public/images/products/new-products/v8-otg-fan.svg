@@ -38,6 +38,14 @@
       <stop offset="1" stop-color="#f05da5"/>
     </radialGradient>
   </defs>
+  <style>
+    @keyframes spin {
+      100% { transform: rotate(360deg); }
+    }
+    .blade-spin {
+      animation: spin 0.4s linear infinite;
+    }
+  </style>
 
   <rect width="640" height="520" fill="url(#bg)"/>
   <ellipse cx="344" cy="438" rx="238" ry="34" fill="#2c2017" opacity="0.13"/>
@@ -59,7 +67,7 @@
     <rect x="119" y="202" width="40" height="45" rx="13" fill="#f5f1e8"/>
     <rect x="127" y="223" width="24" height="29" rx="6" fill="#c7bfb2"/>
     <circle cx="139" cy="151" r="24" fill="#101316"/>
-    <g fill="url(#bladeWhite)">
+    <g fill="url(#bladeWhite)" class="blade-spin" style="transform-origin: 139px 151px;">
       <path d="M139 127c-51-44-50-93-7-103 24 26 31 65 21 107z"/>
       <path d="M163 151c44-51 93-50 103-7-26 24-65 31-107 21z"/>
       <path d="M139 175c51 44 50 93 7 103-24-26-31-65-21-107z"/>
@@ -73,7 +81,7 @@
     <rect x="97" y="178" width="32" height="37" rx="11" fill="#29afd4"/>
     <rect x="104" y="197" width="18" height="24" rx="5" fill="#137e99"/>
     <circle cx="113" cy="133" r="20" fill="#16606b"/>
-    <g fill="url(#bladeBlue)">
+    <g fill="url(#bladeBlue)" class="blade-spin" style="transform-origin: 113px 133px;">
       <path d="M113 113c-42-35-42-76-5-84 19 21 25 54 17 87z"/>
       <path d="M133 133c35-42 76-42 84-5-21 19-54 25-87 17z"/>
       <path d="M113 153c42 35 42 76 5 84-19-21-25-54-17-87z"/>
@@ -86,7 +94,7 @@
     <path d="M75 148h28c8 0 14 6 14 14v5H61v-5c0-8 6-14 14-14z" fill="#1f4430"/>
     <rect x="76" y="126" width="26" height="30" rx="9" fill="#a4dc30"/>
     <circle cx="89" cy="90" r="17" fill="#5f9f0f"/>
-    <g fill="url(#bladeLime)">
+    <g fill="url(#bladeLime)" class="blade-spin" style="transform-origin: 89px 90px; animation-duration: 0.3s;">
       <path d="M89 73c-36-30-35-64-4-71 16 18 21 46 14 74z"/>
       <path d="M106 90c30-36 64-35 71-4-18 16-46 21-74 14z"/>
       <path d="M89 107c36 30 35 64 4 71-16-18-21-46-14-74z"/>
@@ -99,7 +107,7 @@
     <path d="M74 140h28c8 0 14 6 14 14v5H60v-5c0-8 6-14 14-14z" fill="#63364b"/>
     <rect x="75" y="119" width="26" height="29" rx="9" fill="#f075b0"/>
     <circle cx="88" cy="84" r="17" fill="#c1437b"/>
-    <g fill="url(#bladePink)">
+    <g fill="url(#bladePink)" class="blade-spin" style="transform-origin: 88px 84px; animation-duration: 0.5s;">
       <path d="M88 67c-36-30-35-64-4-71 16 18 21 46 14 74z"/>
       <path d="M105 84c30-36 64-35 71-4-18 16-46 21-74 14z"/>
       <path d="M88 101c36 30 35 64 4 71-16-18-21-46-14-74z"/>

@@ -46,7 +46,7 @@ function ProductCard({ product, index = 0 }) {
     if (product.inStock === false) return;
 
     if (!userPhone) {
-      setPendingProduct(product);
+      setPendingProduct({ product, options });
       setIsLeadModalOpen(true);
       return;
     }
@@ -192,7 +192,9 @@ function HomeContent() {
 
   const filteredProducts = normalizedSearchQuery
     ? categoryFilteredProducts.filter((product) =>
-        product.name.toLowerCase().includes(normalizedSearchQuery)
+        product.name.toLowerCase().includes(normalizedSearchQuery) ||
+        product.description?.toLowerCase().includes(normalizedSearchQuery) ||
+        product.categories?.some(cat => cat.toLowerCase().includes(normalizedSearchQuery))
       )
     : categoryFilteredProducts;
 
@@ -215,94 +217,105 @@ function HomeContent() {
       <Header />
       <Drawers />
       <main>
-        <section className="hero-carousel" aria-label="Featured offers">
-          <div className="hero-marquee">
-            <div className={`hero-track ${heroSlides.length === 1 ? "single-slide" : ""}`}>
+        <section className="hero-section" aria-label="Featured offers">
+          <div className="hero-overflow-container">
+            <div className={`hero-flex-container ${heroSlides.length === 1 ? "is-static" : "is-animating"}`}>
               {(heroSlides.length > 1 ? [...heroSlides, heroSlides[0]] : heroSlides).map((slide, index) => {
                 const isDuplicateSlide = heroSlides.length > 1 && index === heroSlides.length;
                 return (
-                  <article className={`hero-slide ${slide.video ? "has-video" : ""}`} aria-hidden={isDuplicateSlide} key={`${slide.title}-${index}`}>
-                    {slide.video ? (
-                      <video className="hero-bg hero-bg-video" autoPlay muted={!heroSoundOn || isDuplicateSlide} loop playsInline preload="auto" poster={slide.image}>
-                        <source src={slide.video} type="video/mp4" />
-                      </video>
-                    ) : slide.link ? (
-                      <Link href={slide.link} className="hero-bg-link">
-                        <img className="hero-bg" src={slide.image} alt="" />
-                      </Link>
-                    ) : (
-                      <img className="hero-bg" src={slide.image} alt="" />
-                    )}
-                    {slide.title && <div className="hero-slide-shade" />}
-                    {slide.video && !isDuplicateSlide ? (
+                  <article 
+                    className={`hero-slide-item ${slide.video ? "has-video" : ""}`} 
+                    aria-hidden={isDuplicateSlide} 
+                    key={`${slide.title}-${index}`}
+                  >
+                    {/* Background Layer */}
+                    <div className="hero-slide-bg">
+                      {slide.video ? (
+                        <video 
+                          className="hero-media-bg" 
+                          autoPlay 
+                          muted={!heroSoundOn || isDuplicateSlide} 
+                          loop 
+                          playsInline 
+                          preload="auto" 
+                          poster={slide.image}
+                        >
+                          <source src={slide.video} type="video/mp4" />
+                        </video>
+                      ) : (
+                        <img className="hero-media-bg" src={slide.image} alt="" />
+                      )}
+                      <div className="hero-slide-overlay" />
+                    </div>
+
+                    {/* Content Container */}
+                    <div className="hero-slide-container">
+                      <div className="hero-slide-layout">
+                        {/* Text Content */}
+                        <motion.div 
+                          className="hero-content-card"
+                          initial={{ opacity: 0, y: 30 }}
+                          whileInView={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
+                          viewport={{ once: true }}
+                        >
+                          <span className="hero-eyebrow-tag">{slide.eyebrow}</span>
+                          <h2 className="hero-title">{slide.title}</h2>
+                          <p className="hero-description">{slide.copy}</p>
+                          <Link href={slide.link} className="hero-primary-cta">
+                            {slide.cta}
+                          </Link>
+                        </motion.div>
+
+                        {/* Floating Product Card Removed */}
+                      </div>
+                    </div>
+
+                    {/* Sound Toggle */}
+                    {slide.video && !isDuplicateSlide && (
                       <button
-                        className={`hero-sound-toggle ${heroSoundOn ? "active" : ""}`}
+                        className={`hero-sound-control ${heroSoundOn ? "is-active" : ""}`}
                         type="button"
                         title={heroSoundOn ? "Mute hero video" : "Unmute hero video"}
-                        aria-label={heroSoundOn ? "Mute hero video" : "Unmute hero video"}
-                        aria-pressed={heroSoundOn}
                         onClick={(event) => {
-                          const video = event.currentTarget.parentElement?.querySelector("video");
+                          const video = event.currentTarget.closest('.hero-slide-item')?.querySelector("video");
                           const shouldUnmute = !heroSoundOn;
 
-                          document.querySelectorAll(".video-choice-video").forEach((videoElement) => {
-                            videoElement.muted = true;
-                          });
+                          document.querySelectorAll(".video-choice-video").forEach((v) => v.muted = true);
                           setActiveSoundVideo(null);
 
                           if (video) {
                             video.muted = !shouldUnmute;
                             video.volume = 1;
-                            if (shouldUnmute) {
-                              video.play().catch(() => {});
-                            }
+                            if (shouldUnmute) video.play().catch(() => {});
                           }
-
                           setHeroSoundOn(shouldUnmute);
                         }}
                       >
-                        {heroSoundOn ? <Volume2 /> : <VolumeX />}
+                        {heroSoundOn ? <Volume2 size={20} /> : <VolumeX size={20} />}
                       </button>
-                    ) : null}
-                    {slide.title && (
-                      <motion.div 
-                        className="hero-slide-content glass-card"
-                        initial={{ opacity: 0, x: -40 }}
-                        whileInView={{ opacity: 1, x: 0 }}
-                        transition={{ duration: 0.8, ease: "easeOut" }}
-                      >
-                        <p className="eyebrow hero-eyebrow">{slide.eyebrow}</p>
-                        {index === 0 ? <h1>{slide.title}</h1> : <h2>{slide.title}</h2>}
-                        <p>{slide.copy}</p>
-                        {slide.cta && (
-                          <div className="hero-actions">
-                            <a className="primary-button hero-cta" href={slide.link || "#featured"} tabIndex={isDuplicateSlide ? -1 : undefined}>
-                              {slide.cta}
-                            </a>
-                          </div>
-                        )}
-                      </motion.div>
-                    )}
-                    {slide.productImage && (
-                      <motion.div 
-                        className="hero-floating-badge"
-                        initial={{ opacity: 0, y: 30 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.8, delay: 0.4, ease: "easeOut" }}
-                      >
-                        <div className="hero-badge-inner">
-                          <img src={slide.productImage} alt="" />
-                          <div className="hero-badge-info">
-                            <span className="badge-title">{slide.productName || "Featured Product"}</span>
-                            <span className="badge-price">{slide.price} <s className="old-price">{slide.oldPrice}</s></span>
-                          </div>
-                        </div>
-                      </motion.div>
                     )}
                   </article>
                 );
               })}
             </div>
+
+            {/* Progress Indicators */}
+            {heroSlides.length > 1 && (
+              <div className="hero-indicators">
+                {heroSlides.map((_, i) => (
+                  <div key={i} className="hero-indicator-dot">
+                    <div 
+                      className="hero-indicator-progress" 
+                      style={{ 
+                        animation: `hero-progress-fill 16s linear infinite`,
+                        animationDelay: `${i * 8}s`
+                      }} 
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </section>
 
@@ -318,9 +331,13 @@ function HomeContent() {
               return (
                 <article className="video-choice-card" role="listitem" key={item.title}>
                   <Link className="video-choice-card-link" href={`/product/${item.slug}`} aria-label={`Shop ${item.title}`}>
-                    <video className="video-choice-video" autoPlay muted={!isSoundOn} loop playsInline preload="auto" poster={item.image}>
-                      <source src={item.video} type="video/mp4" />
-                    </video>
+                    {item.video && !item.video.includes('pin.it') ? (
+                      <video className="video-choice-video" autoPlay muted={!isSoundOn} loop playsInline preload="auto" poster={item.image}>
+                        <source src={item.video} type="video/mp4" />
+                      </video>
+                    ) : (
+                      <img className="video-choice-video simulated-video" src={item.image} alt={item.title} style={{ objectFit: 'cover' }} />
+                    )}
                     <span className="video-choice-gradient" />
                     <span className="video-choice-product">
                       <span className="video-choice-thumb"><img src={item.thumb} alt="" /></span>
@@ -330,38 +347,41 @@ function HomeContent() {
                       </span>
                     </span>
                   </Link>
-                  <button
-                    className={`video-choice-sound ${isSoundOn ? "active" : ""}`}
-                    type="button"
-                    title={isSoundOn ? "Mute sound" : "Unmute sound"}
-                    aria-label={`${isSoundOn ? "Mute" : "Unmute"} ${item.title}`}
-                    aria-pressed={isSoundOn}
-                    onClick={(event) => {
-                      const video = event.currentTarget.parentElement?.querySelector("video");
-                      if (!video) return;
+                  {item.video && !item.video.includes('pin.it') ? (
+                    <button
+                      className={`video-choice-sound ${isSoundOn ? "active" : ""}`}
+                      type="button"
+                      title={isSoundOn ? "Mute sound" : "Unmute sound"}
+                      aria-label={`${isSoundOn ? "Mute" : "Unmute"} ${item.title}`}
+                      aria-pressed={isSoundOn}
+                      onClick={(event) => {
+                        const video = event.currentTarget.parentElement?.querySelector("video");
+                        if (!video) return;
 
-                      const shouldUnmute = activeSoundVideo !== item.title;
-                      document.querySelectorAll(".hero-bg-video").forEach((videoElement) => {
-                        videoElement.muted = true;
-                      });
-                      document.querySelectorAll(".video-choice-video").forEach((videoElement) => {
-                        videoElement.muted = true;
-                      });
-                      setHeroSoundOn(false);
+                        const shouldUnmute = activeSoundVideo !== item.title;
+                        document.querySelectorAll(".hero-media-bg").forEach((videoElement) => {
+                          if (videoElement.tagName === 'VIDEO') videoElement.muted = true;
+                        });
+                        document.querySelectorAll(".video-choice-video").forEach((videoElement) => {
+                          if (videoElement.tagName === 'VIDEO') videoElement.muted = true;
+                        });
+                        // Assume setHeroSoundOn is available from context or state
+                        if (typeof setHeroSoundOn === 'function') setHeroSoundOn(false);
 
-                      if (shouldUnmute) {
-                        video.muted = false;
-                        video.volume = 1;
-                        video.play().catch(() => {});
-                        setActiveSoundVideo(item.title);
-                      } else {
-                        video.muted = true;
-                        setActiveSoundVideo(null);
-                      }
-                    }}
-                  >
-                    {isSoundOn ? <Volume2 /> : <VolumeX />}
-                  </button>
+                        if (shouldUnmute) {
+                          video.muted = false;
+                          video.volume = 1;
+                          video.play().catch(() => {});
+                          setActiveSoundVideo(item.title);
+                        } else {
+                          video.muted = true;
+                          setActiveSoundVideo(null);
+                        }
+                      }}
+                    >
+                      {isSoundOn ? <Volume2 /> : <VolumeX />}
+                    </button>
+                  ) : null}
                 </article>
               );
             })}
@@ -369,7 +389,7 @@ function HomeContent() {
         </section>
 
         <section id="categories" className="category-section">
-          <div className="section-heading">
+          <div className="section-heading centered">
             <div>
               <p className="eyebrow">Shop the range</p>
               <h2>Browse by category</h2>
@@ -405,7 +425,7 @@ function HomeContent() {
         </section>
 
         <section id="featured" className="product-section">
-          <div className="section-heading">
+          <div className="section-heading centered">
             <div>
               <p className="eyebrow">{productEyebrow}</p>
               <h2>{productHeading}</h2>
@@ -423,15 +443,15 @@ function HomeContent() {
           </div>
         </section>
 
+        <div className="section-heading centered">
+          <div>
+            <p className="eyebrow">Follow Us</p>
+            <h2 id="social-circle-title">Join the Pubesto Home Circle</h2>
+          </div>
+        </div>
+
         <section className="social-circle-section" aria-labelledby="social-circle-title">
           <span className="social-circle-wave" aria-hidden="true" />
-          <span className="social-circle-object" aria-hidden="true">
-            <img src="/images/products/new-products/b-07-premium-nice-glass-bottle.svg" alt="" />
-          </span>
-          <div className="social-circle-heading">
-            <h2 id="social-circle-title">Join the Pubesto Home Circle</h2>
-            <p>Follow Us</p>
-          </div>
           <div className="social-gallery" role="list">
             {socialGalleryItems.map((item) => (
               <a

@@ -31,7 +31,7 @@ export default function LeadModal() {
     setTimeout(() => {
       setUserPhone(phone);
       if (pendingProduct) {
-        addToCart(pendingProduct);
+        addToCart(pendingProduct.product, pendingProduct.options);
       }
       setIsSubmitting(false);
       handleClose();

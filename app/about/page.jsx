@@ -79,44 +79,16 @@ export default function AboutPage() {
                 src="https://images.unsplash.com/photo-1618220179428-22790b461013?auto=format&fit=crop&w=1200&q=88"
                 alt="Styled home decor setup with warm everyday interiors"
                 animate={{ 
-                  y: [0, -20, 0],
+                  y: [0, -20, 0]
                 }}
-                transition={{ 
-                  duration: 8, 
-                  repeat: Infinity, 
-                  ease: "easeInOut" 
-                }}
-                style={{ scale: heroImageScale }}
+                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
               />
-              <div className="glass-reflection" />
             </div>
-            <motion.div 
-              className="media-3d-shadow"
-              animate={{ 
-                scale: [1, 1.1, 1],
-                opacity: [0.2, 0.3, 0.2]
-              }}
-              transition={{ 
-                duration: 8, 
-                repeat: Infinity, 
-                ease: "easeInOut" 
-              }}
-            />
           </motion.div>
         </section>
 
-        {/* Section 2: Curation */}
-        <section className="about-sourcing">
-          <motion.div
-            className="section-heading-centered"
-            initial="initial"
-            whileInView="whileInView"
-            variants={staggerContainer}
-            viewport={{ once: true }}
-          >
-            <motion.p className="eyebrow" variants={fadeIn}>
-              What We Curate
-            </motion.p>
+        <section className="about-ingredients">
+          <motion.div className="section-header" {...fadeIn}>
             <motion.h2 variants={fadeIn}>
               Practical Picks, Not Clutter.
             </motion.h2>
