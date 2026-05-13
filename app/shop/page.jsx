@@ -5,7 +5,6 @@ import Header from "../../components/Header";
 import Footer from "../../components/Footer";
 import Drawers from "../../components/Drawers";
 import { StoreProvider, useStore } from "../../components/StoreContext";
-import { products } from "../../lib/data";
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, Minus } from "lucide-react";
 import Link from "next/link";
@@ -39,30 +38,24 @@ function uniqueProductsByKey(productList) {
 function ShopContent() {
   const { 
     addToCart, updateCartQuantity, cartItems, getProductId,
-    userPhone, setIsLeadModalOpen, setPendingProduct,
-    searchQuery 
+    searchQuery, products
   } = useStore();
   const [selectedFamilies, setSelectedFamilies] = useState([]);
   const [priceRange, setPriceRange] = useState("all");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const handleAddToCart = (product) => {
-    if (!userPhone) {
-      setPendingProduct({ product, options: {} });
-      setIsLeadModalOpen(true);
-      return;
-    }
     addToCart(product);
   };
 
   const filteredProducts = useMemo(() => {
     // 1. Initial filter for real products with valid categories
-    const baseProducts = products.filter((p) => p.image.startsWith('/images/'));
+    const baseProducts = products.filter((p) => p.image && (p.image.startsWith('/images/') || p.image.startsWith('https://')));
 
     return baseProducts.filter((product) => {
       // Family filter
       const familyMatch = selectedFamilies.length === 0 || 
-        product.categories.some((cat) => selectedFamilies.some(sf => cat.toLowerCase().includes(sf.toLowerCase())));
+        (product.categories || []).some((cat) => selectedFamilies.some(sf => cat.toLowerCase().includes(sf.toLowerCase())));
       
       // Price filter
       const numericPrice = Number(product.price?.replace(/[^\d]/g, "")) || 0;
@@ -75,11 +68,11 @@ function ShopContent() {
       const searchMatch = !searchQuery || 
         product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         product.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        product.categories.some(cat => cat.toLowerCase().includes(searchQuery.toLowerCase()));
+        (product.categories || []).some(cat => cat.toLowerCase().includes(searchQuery.toLowerCase()));
 
       return familyMatch && priceMatch && searchMatch;
     });
-  }, [selectedFamilies, priceRange, searchQuery]);
+  }, [selectedFamilies, priceRange, searchQuery, products]);
 
   const toggleFamily = (family) => {
     setSelectedFamilies((prev) =>

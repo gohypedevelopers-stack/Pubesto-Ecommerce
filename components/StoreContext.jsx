@@ -19,17 +19,22 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
   const [shopifyCart, setShopifyCart] = useState(null);
   const [products, setProducts] = useState(initialProducts);
   const [categories, setCategories] = useState(initialCategories);
-  const [isLeadModalOpen, setIsLeadModalOpen] = useState(false);
-  const [pendingProduct, setPendingProduct] = useState(null);
-  const [userPhone, setUserPhone] = useState("");
 
   useEffect(() => {
     async function syncShopify() {
       if (process.env.NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN && process.env.NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN !== 'your_token') {
         const shopifyProducts = await getShopifyProducts();
-        if (shopifyProducts.length > 0) {
-          setProducts(shopifyProducts);
-          // Optionally extract categories from shopifyProducts if they are different from local ones
+        if (shopifyProducts && shopifyProducts.length > 0) {
+          // Merge logic: Combine Shopify products with local initialProducts, avoiding duplicates by slug
+          setProducts((prevLocal) => {
+            const merged = [...shopifyProducts];
+            prevLocal.forEach(localProd => {
+              if (!merged.find(sp => sp.slug === localProd.slug)) {
+                merged.push(localProd);
+              }
+            });
+            return merged;
+          });
         }
       }
     }
@@ -107,14 +112,70 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
     }
   }
 
-  function checkout() {
+  const loadRazorpay = () => {
+    return new Promise((resolve) => {
+      const script = document.createElement("script");
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  };
+
+  async function checkout() {
+    if (cartItems.length === 0) return;
+
+    // If there's a Shopify cart with a checkout URL, use it
     if (shopifyCart?.checkoutUrl) {
       window.location.href = shopifyCart.checkoutUrl;
-    } else {
-      // Fallback or generic checkout notice
-      setIsCartOpen(false);
-      setProfileNotice("Checkout is currently being processed through Shopify.");
-      setIsProfileOpen(true);
+      return;
+    }
+
+    // Otherwise, use Razorpay
+    const res = await loadRazorpay();
+    if (!res) {
+      alert("Razorpay SDK failed to load. Are you online?");
+      return;
+    }
+
+    try {
+      const response = await fetch("/api/razorpay/order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ amount: cartTotal }),
+      });
+
+      const order = await response.json();
+      if (order.error) throw new Error(order.error);
+
+      const options = {
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_test_RwcLAPO7q0AESo",
+        amount: order.amount,
+        currency: order.currency,
+        name: "Pubesto",
+        description: "Artisanal Ecommerce",
+        order_id: order.id,
+        handler: function (response) {
+          alert(`Payment Successful! ID: ${response.razorpay_payment_id}`);
+          setCartItems([]);
+          localStorage.removeItem("shopify_cart");
+          setIsCartOpen(false);
+          setProfileNotice("Thank you for your order! Payment successful.");
+          setIsProfileOpen(true);
+        },
+        prefill: {
+          name: "Customer",
+          email: "customer@example.com",
+          contact: "9999999999",
+        },
+        theme: { color: "#1b624b" },
+      };
+
+      const paymentObject = new window.Razorpay(options);
+      paymentObject.open();
+    } catch (error) {
+      console.error("Checkout Error:", error);
+      alert("Checkout failed. Please try again.");
     }
   }
 
@@ -150,9 +211,7 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
     getProductId, getProductPrice,
     closeUtilityPanels, addToCart, updateCartQuantity, removeFromCart, checkout,
     categories, products,
-    isLeadModalOpen, setIsLeadModalOpen,
-    pendingProduct, setPendingProduct,
-    userPhone, setUserPhone
+    footerPanel, setFooterPanel
   };
 
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;

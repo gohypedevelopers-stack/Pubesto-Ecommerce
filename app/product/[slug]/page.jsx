@@ -1,29 +1,27 @@
 "use client";
 
 import { useStore, StoreProvider } from "../../../components/StoreContext";
-import { products, categories } from "../../../lib/data";
+import { categories, products } from "../../../lib/data";
 import Header from "../../../components/Header";
 import Footer from "../../../components/Footer";
 import Drawers from "../../../components/Drawers";
 import { useParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { ShoppingBag, ChevronDown, Check, Plus, Minus, ArrowRight, ShieldCheck, Sparkles } from "lucide-react";
-import { useState, useEffect } from "react";
+import { ShoppingBag, ChevronDown, Check, Plus, Minus, ArrowRight, ShieldCheck, Sparkles, ChevronRight, CheckSquare, Tag, Undo2 } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 
 function ProductPageContent() {
   const { slug } = useParams();
   const { 
-    addToCart, cartItems, getProductId,
-    isLeadModalOpen, setIsLeadModalOpen,
-    pendingProduct, setPendingProduct,
-    userPhone
+    addToCart, cartItems, getProductId, products, updateCartQuantity
   } = useStore();
   const [activeTab, setActiveTab] = useState("specs");
   const [addEffectKey, setAddEffectKey] = useState(null);
-  const [quantity, setQuantity] = useState(1);
+  const [quantity, setQuantity] = useState(2);
   const [selectedColor, setSelectedColor] = useState(null);
   const [activeImage, setActiveImage] = useState(null);
+  const reviewTrackRef = useRef(null);
 
   useEffect(() => {
     // Force scroll to top with a slight delay to ensure content is ready
@@ -37,11 +35,13 @@ function ProductPageContent() {
       setActiveImage(product.image);
       if (product.colors && product.colors.length > 0) {
         setSelectedColor(product.colors[0]);
+      } else {
+        setSelectedColor(null);
       }
     }
     
     return () => clearTimeout(timer);
-  }, [slug]);
+  }, [slug, products]);
 
   const product = products.find((p) => p.slug === slug);
 
@@ -59,15 +59,6 @@ function ProductPageContent() {
   function handleAddToCart() {
     if (product.inStock === false) return;
     
-    // Check if we need to show the lead modal
-    if (!userPhone) {
-      setPendingProduct({ 
-        product, 
-        options: { color: selectedColor?.name, quantity: quantity } 
-      });
-      setIsLeadModalOpen(true);
-      return;
-    }
 
     const nextKey = Date.now();
     setAddEffectKey(nextKey);
@@ -86,10 +77,54 @@ function ProductPageContent() {
     setQuantity(prev => Math.max(1, prev + amount));
   }
 
-  // Related products (Curated Companions) - Only showing real products with local images
+  // Related products (Curated Companions) - prioritizing same category
   const relatedProducts = products
-    .filter((p) => p.slug !== product.slug && p.image.startsWith('/images/'))
+    .filter((p) => p.slug !== product.slug && p.image)
+    .sort((a, b) => {
+      const aSameCat = a.categories?.some(cat => product.categories?.includes(cat));
+      const bSameCat = b.categories?.some(cat => product.categories?.includes(cat));
+      if (aSameCat && !bSameCat) return -1;
+      if (!aSameCat && bSameCat) return 1;
+      return 0;
+    })
     .slice(0, 4);
+
+  const parsePrice = (priceStr) => {
+    const num = Number((priceStr || '').replace(/[^\d.]/g, ''));
+    return isNaN(num) || num === 0 ? null : num;
+  };
+
+  const basePrice = product.salePrice || parsePrice(product.price) || 599;
+  const baseOldPrice = product.originalPrice || parsePrice(product.oldPrice) || Math.round(basePrice * 1.35);
+
+  const bundles = [
+    { 
+      id: 1, 
+      title: 'Single', 
+      badge: '25% off',
+      subtext: 'Additional Prepaid Discount', 
+      price: basePrice, 
+      oldPrice: baseOldPrice 
+    },
+    { 
+      id: 2, 
+      title: 'Pack of 2', 
+      badgeLabel: `Save ₹${(baseOldPrice * 2) - Math.floor(basePrice * 1.417)}`,
+      subtext: 'Free Priority Shipping', 
+      price: Math.floor(basePrice * 1.417), 
+      oldPrice: baseOldPrice * 2,
+      topBadge: 'MOST POPULAR'
+    },
+    { 
+      id: 4, 
+      title: 'Pack of 4', 
+      badgeLabel: `Save ₹${(baseOldPrice * 4) - Math.floor(basePrice * 3.003)}`,
+      subtext: 'Free Priority Shipping', 
+      price: Math.floor(basePrice * 3.003), 
+      oldPrice: baseOldPrice * 4,
+      topBadge: 'LOWEST PRICE EVER!'
+    }
+  ];
 
   return (
     <motion.main 
@@ -98,9 +133,6 @@ function ProductPageContent() {
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
     >
-      <div className="product-breadcrumb">
-        <Link href="/">Home</Link> / <Link href="/shop">Shop</Link> / <span>{product.name}</span>
-      </div>
       <div className="product-hero-container">
         <div className="product-gallery">
           <div className="main-image-wrapper">
@@ -138,44 +170,52 @@ function ProductPageContent() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
           >
-            <div className="product-header-meta">
-              <div className="star-rating">
-                {[...Array(5)].map((_, i) => (
-                  <Check key={i} size={14} className={i < Math.floor(product.rating || 5) ? "star-active" : "star-inactive"} />
-                ))}
-                <span>({product.reviews || 0} reviews)</span>
-              </div>
-              <p className="sku-id">SKU: {product.sku}</p>
-            </div>
+
 
             <h1 className="product-title bold-title">{product.name}</h1>
+
+            {(product.rating || product.reviews) && (
+              <div className="product-rating-bar">
+                <span className="stars-display">{'★'.repeat(Math.round(Number(product.rating || 5)))}</span>
+                <span className="rating-text">{product.rating || '5.0'} ★ ({product.reviews || '0'} reviews)</span>
+              </div>
+            )}
             
             <div className="price-display-v2">
               <span className="current-price">{product.price}</span>
               {product.oldPrice && <span className="old-price">{product.oldPrice}</span>}
-              <span className="discount-tag">SAVE Rs. {(product.originalPrice || 0) - (product.salePrice || 0)}</span>
+              {(() => {
+                const savings = (product.originalPrice || Number((product.oldPrice || '').replace(/[^\d.]/g, '')) || 0) 
+                              - (product.salePrice || Number((product.price || '').replace(/[^\d.]/g, '')) || 0);
+                return savings > 0 ? <span className="discount-tag">SAVE Rs. {savings}</span> : null;
+              })()}
             </div>
 
             <p className="product-short-desc">
               {product.description}
             </p>
 
-            {product.colors && (
+            {product.colors && product.colors.length > 0 && (
               <div className="variant-selector">
-                <p className="variant-label">Select Color: <span>{selectedColor?.name || product.colors[0].name}</span></p>
+                <p className="variant-label">Select Color: <span>{selectedColor?.name || product.colors[0]?.name}</span></p>
                 <div className="color-options">
-                  {product.colors.map((color, i) => (
-                    <button 
-                      key={i} 
-                      className={`color-bubble ${selectedColor?.name === color.name ? 'active' : ''}`}
-                      style={{ backgroundColor: color.hex }}
-                      title={color.name}
-                      onClick={() => {
-                        setSelectedColor(color);
-                        if (color.image) setActiveImage(color.image);
-                      }}
-                    />
-                  ))}
+                  {product.colors.map((color, i) => {
+                    const isActive = selectedColor ? selectedColor.name === color.name : i === 0;
+                    return (
+                      <button 
+                        key={i} 
+                        className={`color-bubble ${isActive ? 'active' : ''}`}
+                        style={{ backgroundColor: color.hex }}
+                        title={color.name}
+                        onClick={() => {
+                          setSelectedColor(color);
+                          if (color.image) {
+                            setActiveImage(color.image);
+                          }
+                        }}
+                      />
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -189,36 +229,100 @@ function ProductPageContent() {
               </ul>
             </div>
 
-            <div className="purchase-actions-v2">
-              <div className="qty-wrap">
-                <button onClick={() => adjustQuantity(-1)}><Minus size={16} /></button>
-                <input type="number" value={quantity} readOnly />
-                <button onClick={() => adjustQuantity(1)}><Plus size={16} /></button>
-              </div>
+            <div className="marketing-banners">
+              <div className="banner-green">extra discount + FREE GIFT on prepaid orders!</div>
+              <div className="banner-text">🎇 FESTIVE BONANZA SALE- BEST PRICE GUARENTEED!</div>
+            </div>
+
+            <div className="units-sold-ticker">
+              <div className="pulsing-dot"></div>
+              <span><strong>+{product.reviews ? Number(product.reviews) * 26 : 900} units sold</strong> in the last 24 hours</span>
+            </div>
+
+            <div className="bundle-separator">
+              <span>BUNDLE & SAVE</span>
+            </div>
+
+            <div className="bundle-options">
+              {bundles.map((b) => (
+                <div 
+                  key={b.id} 
+                  className={`bundle-option ${quantity === b.id ? 'selected' : ''}`}
+                  onClick={() => setQuantity(b.id)}
+                >
+                  {b.topBadge && <div className="bundle-top-badge">{b.topBadge}</div>}
+                  <div className="bundle-radio">
+                    <div className={`radio-outer ${quantity === b.id ? 'active' : ''}`}>
+                      {quantity === b.id && <div className="radio-inner" />}
+                    </div>
+                  </div>
+                  <div className="bundle-details">
+                    <div className="bundle-title-row">
+                      <span className="bundle-title">{b.title}</span>
+                      {b.badge && <span className="bundle-badge">{b.badge}</span>}
+                      {b.badgeLabel && <span className="bundle-badge">{b.badgeLabel}</span>}
+                    </div>
+                    <div className="bundle-subtext">{b.subtext}</div>
+                  </div>
+                  <div className="bundle-pricing">
+                    <div className="bundle-price">Rs. {b.price}</div>
+                    <div className="bundle-old-price">Rs. {b.oldPrice}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="purchase-actions-v2 full-width">
               <button 
-                className="add-to-cart-btn"
+                className="block-btn"
                 onClick={() => handleAddToCart()}
               >
-                <ShoppingBag size={20} />
-                ADD TO CART
+                Add to cart
               </button>
             </div>
 
-            <div className="trust-badges-strip">
-              <div className="trust-item">
-                <ShieldCheck size={20} />
-                <span>1 Year Warranty</span>
+            <button className="buy-now-btn" onClick={() => handleAddToCart()}>
+              <span className="buy-text">BUY NOW</span>
+              <div className="buy-icons-pill">
+                 <div className="payment-circle gpay">G</div>
+                 <div className="payment-circle phonepe">Pe</div>
+                 <div className="payment-circle paytm">pay</div>
               </div>
-              <div className="trust-item">
-                <ArrowRight size={20} />
-                <span>7 Day Returns</span>
-              </div>
-              <div className="trust-item">
-                <Check size={20} />
-                <span>Free Delivery</span>
+              <ChevronRight size={24} />
+              <span className="powered-by">Powered By <strong>Shiprocket</strong></span>
+            </button>
+
+            <div className="secure-payment-box">
+              <p>Secure payment with</p>
+              <div className="payment-icons-row">
+                <span className="pay-icon visa">VISA</span>
+                <div className="pay-icon mastercard"><div className="mc-circle mc-red"></div><div className="mc-circle mc-yellow"></div></div>
+                <span className="pay-icon upi">UPI</span>
+                <span className="pay-icon gpay">G Pay</span>
+                <span className="pay-icon paytm">Paytm</span>
               </div>
             </div>
 
+            <div className="loved-badge">
+              💖 Loved by {product.reviews ? Number(product.reviews) * 127 : '10,000'}+ Customers
+            </div>
+
+            <div className="trust-features-grid">
+              <div className="trust-feature">
+                <div className="tf-icon"><CheckSquare size={32} strokeWidth={1.2} /></div>
+                <span>COD<br/>Available</span>
+              </div>
+              <div className="trust-feature">
+                <div className="tf-icon"><Tag size={32} strokeWidth={1.2} /></div>
+                <span>EXTRA<br/>SAVINGS on<br/>PREPAID</span>
+              </div>
+              <div className="trust-feature">
+                <div className="tf-icon"><Undo2 size={32} strokeWidth={1.2} /></div>
+                <span>7-Day Worry<br/>Free Returns</span>
+              </div>
+            </div>
+
+            {product.specifications && Object.keys(product.specifications).length > 0 && (
             <div className="details-accordion-v2">
               <div className="acc-item">
                 <button className="acc-trigger" onClick={() => setActiveTab(activeTab === 'specs' ? '' : 'specs')}>
@@ -234,7 +338,7 @@ function ProductPageContent() {
                       exit={{ height: 0, opacity: 0 }}
                     >
                       <div className="specs-table">
-                        {Object.entries(product.specifications || {}).map(([k, v], i) => (
+                        {Object.entries(product.specifications).map(([k, v], i) => (
                           <div key={i} className="spec-row-v2">
                             <span className="spec-key">{k}</span>
                             <span className="spec-val">{v}</span>
@@ -246,9 +350,58 @@ function ProductPageContent() {
                 </AnimatePresence>
               </div>
             </div>
+            )}
           </motion.div>
       </div>
     </div>
+
+    {/* Customer Reviews Section */}
+    <section className="customer-reviews-section">
+      <div className="reviews-header">
+        <p className="eyebrow" style={{ textAlign: 'center', marginBottom: '8px' }}>Trusted by thousands</p>
+        <h2>What Our Customers Say</h2>
+        <div className="reviews-meta">
+          <span className="stars-display">{'★'.repeat(Math.round(Number(product.rating || 5)))}</span>
+          <span className="rating-text">{product.rating || '5.0'} ★ ({product.reviews || '0'})</span>
+          <span className="verified-badge">
+             <Check size={14} strokeWidth={3} /> Verified
+          </span>
+        </div>
+      </div>
+      <div className="reviews-carousel">
+        <button className="review-nav review-prev" onClick={() => { if (reviewTrackRef.current) reviewTrackRef.current.scrollBy({ left: -344, behavior: 'smooth' }); }}>‹</button>
+        <div className="reviews-track" ref={reviewTrackRef}>
+          {[
+            { text: "Absolutely love the quality! It fits perfectly in my bag and doesn't leak at all. Highly recommend.", name: "Kavya Reddy" },
+            { text: "Perfect for daily use. The design is so unique and I get compliments every time I use it.", name: "Vivek Gulati" },
+            { text: "The finish is premium and durable. Even after months of use, it still looks brand new.", name: "Sunita Patil" },
+            { text: "Exceeded my expectations! Shipping was fast and the packaging was very secure.", name: "Srinivas Murthy" },
+            { text: "Best value for money. I've bought three of these for my family members already.", name: "Ankit Sharma" },
+            { text: "Highly recommend to everyone looking for a stylish yet practical bottle.", name: "Priya Nair" },
+            { text: "Great customer service too. They resolved my query within an hour. Amazing brand!", name: "Rahul Verma" },
+            { text: "Sturdy and well-designed. The slim profile is exactly what I was looking for.", name: "Meena Iyer" },
+          ].map((review, i) => (
+            <div className="review-card" key={i}>
+              <div className="review-stars">{'★'.repeat(Math.round(Number(product.rating || 5)))}</div>
+              <p className="review-text">"{review.text}"</p>
+              <div className="reviewer-info">
+                <div className="reviewer-avatar">
+                  {review.name.split(' ').map(n => n[0]).join('')}
+                </div>
+                <div className="reviewer-details">
+                  <h4>{review.name}</h4>
+                  <p>Verified Buyer</p>
+                </div>
+                <div className="verified-tag">
+                  <ShieldCheck size={18} fill="rgba(27, 98, 75, 0.1)" />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+        <button className="review-nav review-next" onClick={() => { if (reviewTrackRef.current) reviewTrackRef.current.scrollBy({ left: 344, behavior: 'smooth' }); }}>›</button>
+      </div>
+    </section>
 
     <motion.section 
       className="curated-companions"
@@ -262,25 +415,66 @@ function ProductPageContent() {
           <h2>Curated Companions</h2>
         </div>
         <div className="companions-grid">
-          {relatedProducts.map((p, i) => (
-            <motion.div
-              key={p.slug}
-              initial={{ opacity: 0, y: -20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: i * 0.1 }}
-            >
-              <Link href={`/product/${p.slug}`} className="companion-card">
-                <div className="companion-media">
-                  <img src={p.image} alt={p.name} />
+          {relatedProducts.map((p, i) => {
+            const pCartQty = cartItems.find((item) => item.id === getProductId(p))?.quantity || 0;
+            return (
+              <motion.article
+                className="product-card"
+                key={p.slug}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: i * 0.1 }}
+              >
+                <div className="product-media">
+                  <Link className="product-media-link" href={`/product/${p.slug}`} aria-label={`View ${p.name}`}>
+                    <img src={p.image} alt={p.name} />
+                  </Link>
+                  {p.badge ? (
+                    <span className={`badge ${p.badgeClass || ""}`}>{p.badge}</span>
+                  ) : null}
                 </div>
-                <div className="companion-body">
-                  <h3>{p.name}</h3>
-                  <p className="price">{p.price}</p>
+                <div className="product-body">
+                  <Link href={`/product/${p.slug}`}>
+                    <h3>{p.name}</h3>
+                  </Link>
+                  <p className="price">
+                    {p.price}
+                    {p.oldPrice ? <span>{p.oldPrice}</span> : null}
+                  </p>
+                  {p.inStock === false ? (
+                    <button className="quick-add disabled" disabled>Out of Stock</button>
+                  ) : pCartQty > 0 ? (
+                    <div className="product-quantity-selector">
+                      <button 
+                        type="button" 
+                        onClick={() => updateCartQuantity(getProductId(p), pCartQty - 1)}
+                        aria-label="Decrease quantity"
+                      >
+                        <Minus size={16} />
+                      </button>
+                      <span>{pCartQty}</span>
+                      <button 
+                        type="button" 
+                        onClick={() => updateCartQuantity(getProductId(p), pCartQty + 1)}
+                        aria-label="Increase quantity"
+                      >
+                        <Plus size={16} />
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      className="quick-add"
+                      type="button"
+                      onClick={() => addToCart(p)}
+                    >
+                      Add to Cart
+                    </button>
+                  )}
                 </div>
-              </Link>
-            </motion.div>
-          ))}
+              </motion.article>
+            );
+          })}
         </div>
       </motion.section>
     </motion.main>

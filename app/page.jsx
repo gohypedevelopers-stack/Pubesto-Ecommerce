@@ -27,8 +27,7 @@ import { formatPrice } from "../lib/utils";
 
 function ProductCard({ product, index = 0 }) {
   const { 
-    cartItems, addToCart, removeFromCart, getProductId,
-    userPhone, setIsLeadModalOpen, setPendingProduct 
+    cartItems, addToCart, removeFromCart, getProductId, updateCartQuantity
   } = useStore();
   const [addEffectKey, setAddEffectKey] = useState(null);
 
@@ -45,11 +44,7 @@ function ProductCard({ product, index = 0 }) {
   function handleAddToCart(options) {
     if (product.inStock === false) return;
 
-    if (!userPhone) {
-      setPendingProduct({ product, options });
-      setIsLeadModalOpen(true);
-      return;
-    }
+
 
     showAddAnimation();
     addToCart(product, options);
@@ -70,29 +65,9 @@ function ProductCard({ product, index = 0 }) {
       <div className="product-media">
         <Link className="product-media-link" href={`/product/${product.slug}`} aria-label={`View ${product.name}`}>
           <img src={product.image} alt={product.name} />
-          {product.photoCount ? <span className="photo-count">{product.photoCount}</span> : null}
         </Link>
         {product.badge ? (
           <span className={`badge ${product.badgeClass || ""}`}>{product.badge}</span>
-        ) : null}
-        {product.stockBadge ? <span className="stock-badge">{product.stockBadge}</span> : null}
-        {!product.stockBadge ? (
-          <motion.button
-            className={`save-button ${cartQuantity > 0 ? "active" : ""}`}
-            type="button"
-            onClick={(e) => {
-              e.preventDefault();
-              if (cartQuantity > 0) {
-                handleRemoveFromCart();
-              } else {
-                handleAddToCart({ openCart: false });
-              }
-            }}
-            whileTap={{ scale: 0.86 }}
-            aria-label={cartQuantity > 0 ? `Remove ${product.name} from cart` : `Add ${product.name} to cart`}
-          >
-            {cartQuantity > 0 ? <Minus /> : <Plus />}
-          </motion.button>
         ) : null}
         <AnimatePresence>
           {addEffectKey ? (
@@ -125,7 +100,6 @@ function ProductCard({ product, index = 0 }) {
         </AnimatePresence>
       </div>
       <div className="product-body">
-        <p className="product-detail">{product.detail}</p>
         <Link href={`/product/${product.slug}`}>
           <h3>{product.name}</h3>
         </Link>
@@ -180,7 +154,7 @@ function HomeContent() {
   const [heroSoundOn, setHeroSoundOn] = useState(false);
 
   const normalizedSearchQuery = searchQuery.trim().toLowerCase();
-  const activeProducts = products.filter((product) => product.inStock !== false && product.image.startsWith('/images/'));
+  const activeProducts = products.filter((product) => product.image && (product.image.startsWith('/images/') || product.image.startsWith('https://')));
   
   const categoryFilteredProducts = selectedCategory
     ? activeProducts.filter((product) =>
@@ -336,7 +310,7 @@ function HomeContent() {
                         <source src={item.video} type="video/mp4" />
                       </video>
                     ) : (
-                      <img className="video-choice-video simulated-video" src={item.image} alt={item.title} style={{ objectFit: 'cover' }} />
+                      <img className="video-choice-video simulated-video" src={item.image} alt={item.title} style={{ objectFit: 'contain' }} />
                     )}
                     <span className="video-choice-gradient" />
                     <span className="video-choice-product">

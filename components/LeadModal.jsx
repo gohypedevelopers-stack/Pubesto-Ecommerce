@@ -8,8 +8,7 @@ import { useState } from "react";
 export default function LeadModal() {
   const { 
     isLeadModalOpen, setIsLeadModalOpen, 
-    pendingProduct, setPendingProduct,
-    addToCart, setUserPhone 
+    checkout, setUserPhone 
   } = useStore();
   
   const [phone, setPhone] = useState("");
@@ -19,7 +18,6 @@ export default function LeadModal() {
 
   const handleClose = () => {
     setIsLeadModalOpen(false);
-    setPendingProduct(null);
   };
 
   const handleSubmit = (e) => {
@@ -30,9 +28,7 @@ export default function LeadModal() {
     // Simulate API call to save lead
     setTimeout(() => {
       setUserPhone(phone);
-      if (pendingProduct) {
-        addToCart(pendingProduct.product, pendingProduct.options);
-      }
+      checkout(true); // Bypass phone check
       setIsSubmitting(false);
       handleClose();
     }, 800);
@@ -60,7 +56,7 @@ export default function LeadModal() {
           </button>
           
           <div className="lead-modal-header">
-            <h3>Enter your phone number to add to buying list</h3>
+            <h3>Enter your phone number to proceed to checkout</h3>
             <p className="field-label">WhatsApp Number</p>
           </div>
 
@@ -81,7 +77,7 @@ export default function LeadModal() {
             </div>
 
             <button type="submit" className="lead-submit-button" disabled={isSubmitting}>
-              <span>{isSubmitting ? "Adding..." : "ADD TO CART"}</span>
+              <span>{isSubmitting ? "Processing..." : "PROCEED"}</span>
               <div className="button-icon">
                 <ArrowRight size={18} />
               </div>
