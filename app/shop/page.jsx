@@ -5,15 +5,17 @@ import Header from "../../components/Header";
 import Footer from "../../components/Footer";
 import Drawers from "../../components/Drawers";
 import { StoreProvider, useStore } from "../../components/StoreContext";
+import LeadModal from "../../components/LeadModal";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Minus } from "lucide-react";
+import { Plus, Minus, Filter, X as CloseIcon } from "lucide-react";
 import Link from "next/link";
 
 const shopFamilies = [
   { label: "Home Decor", value: "Home Decor" },
-  { label: "OTG Fans", value: "Fans" },
-  { label: "Lunch Box", value: "lunch box" },
-  { label: "Water Bottles", value: "water bottles" },
+  { label: "Fans", value: "Fans" },
+  { label: "Lunch Box", value: "Lunch Box" },
+  { label: "Water Bottles", value: "Bottles" },
+  { label: "Storage", value: "Storage" },
 ];
 
 const shopFamilyValues = shopFamilies.map((family) => family.value);
@@ -43,6 +45,7 @@ function ShopContent() {
   const [selectedFamilies, setSelectedFamilies] = useState([]);
   const [priceRange, setPriceRange] = useState("all");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [limit, setLimit] = useState(12);
 
   const handleAddToCart = (product) => {
     addToCart(product);
@@ -119,8 +122,24 @@ function ShopContent() {
       </header>
 
       <div className="shop-container">
+        {/* Mobile Filter Toggle */}
+        <button 
+          className="mobile-filter-toggle" 
+          onClick={() => setIsSidebarOpen(true)}
+        >
+          <Filter size={18} />
+          Filters
+        </button>
+
         {/* Sidebar Filters */}
         <aside className={`shop-sidebar ${isSidebarOpen ? 'open' : ''}`}>
+          <div className="sidebar-header">
+            <h3>Filters</h3>
+            <button className="close-sidebar" onClick={() => setIsSidebarOpen(false)}>
+              <CloseIcon size={20} />
+            </button>
+          </div>
+
           <div className="filter-group">
             <h3 className="filter-title">Categories</h3>
             <div className="filter-options">
@@ -170,7 +189,7 @@ function ShopContent() {
             key={selectedFamilies.join('-') + priceRange}
           >
             <AnimatePresence mode="popLayout">
-              {filteredProducts.map((product) => (
+              {filteredProducts.slice(0, limit).map((product) => (
                 <motion.article 
                   key={getShopProductKey(product)}
                   className="shop-product-card"
@@ -243,12 +262,13 @@ function ShopContent() {
             </motion.div>
           )}
 
-          {filteredProducts.length > 0 && (
+          {filteredProducts.length > limit && (
             <div className="shop-actions">
               <motion.button 
                 className="secondary-button discover-more"
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
+                onClick={() => setLimit(prev => prev + 12)}
               >
                 Load More Items
               </motion.button>
@@ -265,6 +285,7 @@ export default function ShopPage() {
     <StoreProvider>
       <Header />
       <Drawers />
+      <LeadModal />
       <ShopContent />
       <Footer />
     </StoreProvider>

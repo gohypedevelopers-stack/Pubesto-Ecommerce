@@ -19,6 +19,8 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
   const [shopifyCart, setShopifyCart] = useState(null);
   const [products, setProducts] = useState(initialProducts);
   const [categories, setCategories] = useState(initialCategories);
+  const [isLeadModalOpen, setIsLeadModalOpen] = useState(false);
+  const [userPhone, setUserPhone] = useState("");
 
   useEffect(() => {
     async function syncShopify() {
@@ -122,8 +124,15 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
     });
   };
 
-  async function checkout() {
+  async function checkout(options = {}) {
     if (cartItems.length === 0) return;
+
+    // Lead Capture Logic: If no phone number, open modal
+    if (!userPhone && !options.bypassLead) {
+      setIsCartOpen(false);
+      setIsLeadModalOpen(true);
+      return;
+    }
 
     // If there's a Shopify cart with a checkout URL, use it
     if (shopifyCart?.checkoutUrl) {
@@ -211,7 +220,9 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
     getProductId, getProductPrice,
     closeUtilityPanels, addToCart, updateCartQuantity, removeFromCart, checkout,
     categories, products,
-    footerPanel, setFooterPanel
+    footerPanel, setFooterPanel,
+    isLeadModalOpen, setIsLeadModalOpen,
+    userPhone, setUserPhone
   };
 
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;

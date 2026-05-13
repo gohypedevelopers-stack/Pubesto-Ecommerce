@@ -28,7 +28,7 @@ export default function LeadModal() {
     // Simulate API call to save lead
     setTimeout(() => {
       setUserPhone(phone);
-      checkout(true); // Bypass phone check
+      checkout({ bypassLead: true }); // Bypass phone check
       setIsSubmitting(false);
       handleClose();
     }, 800);
