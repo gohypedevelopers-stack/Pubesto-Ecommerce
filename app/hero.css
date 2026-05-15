@@ -2,6 +2,7 @@
 .hero-section {
   position: relative;
   width: 100%;
+  --hero-header-offset: 90px;
   margin-top: 0;
   padding: 0;
   overflow: hidden;
@@ -31,7 +32,7 @@
 .hero-slide-item {
   position: relative;
   flex: 0 0 100vw;
-  height: clamp(500px, 85vh, 900px);
+  height: clamp(500px, calc(100dvh - var(--hero-header-offset)), 900px);
   display: flex;
   align-items: center;
   overflow: hidden;
@@ -44,9 +45,13 @@
 }
 
 @media (max-width: 768px) {
+  .hero-section {
+    --hero-header-offset: 76px;
+  }
+
   .hero-slide-item {
     height: auto;
-    min-height: 550px;
+    min-height: max(550px, calc(100dvh - var(--hero-header-offset)));
     padding-top: 60px;
     padding-bottom: 40px;
     align-items: flex-start;

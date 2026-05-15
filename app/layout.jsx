@@ -21,10 +21,24 @@ export const metadata = {
   description: "Pubesto home decor, lunch storage, water bottles, and daily essentials.",
 };
 
+import { Providers } from "./providers";
+import Header from "../components/Header";
+import Footer from "../components/Footer";
+import Drawers from "../components/Drawers";
+import LeadModal from "../components/LeadModal";
+
 export default function RootLayout({ children }) {
   return (
     <html lang="en" className={`${inter.variable} ${cormorant.variable}`} data-scroll-behavior="smooth" suppressHydrationWarning>
-      <body suppressHydrationWarning>{children}</body>
+      <body suppressHydrationWarning>
+        <Providers>
+          <Header />
+          <Drawers />
+          <LeadModal />
+          {children}
+          <Footer />
+        </Providers>
+      </body>
     </html>
   );
 }

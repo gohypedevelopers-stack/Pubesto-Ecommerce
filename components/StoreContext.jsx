@@ -1,9 +1,54 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect } from "react";
-import { getShopifyProducts, createShopifyCart, addToShopifyCart } from "../lib/shopify";
+import {
+  getShopifyProducts,
+  createShopifyCart,
+  addToShopifyCart,
+  getShopifyCartPermalink,
+  getShopifyVariantIdByHandle,
+} from "../lib/shopify";
 
 const StoreContext = createContext();
+
+function normalizeProductText(value) {
+  return String(value || "")
+    .toLowerCase()
+    .replace(/-imported$/, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+function hasHighlights(product) {
+  return Array.isArray(product?.highlights) && product.highlights.filter(Boolean).length > 0;
+}
+
+function findLocalProductFallback(shopifyProduct, localProducts) {
+  const shopifySlug = normalizeProductText(shopifyProduct.slug);
+  const shopifyName = normalizeProductText(shopifyProduct.name);
+
+  return localProducts.find((localProduct) => (
+    normalizeProductText(localProduct.slug) === shopifySlug ||
+    normalizeProductText(localProduct.name) === shopifyName
+  ));
+}
+
+function mergeShopifyProductWithLocalFallback(shopifyProduct, localProducts) {
+  const localProduct = findLocalProductFallback(shopifyProduct, localProducts);
+  if (!localProduct) return shopifyProduct;
+
+  return {
+    ...localProduct,
+    ...shopifyProduct,
+    highlights: hasHighlights(shopifyProduct) ? shopifyProduct.highlights : localProduct.highlights,
+    specifications: shopifyProduct.specifications || localProduct.specifications,
+    rating: shopifyProduct.rating || localProduct.rating,
+    reviews: shopifyProduct.reviews || localProduct.reviews,
+    badge: shopifyProduct.badge || localProduct.badge,
+    badgeClass: shopifyProduct.badgeClass || localProduct.badgeClass,
+    detail: shopifyProduct.detail || localProduct.detail,
+  };
+}
 
 export function StoreProvider({ children, categories: initialCategories = [], products: initialProducts = [] }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -21,6 +66,9 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
   const [categories, setCategories] = useState(initialCategories);
   const [isLeadModalOpen, setIsLeadModalOpen] = useState(false);
   const [userPhone, setUserPhone] = useState("");
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [user, setUser] = useState(null);
+  const [wishlist, setWishlist] = useState([]);
 
   useEffect(() => {
     async function syncShopify() {
@@ -29,7 +77,9 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
         if (shopifyProducts && shopifyProducts.length > 0) {
           // Merge logic: Combine Shopify products with local initialProducts, avoiding duplicates by slug
           setProducts((prevLocal) => {
-            const merged = [...shopifyProducts];
+            const merged = shopifyProducts.map((shopifyProduct) =>
+              mergeShopifyProductWithLocalFallback(shopifyProduct, prevLocal)
+            );
             prevLocal.forEach(localProd => {
               if (!merged.find(sp => sp.slug === localProd.slug)) {
                 merged.push(localProd);
@@ -41,13 +91,35 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
       }
     }
     syncShopify();
-
-    const savedCart = localStorage.getItem("shopify_cart");
-    if (savedCart) {
+    
+    // Auth Persistence
+    const savedUser = localStorage.getItem("pubesto_user");
+    if (savedUser) {
       try {
-        setShopifyCart(JSON.parse(savedCart));
+        const parsed = JSON.parse(savedUser);
+        setUser(parsed);
+        setIsLoggedIn(true);
       } catch (e) {
-        console.error("Error parsing saved cart", e);
+        console.error("Error parsing saved user", e);
+      }
+    }
+
+    // Wishlist Persistence
+    const savedWishlist = localStorage.getItem("pubesto_wishlist");
+    if (savedWishlist) {
+      try {
+        setWishlist(JSON.parse(savedWishlist));
+      } catch (e) {
+        console.error("Error parsing wishlist", e);
+      }
+    }
+
+    const savedShopifyCart = localStorage.getItem("shopify_cart");
+    if (savedShopifyCart) {
+      try {
+        setShopifyCart(JSON.parse(savedShopifyCart));
+      } catch (e) {
+        console.error("Error parsing Shopify cart", e);
       }
     }
   }, []);
@@ -70,35 +142,96 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
     setIsProfileOpen(false);
   }
 
-  function addToCart(product, options = {}) {
+  function getNextCartItems(items, product, quantity) {
     const productId = getProductId(product);
-    const shouldOpenCart = options.openCart !== false;
+    const existingItem = items.find((item) => item.id === productId);
 
-    const addQuantity = options.quantity || 1;
-
-    setCartItems((items) => {
-      const existingItem = items.find((item) => item.id === productId);
-      if (existingItem) {
-        return items.map((item) =>
-          item.id === productId ? { ...item, quantity: item.quantity + addQuantity } : item
-        );
-      }
-      return [...items, { id: productId, product, quantity: addQuantity }];
-    });
-    setCartPulseKey((key) => key + 1);
-    setIsProfileOpen(false);
-    
-    // Shopify Sync
-    if (process.env.NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN && product.sku?.includes('gid://shopify/')) {
-      handleShopifyAddToCart(product);
+    if (existingItem) {
+      return items.map((item) =>
+        item.id === productId ? { ...item, quantity: item.quantity + quantity } : item
+      );
     }
 
-    if (shouldOpenCart) {
-      setIsCartOpen(true);
+    return [...items, { id: productId, product, quantity }];
+  }
+
+  function openShopifyCart(items = cartItems) {
+    window.location.href = getShopifyCartPermalink(items);
+  }
+
+  async function resolveShopifyCartProduct(product) {
+    if (product.shopifyVariantId || product.variantId || product.sku?.includes("gid://shopify/")) {
+      return product;
+    }
+
+    const handle = product.shopifyHandle || product.slug;
+    if (!handle) return product;
+
+    try {
+      const shopifyVariantId = await getShopifyVariantIdByHandle(handle);
+      return shopifyVariantId ? { ...product, shopifyVariantId } : product;
+    } catch (error) {
+      console.error("Shopify variant lookup failed:", error);
+      return product;
     }
   }
 
-  async function handleShopifyAddToCart(product) {
+  function login(email) {
+    const newUser = { email, name: "Artisanal Member", joinDate: new Date().toISOString() };
+    setUser(newUser);
+    setIsLoggedIn(true);
+    localStorage.setItem("pubesto_user", JSON.stringify(newUser));
+    setProfileNotice("Successfully signed in!");
+  }
+
+  function logout() {
+    setUser(null);
+    setIsLoggedIn(false);
+    localStorage.removeItem("pubesto_user");
+    setProfileNotice("Logged out successfully.");
+  }
+
+  function addToWishlist(product) {
+    setWishlist((prev) => {
+      if (prev.find((p) => p.slug === product.slug)) return prev;
+      const next = [...prev, product];
+      localStorage.setItem("pubesto_wishlist", JSON.stringify(next));
+      return next;
+    });
+  }
+
+  function removeFromWishlist(productSlug) {
+    setWishlist((prev) => {
+      const next = prev.filter((p) => p.slug !== productSlug);
+      localStorage.setItem("pubesto_wishlist", JSON.stringify(next));
+      return next;
+    });
+  }
+
+  async function addToCart(product, options = {}) {
+    const shouldOpenCart = options.openCart !== false;
+
+    const addQuantity = options.quantity || 1;
+    const cartProduct = await resolveShopifyCartProduct(product);
+    const nextCartItems = getNextCartItems(cartItems, cartProduct, addQuantity);
+
+    setCartItems(nextCartItems);
+    setCartPulseKey((key) => key + 1);
+    setIsProfileOpen(false);
+    setIsCartOpen(false);
+    
+    // Shopify Sync
+    const shopifyVariantId = cartProduct.shopifyVariantId || cartProduct.variantId || cartProduct.sku;
+    if (process.env.NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN && shopifyVariantId?.includes('gid://shopify/')) {
+      handleShopifyAddToCart({ ...cartProduct, sku: shopifyVariantId }, addQuantity);
+    }
+
+    if (shouldOpenCart) {
+      openShopifyCart(nextCartItems);
+    }
+  }
+
+  async function handleShopifyAddToCart(product, quantity = 1) {
     try {
       let currentCart = shopifyCart;
       if (!currentCart) {
@@ -106,7 +239,7 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
         setShopifyCart(currentCart);
         localStorage.setItem("shopify_cart", JSON.stringify(currentCart));
       }
-      const updatedCart = await addToShopifyCart(currentCart.id, product.sku);
+      const updatedCart = await addToShopifyCart(currentCart.id, product.sku, quantity);
       setShopifyCart(updatedCart);
       localStorage.setItem("shopify_cart", JSON.stringify(updatedCart));
     } catch (error) {
@@ -125,7 +258,10 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
   };
 
   async function checkout(options = {}) {
-    if (cartItems.length === 0) return;
+    const activeItems = options.items || cartItems;
+    const activeAmount = options.amount || cartTotal;
+
+    if (activeItems.length === 0) return;
 
     // Lead Capture Logic: If no phone number, open modal
     if (!userPhone && !options.bypassLead) {
@@ -151,7 +287,7 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
       const response = await fetch("/api/razorpay/order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ amount: cartTotal }),
+        body: JSON.stringify({ amount: activeAmount }),
       });
 
       const order = await response.json();
@@ -203,6 +339,7 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
 
   const cartCount = cartItems.reduce((total, item) => total + item.quantity, 0);
   const cartTotal = cartItems.reduce((total, item) => total + getProductPrice(item.product) * item.quantity, 0);
+  const shopifyCartUrl = getShopifyCartPermalink(cartItems);
 
   const value = {
     isMenuOpen, setIsMenuOpen,
@@ -217,12 +354,17 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
     showAllProducts, setShowAllProducts,
     footerPanel, setFooterPanel,
     cartCount, cartTotal,
+    shopifyCartUrl, openShopifyCart,
     getProductId, getProductPrice,
     closeUtilityPanels, addToCart, updateCartQuantity, removeFromCart, checkout,
     categories, products,
     footerPanel, setFooterPanel,
     isLeadModalOpen, setIsLeadModalOpen,
-    userPhone, setUserPhone
+    userPhone, setUserPhone,
+    isLoggedIn, setIsLoggedIn,
+    user, setUser,
+    wishlist, setWishlist,
+    login, logout, addToWishlist, removeFromWishlist
   };
 
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;

@@ -8,13 +8,13 @@ import Link from "next/link";
 
 const footerLinkGroups = [
   {
-    title: "Fine Print",
+    title: "Policies",
     label: "Fine print links",
     links: [
-      { label: "Privacy Policy", panel: "privacy" },
-      { label: "Shipping Policy", panel: "shipping" },
-      { label: "Terms of Service", panel: "terms" },
-      { label: "Refund Policy", panel: "refund" },
+      { label: "Privacy Policy", href: "/privacy-policy" },
+      { label: "Terms of Service", href: "/terms-of-service" },
+      { label: "Refund Policy", href: "/refund-return-policy" },
+      { label: "Shipping Policy", href: "/shipping-policy" },
     ],
   },
   {
@@ -22,45 +22,13 @@ const footerLinkGroups = [
     label: "Learn more links",
     links: [
       { label: "About Us", href: "/about" },
-      { label: "Contact Us", panel: "contact" },
+      { label: "Contact Us", href: "/contact" },
       { label: "FAQ", panel: "faq" },
     ],
   },
 ];
 
 const footerPanelContent = {
-  privacy: {
-    eyebrow: "Fine Print",
-    title: "Privacy Policy",
-    body: [
-      "Pubesto uses customer details only to process orders, respond to support requests, and improve the shopping experience.",
-      "We do not sell personal information. Payment and delivery partners receive only the details needed to complete your order.",
-    ],
-  },
-  shipping: {
-    eyebrow: "Fine Print",
-    title: "Shipping Policy",
-    body: [
-      "Most in-stock products dispatch within 1-2 business days and arrive within 2-4 business days after dispatch.",
-      "Delivery timelines can vary by product, address, courier availability, and public holidays.",
-    ],
-  },
-  terms: {
-    eyebrow: "Fine Print",
-    title: "Terms of Service",
-    body: [
-      "By shopping with Pubesto, customers agree to provide accurate order, contact, and delivery information.",
-      "Product availability, pricing, and offers may change without notice, but confirmed orders are handled according to the order details shown at checkout.",
-    ],
-  },
-  refund: {
-    eyebrow: "Fine Print",
-    title: "Refund Policy",
-    body: [
-      "Eligible returns can be requested after delivery if the item is damaged, incorrect, or not as described.",
-      "Approved refunds are processed back to the original payment method after the returned item is checked.",
-    ],
-  },
   about: {
     eyebrow: "Learn More",
     title: "About Pubesto",
@@ -112,7 +80,7 @@ export default function Footer() {
       <div className="footer-grid">
         {footerLinkGroups.map((group) => (
           <nav className="footer-column" aria-label={group.label} key={group.title}>
-            <h2>{group.title}</h2>
+            {group.title && <h2>{group.title}</h2>}
             {group.links.map((link) => (
               link.href ? (
                 <Link
@@ -139,28 +107,12 @@ export default function Footer() {
         ))}
 
         <div className="footer-column footer-offers">
-          <h2>Subscribe for Offers</h2>
-          <p>Be the first to know about new drops, useful home finds, and exclusive Pubesto deals.</p>
-          <form className="footer-form" onSubmit={submitFooterForm}>
-            <label className="sr-only" htmlFor="footer-email">
-              Email address
-            </label>
-            <input
-              id="footer-email"
-              type="email"
-              placeholder="Email"
-              value={footerEmail}
-              onChange={(event) => {
-                setFooterEmail(event.target.value);
-                setFooterNotice("");
-              }}
-            />
-            <button type="submit" aria-label="Subscribe">
-              <span>Join</span>
-              <ArrowRight size={16} aria-hidden="true" />
-            </button>
-          </form>
-          {footerNotice ? <p className="footer-notice">{footerNotice}</p> : null}
+
+          <div className="footer-contact-info">
+            <h3>Contact Us</h3>
+            <p>support@pubesto.com</p>
+            <p>Mon - Sat: 10AM - 7PM</p>
+          </div>
 
           <nav className="footer-socials" aria-label="Social links">
             {footerSocialLinks.map(({ label, href, Icon }) => (

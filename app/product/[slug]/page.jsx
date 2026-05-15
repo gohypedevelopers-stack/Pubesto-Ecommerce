@@ -1,26 +1,26 @@
 "use client";
 
-import { useStore, StoreProvider } from "../../../components/StoreContext";
-import { categories, products } from "../../../lib/data";
-import Header from "../../../components/Header";
-import Footer from "../../../components/Footer";
-import Drawers from "../../../components/Drawers";
 import { useParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { ShoppingBag, ChevronDown, Check, Plus, Minus, ArrowRight, ShieldCheck, Sparkles, ChevronRight, CheckSquare, Tag, Undo2 } from "lucide-react";
+import { ShoppingBag, ChevronDown, Check, Plus, Minus, ArrowRight, ShieldCheck, Sparkles, ChevronRight, CheckSquare, Tag, Undo2, Volume2, VolumeX } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import { useStore } from "../../../components/StoreContext";
+import { peopleChoiceVideos } from "../../../lib/data";
+import { getShopifyCheckoutUrl } from "../../../lib/shopify";
 
 function ProductPageContent() {
   const { slug } = useParams();
   const { 
-    addToCart, cartItems, getProductId, products, updateCartQuantity
+    addToCart, cartItems, getProductId, products, updateCartQuantity, checkout
   } = useStore();
   const [activeTab, setActiveTab] = useState("specs");
   const [addEffectKey, setAddEffectKey] = useState(null);
   const [quantity, setQuantity] = useState(2);
   const [selectedColor, setSelectedColor] = useState(null);
   const [activeImage, setActiveImage] = useState(null);
+  const [videoSoundOn, setVideoSoundOn] = useState(false);
+  const [isBuyingNow, setIsBuyingNow] = useState(false);
   const reviewTrackRef = useRef(null);
 
   useEffect(() => {
@@ -30,7 +30,11 @@ function ProductPageContent() {
     }, 10);
     
     // Initialize product states
-    const product = products.find((p) => p.slug === slug);
+    const product = products.find((p) => 
+      p.slug === slug || 
+      p.shopifyHandle === slug || 
+      (p.slug && p.slug.toLowerCase().includes(slug.toLowerCase()))
+    );
     if (product) {
       setActiveImage(product.image);
       if (product.colors && product.colors.length > 0) {
@@ -43,7 +47,11 @@ function ProductPageContent() {
     return () => clearTimeout(timer);
   }, [slug, products]);
 
-  const product = products.find((p) => p.slug === slug);
+  const product = products.find((p) => 
+    p.slug === slug || 
+    p.shopifyHandle === slug || 
+    (p.slug && p.slug.toLowerCase().includes(slug.toLowerCase()))
+  );
 
   if (!product) {
     return (
@@ -73,6 +81,32 @@ function ProductPageContent() {
     });
   }
 
+  async function handleBuyNow() {
+    if (product.inStock === false || isBuyingNow) return;
+
+    const shopifyHandle = product.shopifyHandle || product.slug;
+    setIsBuyingNow(true);
+
+    try {
+      const checkoutUrl = await getShopifyCheckoutUrl(shopifyHandle, quantity);
+      window.location.href = checkoutUrl;
+    } catch (err) {
+      console.warn("Shopify checkout unavailable, falling back to Razorpay:", err.message);
+      const selectedBundle = bundles.find(b => b.id === quantity) || bundles[0];
+      addToCart(product, {
+        color: selectedColor?.name,
+        quantity: quantity,
+        openCart: false
+      });
+      checkout({
+        items: [{ id: getProductId(product), product, quantity }],
+        amount: selectedBundle.price
+      });
+    } finally {
+      setIsBuyingNow(false);
+    }
+  }
+
   function adjustQuantity(amount) {
     setQuantity(prev => Math.max(1, prev + amount));
   }
@@ -96,6 +130,9 @@ function ProductPageContent() {
 
   const basePrice = product.salePrice || parsePrice(product.price) || 599;
   const baseOldPrice = product.originalPrice || parsePrice(product.oldPrice) || Math.round(basePrice * 1.35);
+  const productHighlights = Array.isArray(product.highlights) && product.highlights.filter(Boolean).length > 0
+    ? product.highlights.filter(Boolean)
+    : ["Premium Quality", "Artisanal Design", "Durability Guaranteed"];
 
   const bundles = [
     { 
@@ -174,12 +211,7 @@ function ProductPageContent() {
 
             <h1 className="product-title bold-title">{product.name}</h1>
 
-            {(product.rating || product.reviews) && (
-              <div className="product-rating-bar">
-                <span className="stars-display">{'★'.repeat(Math.round(Number(product.rating || 5)))}</span>
-                <span className="rating-text">{product.rating || '5.0'} ★ ({product.reviews || '0'} reviews)</span>
-              </div>
-            )}
+
             
             <div className="price-display-v2">
               <span className="current-price">{product.price}</span>
@@ -222,16 +254,16 @@ function ProductPageContent() {
 
             <div className="product-highlights-v2">
               <h4>Key Highlights</h4>
-              <ul>
-                {(product.highlights || ["Premium Quality", "Artisanal Design", "Durability Guaranteed"]).map((h, i) => (
-                  <li key={i}><Check size={16} /> {h}</li>
+              <div className="highlights-chips">
+                {productHighlights.map((h, i) => (
+                  <span key={i} className="highlight-chip">{h}</span>
                 ))}
-              </ul>
+              </div>
             </div>
 
             <div className="marketing-banners">
               <div className="banner-green">extra discount + FREE GIFT on prepaid orders!</div>
-              <div className="banner-text">🎇 FESTIVE BONANZA SALE- BEST PRICE GUARENTEED!</div>
+              <div className="banner-text">🎇 SUMMER SALE- BEST PRICE GUARENTEED!</div>
             </div>
 
             <div className="units-sold-ticker">
@@ -272,40 +304,39 @@ function ProductPageContent() {
               ))}
             </div>
 
-            <div className="purchase-actions-v2 full-width">
+            <div className="purchase-actions-v2 product-buy-actions">
               <button 
                 className="block-btn"
+                type="button"
                 onClick={() => handleAddToCart()}
               >
-                Add to cart
+                <ShoppingBag size={18} strokeWidth={2.2} />
+                <span>Add to cart</span>
+              </button>
+
+              <button 
+                className={`buy-now-btn ${isBuyingNow ? 'loading' : ''}`} 
+                type="button"
+                onClick={() => handleBuyNow()}
+                disabled={isBuyingNow}
+              >
+                <span className="buy-text">{isBuyingNow ? 'Redirecting...' : 'BUY NOW'}</span>
+                {!isBuyingNow && (
+                  <div className="buy-icons-pill">
+                     <div className="payment-circle gpay">G</div>
+                     <div className="payment-circle phonepe">Pe</div>
+                     <div className="payment-circle paytm">pay</div>
+                  </div>
+                )}
+                {isBuyingNow ? (
+                  <div className="buy-now-spinner" />
+                ) : (
+                  <ChevronRight size={20} />
+                )}
               </button>
             </div>
 
-            <button className="buy-now-btn" onClick={() => handleAddToCart()}>
-              <span className="buy-text">BUY NOW</span>
-              <div className="buy-icons-pill">
-                 <div className="payment-circle gpay">G</div>
-                 <div className="payment-circle phonepe">Pe</div>
-                 <div className="payment-circle paytm">pay</div>
-              </div>
-              <ChevronRight size={24} />
-              <span className="powered-by">Powered By <strong>Shiprocket</strong></span>
-            </button>
 
-            <div className="secure-payment-box">
-              <p>Secure payment with</p>
-              <div className="payment-icons-row">
-                <span className="pay-icon visa">VISA</span>
-                <div className="pay-icon mastercard"><div className="mc-circle mc-red"></div><div className="mc-circle mc-yellow"></div></div>
-                <span className="pay-icon upi">UPI</span>
-                <span className="pay-icon gpay">G Pay</span>
-                <span className="pay-icon paytm">Paytm</span>
-              </div>
-            </div>
-
-            <div className="loved-badge">
-              💖 Loved by {product.reviews ? Number(product.reviews) * 127 : '10,000'}+ Customers
-            </div>
 
             <div className="trust-features-grid">
               <div className="trust-feature">
@@ -355,10 +386,49 @@ function ProductPageContent() {
       </div>
     </div>
 
+    {/* Product Video Section */}
+    {(() => {
+      const productVideo = peopleChoiceVideos.find(v => v.slug === slug);
+      if (!productVideo || !productVideo.video) return null;
+
+      return (
+        <section className="product-video-section">
+          <div className="section-heading centered">
+            <p className="eyebrow">Product in action</p>
+            <h2>See it for yourself</h2>
+          </div>
+          <div className="product-video-container">
+            <video 
+              className="product-detail-video" 
+              autoPlay 
+              muted={!videoSoundOn} 
+              loop 
+              playsInline 
+              preload="auto"
+            >
+              <source src={productVideo.video} type="video/mp4" />
+            </video>
+            <button
+              className={`product-video-sound ${videoSoundOn ? "is-active" : ""}`}
+              type="button"
+              onClick={() => setVideoSoundOn(!videoSoundOn)}
+              title={videoSoundOn ? "Mute video" : "Unmute video"}
+            >
+              {videoSoundOn ? <Volume2 size={24} /> : <VolumeX size={24} />}
+            </button>
+            <div className="video-overlay-gradient" />
+          </div>
+        </section>
+      );
+    })()}
+
     {/* Customer Reviews Section */}
     <section className="customer-reviews-section">
       <div className="reviews-header">
         <p className="eyebrow" style={{ textAlign: 'center', marginBottom: '8px' }}>Trusted by thousands</p>
+        <div className="loved-badge" style={{ margin: '0 auto 12px', width: 'fit-content' }}>
+          💖 Loved by {product.reviews ? Number(product.reviews) * 127 : '10,000'}+ Customers
+        </div>
         <h2>What Our Customers Say</h2>
         <div className="reviews-meta">
           <span className="stars-display">{'★'.repeat(Math.round(Number(product.rating || 5)))}</span>
@@ -371,16 +441,12 @@ function ProductPageContent() {
       <div className="reviews-carousel">
         <button className="review-nav review-prev" onClick={() => { if (reviewTrackRef.current) reviewTrackRef.current.scrollBy({ left: -344, behavior: 'smooth' }); }}>‹</button>
         <div className="reviews-track" ref={reviewTrackRef}>
-          {[
+          {(product.reviewsList || [
             { text: "Absolutely love the quality! It fits perfectly in my bag and doesn't leak at all. Highly recommend.", name: "Kavya Reddy" },
             { text: "Perfect for daily use. The design is so unique and I get compliments every time I use it.", name: "Vivek Gulati" },
             { text: "The finish is premium and durable. Even after months of use, it still looks brand new.", name: "Sunita Patil" },
-            { text: "Exceeded my expectations! Shipping was fast and the packaging was very secure.", name: "Srinivas Murthy" },
-            { text: "Best value for money. I've bought three of these for my family members already.", name: "Ankit Sharma" },
-            { text: "Highly recommend to everyone looking for a stylish yet practical bottle.", name: "Priya Nair" },
-            { text: "Great customer service too. They resolved my query within an hour. Amazing brand!", name: "Rahul Verma" },
-            { text: "Sturdy and well-designed. The slim profile is exactly what I was looking for.", name: "Meena Iyer" },
-          ].map((review, i) => (
+            { text: "Exceeded my expectations! Shipping was fast and the packaging was very secure.", name: "Srinivas Murthy" }
+          ]).map((review, i) => (
             <div className="review-card" key={i}>
               <div className="review-stars">{'★'.repeat(Math.round(Number(product.rating || 5)))}</div>
               <p className="review-text">"{review.text}"</p>
@@ -482,12 +548,5 @@ function ProductPageContent() {
 }
 
 export default function ProductPage() {
-  return (
-    <StoreProvider categories={categories} products={products}>
-      <Header />
-      <Drawers />
-      <ProductPageContent />
-      <Footer />
-    </StoreProvider>
-  );
+  return <ProductPageContent />;
 }

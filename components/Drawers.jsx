@@ -3,9 +3,14 @@
 import { useStore } from "./StoreContext";
 import { UserIcon } from "./Icons";
 import { formatPrice } from "../lib/utils";
-import { motion, AnimatePresence } from "framer-motion";
-import { ChevronRight, LogOut, Package, Heart, HelpCircle } from "lucide-react";
-import { useState } from "react";
+import { motion } from "framer-motion";
+import { ChevronRight, ExternalLink, LogIn, MapPin, Package } from "lucide-react";
+import { useEffect } from "react";
+import {
+  getShopifyAccountAddressesUrl,
+  getShopifyAccountLoginUrl,
+  getShopifyAccountUrl,
+} from "../lib/shopify";
 
 
 export default function Drawers() {
@@ -14,14 +19,22 @@ export default function Drawers() {
     isProfileOpen, setIsProfileOpen,
     cartItems, cartCount, cartTotal,
     updateCartQuantity, removeFromCart, checkout,
-    profileNotice, setProfileNotice,
-    getProductPrice
+    profileNotice,
+    getProductPrice,
+    openShopifyCart
   } = useStore();
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [emailInput, setEmailInput] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const shopifyAccountUrl = getShopifyAccountUrl();
+  const shopifyLoginUrl = getShopifyAccountLoginUrl();
+  const shopifyAddressesUrl = getShopifyAccountAddressesUrl();
 
-  if (!isCartOpen && !isProfileOpen) {
+  useEffect(() => {
+    if (isCartOpen) {
+      setIsCartOpen(false);
+      openShopifyCart();
+    }
+  }, [isCartOpen]);
+
+  if (!isProfileOpen) {
     return null;
   }
 
@@ -132,7 +145,7 @@ export default function Drawers() {
             <div className="cart-drawer-header premium-gradient">
               <div>
                 <p className="eyebrow" style={{ color: 'rgba(255,255,255,0.7)' }}>Your account</p>
-                <h2 style={{ color: '#fff' }}>{isLoggedIn ? "Account Dashboard" : "Profile"}</h2>
+                <h2 style={{ color: '#fff' }}>Shopify Account</h2>
               </div>
               <button 
                 type="button" 
@@ -144,109 +157,51 @@ export default function Drawers() {
             </div>
 
             <div className="utility-panel-body">
-              <AnimatePresence mode="wait">
-                {!isLoggedIn ? (
-                  <motion.div 
-                    key="login"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    className="login-view"
-                  >
-                    <div className="profile-summary premium-card">
-                      <div className="avatar-glow">
-                        <UserIcon />
-                      </div>
-                      <div>
-                        <strong>Welcome to Pubesto</strong>
-                        <p>Sign in to track orders, save addresses, and manage your wishlist.</p>
-                      </div>
-                    </div>
+              <motion.div
+                key="shopify-account"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                className="shopify-account-panel"
+              >
+                <div className="profile-summary premium-card">
+                  <div className="avatar-glow">
+                    <UserIcon />
+                  </div>
+                  <div>
+                    <strong>Continue with Shopify</strong>
+                    <p>Log in through Shopify to view your profile, orders, and saved addresses.</p>
+                  </div>
+                </div>
 
-                    <form
-                      className="utility-form premium-form"
-                      onSubmit={(event) => {
-                        event.preventDefault();
-                        if (!emailInput) return;
-                        setIsSubmitting(true);
-                        setTimeout(() => {
-                          setIsLoggedIn(true);
-                          setIsSubmitting(false);
-                          setProfileNotice("Successfully signed in!");
-                        }, 1200);
-                      }}
-                    >
-                      <div className="form-group">
-                        <label htmlFor="profile-phone">Mobile number or email</label>
-                        <input 
-                          id="profile-phone" 
-                          type="text" 
-                          placeholder="e.g. hello@artisanal.com" 
-                          value={emailInput}
-                          onChange={(e) => setEmailInput(e.target.value)}
-                          required
-                        />
-                      </div>
-                      <button type="submit" disabled={isSubmitting} className="action-button">
-                        {isSubmitting ? "Processing..." : "Continue"}
-                      </button>
-                    </form>
-                  </motion.div>
-                ) : (
-                  <motion.div 
-                    key="dashboard"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    className="dashboard-view"
-                  >
-                    <div className="user-header">
-                      <div className="user-avatar">{emailInput[0]?.toUpperCase() || "U"}</div>
-                      <div className="user-info">
-                        <h3>Artisanal Member</h3>
-                        <p>{emailInput}</p>
-                      </div>
-                    </div>
+                <div className="shopify-account-actions">
+                  <a className="action-button shopify-account-primary" href={shopifyAccountUrl}>
+                    <span>Open Shopify profile</span>
+                    <ExternalLink size={16} />
+                  </a>
+                  <a className="shopify-account-secondary" href={shopifyLoginUrl}>
+                    <LogIn size={16} />
+                    <span>Log in with Shopify</span>
+                  </a>
+                </div>
 
-                    <div className="dashboard-stats">
-                      <div className="stat-card">
-                        <span>0</span>
-                        <p>Orders</p>
-                      </div>
-                      <div className="stat-card">
-                        <span>0</span>
-                        <p>Wishlist</p>
-                      </div>
-                    </div>
-
-                    <div className="utility-link-list interactive-list">
-                      <button onClick={() => setIsProfileOpen(false)}>
-                        <div className="link-icon"><Package size={18} /></div>
-                        <span>My Orders</span>
-                        <ChevronRight size={16} className="chevron" />
-                      </button>
-                      <button onClick={() => setIsProfileOpen(false)}>
-                        <div className="link-icon"><Heart size={18} /></div>
-                        <span>Wishlist</span>
-                        <ChevronRight size={16} className="chevron" />
-                      </button>
-                      <button onClick={() => setIsProfileOpen(false)}>
-                        <div className="link-icon"><HelpCircle size={18} /></div>
-                        <span>Help & Support</span>
-                        <ChevronRight size={16} className="chevron" />
-                      </button>
-                    </div>
-
-                    <button className="logout-button" onClick={() => setIsLoggedIn(false)}>
-                      <LogOut size={16} />
-                      <span>Sign Out</span>
-                    </button>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                <div className="utility-link-list interactive-list shopify-account-links">
+                  <a href={shopifyAccountUrl}>
+                    <div className="link-icon"><Package size={18} /></div>
+                    <span>Orders</span>
+                    <ChevronRight size={16} className="chevron" />
+                  </a>
+                  <a href={shopifyAddressesUrl}>
+                    <div className="link-icon"><MapPin size={18} /></div>
+                    <span>Addresses</span>
+                    <ChevronRight size={16} className="chevron" />
+                  </a>
+                </div>
+              </motion.div>
               
               {profileNotice && (
                 <motion.p 
+                  key={profileNotice}
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   className="utility-notice success"

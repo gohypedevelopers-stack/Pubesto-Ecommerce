@@ -12,10 +12,7 @@ import {
   VolumeX
 } from "lucide-react";
 import Link from "next/link";
-import { StoreProvider, useStore } from "../components/StoreContext";
-import Header from "../components/Header";
-import Footer from "../components/Footer";
-import Drawers from "../components/Drawers";
+import { useStore } from "../components/StoreContext";
 import {
   categories,
   products,
@@ -24,6 +21,8 @@ import {
   socialGalleryItems
 } from "../lib/data";
 import { formatPrice } from "../lib/utils";
+import ReviewsSection from "../components/ReviewsSection";
+import "./reviews.css";
 
 function ProductCard({ product, index = 0 }) {
   const { 
@@ -154,7 +153,11 @@ function HomeContent() {
   const [heroSoundOn, setHeroSoundOn] = useState(false);
 
   const normalizedSearchQuery = searchQuery.trim().toLowerCase();
-  const activeProducts = products.filter((product) => product.image && (product.image.startsWith('/images/') || product.image.startsWith('https://')));
+  const activeProducts = products.filter((product) => {
+    const hasRealImage = product.image && (product.image.startsWith('/images/') || product.image.includes('shopify.com'));
+    const isNotDummy = product.image && !product.image.includes('unsplash.com');
+    return hasRealImage && isNotDummy;
+  });
   
   const categoryFilteredProducts = selectedCategory
     ? activeProducts.filter((product) =>
@@ -188,8 +191,6 @@ function HomeContent() {
 
   return (
     <>
-      <Header />
-      <Drawers />
       <main>
         <section className="hero-section" aria-label="Featured offers">
           <div className="hero-overflow-container">
@@ -310,14 +311,13 @@ function HomeContent() {
                         <source src={item.video} type="video/mp4" />
                       </video>
                     ) : (
-                      <img className="video-choice-video simulated-video" src={item.image} alt={item.title} style={{ objectFit: 'contain' }} />
+                      <img className="video-choice-video simulated-video" src={item.image} alt={item.title} />
                     )}
                     <span className="video-choice-gradient" />
                     <span className="video-choice-product">
                       <span className="video-choice-thumb"><img src={item.thumb} alt="" /></span>
                       <span className="video-choice-copy">
                         <strong>{item.title}</strong>
-                        <span>{item.price} {item.oldPrice && <s>{item.oldPrice}</s>}</span>
                       </span>
                     </span>
                   </Link>
@@ -375,8 +375,15 @@ function HomeContent() {
           <div className={showAllCategories ? "category-grid" : "category-scroll-container"}>
             <motion.div
               className={showAllCategories ? "category-grid-inner" : "category-marquee"}
-              animate={showAllCategories ? {} : { x: [0, -50 + "%"] }}
-              transition={{ x: { repeat: Infinity, duration: 30, ease: "linear" } }}
+              animate={showAllCategories ? { x: 0 } : { x: [0, "-50%"] }}
+              transition={{ 
+                x: { 
+                  repeat: Infinity, 
+                  duration: 25, 
+                  ease: "linear",
+                  repeatType: "loop"
+                } 
+              }}
             >
               {(showAllCategories ? categories : [...categories, ...categories]).map((category, index) => (
                 <button
@@ -417,6 +424,8 @@ function HomeContent() {
           </div>
         </section>
 
+        <ReviewsSection />
+
         <div className="section-heading centered">
           <div>
             <p className="eyebrow">Follow Us</p>
@@ -448,15 +457,10 @@ function HomeContent() {
           </div>
         </section>
       </main>
-      <Footer />
     </>
   );
 }
 
 export default function Home() {
-  return (
-    <StoreProvider categories={categories} products={products}>
-      <HomeContent />
-    </StoreProvider>
-  );
+  return <HomeContent />;
 }
