@@ -2415,7 +2415,30 @@ main {
   line-height: 1.35;
 }
 
+.footer-contact-info h2 {
+  margin: 0 0 14px;
+  color: var(--cream);
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 22px;
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.footer-contact-item {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--cream);
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
 .footer-form {
+
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;

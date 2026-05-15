@@ -64,8 +64,6 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
   const [shopifyCart, setShopifyCart] = useState(null);
   const [products, setProducts] = useState(initialProducts);
   const [categories, setCategories] = useState(initialCategories);
-  const [isLeadModalOpen, setIsLeadModalOpen] = useState(false);
-  const [userPhone, setUserPhone] = useState("");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState(null);
   const [wishlist, setWishlist] = useState([]);
@@ -263,13 +261,6 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
 
     if (activeItems.length === 0) return;
 
-    // Lead Capture Logic: If no phone number, open modal
-    if (!userPhone && !options.bypassLead) {
-      setIsCartOpen(false);
-      setIsLeadModalOpen(true);
-      return;
-    }
-
     // If there's a Shopify cart with a checkout URL, use it
     if (shopifyCart?.checkoutUrl) {
       window.location.href = shopifyCart.checkoutUrl;
@@ -359,8 +350,6 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
     closeUtilityPanels, addToCart, updateCartQuantity, removeFromCart, checkout,
     categories, products,
     footerPanel, setFooterPanel,
-    isLeadModalOpen, setIsLeadModalOpen,
-    userPhone, setUserPhone,
     isLoggedIn, setIsLoggedIn,
     user, setUser,
     wishlist, setWishlist,

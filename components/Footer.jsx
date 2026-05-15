@@ -109,9 +109,9 @@ export default function Footer() {
         <div className="footer-column footer-offers">
 
           <div className="footer-contact-info">
-            <h3>Contact Us</h3>
-            <p>support@pubesto.com</p>
-            <p>Mon - Sat: 10AM - 7PM</p>
+            <h2>Contact Us</h2>
+            <p className="footer-contact-item">support@pubesto.com</p>
+            <p className="footer-contact-item">Mon - Sat: 10AM - 7PM</p>
           </div>
 
           <nav className="footer-socials" aria-label="Social links">

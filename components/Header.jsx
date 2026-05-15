@@ -11,8 +11,8 @@ import { getShopifyAccountUrl } from "../lib/shopify";
 export default function Header() {
   const {
     isMenuOpen, setIsMenuOpen,
-    isCartOpen,
-    isProfileOpen,
+    isCartOpen, setIsCartOpen,
+    isProfileOpen, setIsProfileOpen,
     isSearchOpen, setIsSearchOpen,
     searchQuery, setSearchQuery,
     cartCount, cartPulseKey, shopifyCartUrl,
@@ -114,16 +114,18 @@ export default function Header() {
     setShowAllProducts(false);
   }
 
-  function prepareShopifyAccountNavigation() {
+  function prepareShopifyAccountNavigation(e) {
+    e?.preventDefault();
     setIsMenuOpen(false);
-    closeUtilityPanels();
     setIsSearchOpen(false);
+    setIsProfileOpen(true);
   }
 
-  function prepareShopifyCartNavigation() {
+  function prepareShopifyCartNavigation(e) {
+    e?.preventDefault();
     setIsMenuOpen(false);
-    closeUtilityPanels();
     setIsSearchOpen(false);
+    setIsCartOpen(true);
   }
 
   return (
@@ -163,18 +165,18 @@ export default function Header() {
           >
             <SearchIcon />
           </button>
-          <a
+          <button
             className="navbar-icon"
-            href={shopifyAccountUrl}
-            aria-label="Open Shopify account"
+            type="button"
+            aria-label="Open profile"
             onClick={prepareShopifyAccountNavigation}
           >
             <UserIcon />
-          </a>
-          <a
+          </button>
+          <button
             className="navbar-icon navbar-cart cart-action"
-            href={shopifyCartUrl}
-            aria-label={`Open Shopify cart with ${cartCount} item${cartCount === 1 ? "" : "s"}`}
+            type="button"
+            aria-label={`Open cart with ${cartCount} item${cartCount === 1 ? "" : "s"}`}
             onClick={prepareShopifyCartNavigation}
           >
             <motion.div
@@ -190,7 +192,7 @@ export default function Header() {
               <ShoppingBag />
               <span className="cart-count">{cartCount}</span>
             </motion.div>
-          </a>
+          </button>
         </div>
 
         <button
@@ -347,12 +349,12 @@ export default function Header() {
           </div>
           <button type="submit">Search</button>
         </form>
-        <a href={shopifyAccountUrl} onClick={prepareShopifyAccountNavigation}>
+        <button className="mobile-drawer-trigger" type="button" onClick={prepareShopifyAccountNavigation}>
           Profile
-        </a>
-        <a href={shopifyCartUrl} onClick={prepareShopifyCartNavigation}>
+        </button>
+        <button className="mobile-drawer-trigger" type="button" onClick={prepareShopifyCartNavigation}>
           Cart ({cartCount})
-        </a>
+        </button>
       </div>
     </motion.header>
   );
