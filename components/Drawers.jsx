@@ -27,16 +27,7 @@ export default function Drawers() {
   const shopifyLoginUrl = getShopifyAccountLoginUrl();
   const shopifyAddressesUrl = getShopifyAccountAddressesUrl();
 
-  useEffect(() => {
-    if (isCartOpen) {
-      setIsCartOpen(false);
-      openShopifyCart();
-    }
-  }, [isCartOpen]);
 
-  if (!isProfileOpen) {
-    return null;
-  }
 
   return (
     <>

@@ -156,7 +156,7 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
   }
 
   function openShopifyCart(items = cartItems) {
-    window.location.href = getShopifyCartPermalink(items);
+    setIsCartOpen(true);
   }
 
   async function resolveShopifyCartProduct(product) {
