@@ -398,7 +398,6 @@ function HomeContent() {
                 >
                   <img src={category.image} alt="" />
                   <span>{category.name}</span>
-                  <small>{category.count}</small>
                 </button>
               ))}
             </motion.div>
