@@ -2468,14 +2468,15 @@ main {
 
 .footer-contact-item {
   display: block;
-  margin-bottom: 12px;
-  color: rgba(246, 244, 242, 0.9);
+  margin-bottom: 16px;
+  color: #ffffff !important;
   font-family: var(--font-display);
   font-style: italic;
-  font-size: 26px;
-  font-weight: 600;
-  line-height: 1.4;
-  opacity: 0.9;
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.05em;
+  opacity: 1 !important;
 }
 
 .footer-social-section {
@@ -2483,12 +2484,14 @@ main {
 }
 
 .footer-social-label {
-  color: rgba(246, 244, 242, 0.7);
+  color: #ffffff !important;
   font-family: var(--font-display);
   font-style: italic;
-  font-size: 30px;
-  font-weight: 700;
-  margin-bottom: 18px;
+  font-size: 36px;
+  font-weight: 800;
+  margin-bottom: 24px;
+  letter-spacing: 0.05em;
+  opacity: 1 !important;
 }
 
 .footer-socials {
