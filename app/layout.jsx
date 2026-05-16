@@ -19,9 +19,6 @@ const cormorant = Cormorant_Garamond({
 export const metadata = {
   title: "Pubesto | Artisanal Ecommerce",
   description: "Pubesto home decor, lunch storage, water bottles, and daily essentials.",
-  verification: {
-    google: "kPT-8lUP7LJr9ikYrHRaKP2SaOweJnFn6PydX-NFOmk",
-  },
 };
 
 import { Providers } from "./providers";
@@ -32,6 +29,9 @@ import Drawers from "../components/Drawers";
 export default function RootLayout({ children }) {
   return (
     <html lang="en" className={`${inter.variable} ${cormorant.variable}`} data-scroll-behavior="smooth" suppressHydrationWarning>
+      <head>
+        <meta name="google-site-verification" content="kPT-8lUP7LJr9ikYrHRaKP2SaOweJnFn6PydX-NFOmk" />
+      </head>
       <body suppressHydrationWarning>
         <Providers>
           <Header />
