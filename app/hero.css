@@ -108,8 +108,9 @@
 @media (max-width: 768px) {
   .hero-slide-layout {
     flex-direction: column;
-    justify-content: center;
-    gap: 40px;
+    justify-content: flex-start;
+    gap: 30px;
+    padding-top: 30px;
   }
 }
 
@@ -124,12 +125,15 @@
 
 @media (max-width: 768px) {
   .hero-content-card {
-    padding: 0;
-    border-radius: 0;
-    max-width: 100%;
-    background: transparent;
-    animation: none;
+    padding: 30px 20px;
+    border-radius: 16px;
+    max-width: 90%;
+    background: rgba(17, 42, 45, 0.35);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     align-items: center;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.3);
   }
 }
 
@@ -154,6 +158,13 @@
   margin: 0;
   letter-spacing: -0.02em;
   text-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+@media (max-width: 768px) {
+  .hero-title {
+    font-size: 1.6rem;
+    max-width: 280px;
+  }
 }
 
 .hero-description {
@@ -181,6 +192,13 @@
   width: fit-content;
   text-transform: uppercase;
   letter-spacing: 0.05em;
+}
+
+@media (max-width: 768px) {
+  .hero-primary-cta {
+    padding: 12px 28px;
+    font-size: 0.9rem;
+  }
 }
 
 .hero-primary-cta:hover {
