@@ -454,13 +454,9 @@ function HomeContent() {
           <span className="social-circle-wave" aria-hidden="true" />
           <div className="social-gallery" role="list">
             {socialGalleryItems.map((item) => (
-              <a
+              <div
                 className="social-gallery-card"
-                href="https://www.instagram.com/pubesto_in/"
-                target="_blank"
-                rel="noreferrer"
                 role="listitem"
-                aria-label={`${item.title} on Instagram`}
                 key={item.title}
               >
                 <img src={item.image} alt="" />
@@ -469,7 +465,7 @@ function HomeContent() {
                   <strong>{item.title}</strong>
                   <span>{item.caption}</span>
                 </span>
-              </a>
+              </div>
             ))}
           </div>
         </section>
