@@ -47,6 +47,10 @@ function mergeShopifyProductWithLocalFallback(shopifyProduct, localProducts) {
     badge: shopifyProduct.badge || localProduct.badge,
     badgeClass: shopifyProduct.badgeClass || localProduct.badgeClass,
     detail: shopifyProduct.detail || localProduct.detail,
+    categories: Array.from(new Set([
+      ...(localProduct.categories || []),
+      ...(shopifyProduct.categories || [])
+    ]))
   };
 }
 
@@ -73,17 +77,13 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
       if (process.env.NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN && process.env.NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN !== 'your_token') {
         const shopifyProducts = await getShopifyProducts();
         if (shopifyProducts && shopifyProducts.length > 0) {
-          // Merge logic: Combine Shopify products with local initialProducts, avoiding duplicates by slug
+          // Merge logic: Prioritize Shopify products, using local products as a source for detailed fallbacks
           setProducts((prevLocal) => {
             const merged = shopifyProducts.map((shopifyProduct) =>
               mergeShopifyProductWithLocalFallback(shopifyProduct, prevLocal)
             );
-            prevLocal.forEach(localProd => {
-              if (!merged.find(sp => sp.slug === localProd.slug)) {
-                merged.push(localProd);
-              }
-            });
-            return merged;
+            // We no longer push extra local products that aren't in Shopify
+            return merged.slice(0, 10); // Strictly limit to the top 10 Shopify products
           });
         }
       }

@@ -163,7 +163,7 @@ function HomeContent() {
     ? activeProducts.filter((product) =>
         selectedCategory.name === "Sale"
           ? product.oldPrice
-          : product.categories?.includes(selectedCategory.name)
+          : product.categories?.some(cat => cat.toLowerCase() === selectedCategory.name.toLowerCase())
       )
     : activeProducts;
 
@@ -175,12 +175,21 @@ function HomeContent() {
       )
     : categoryFilteredProducts;
 
-  const visibleProducts = showAllProducts ? filteredProducts : filteredProducts.slice(0, 8);
+  const deduplicatedProducts = filteredProducts.reduce((acc, current) => {
+    const x = acc.find(item => item.slug === current.slug);
+    if (!x) {
+      return acc.concat([current]);
+    } else {
+      return acc;
+    }
+  }, []);
+
+  const visibleProducts = showAllProducts ? deduplicatedProducts : deduplicatedProducts.slice(0, 8);
 
   const productEyebrow = normalizedSearchQuery
     ? `${filteredProducts.length} result${filteredProducts.length === 1 ? "" : "s"} for "${searchQuery.trim()}"`
     : selectedCategory
-      ? `Showing ${selectedCategory.count}`
+      ? `Showing ${categoryFilteredProducts.length} product${categoryFilteredProducts.length === 1 ? "" : "s"}`
       : "Customer favourites";
 
   const productHeading = normalizedSearchQuery
@@ -368,9 +377,7 @@ function HomeContent() {
               <p className="eyebrow">Shop the range</p>
               <h2>Browse by category</h2>
             </div>
-            <button className="view-all" type="button" onClick={() => setShowAllCategories((v) => !v)}>
-              {showAllCategories ? "Show less" : "View all"} <span>&gt;</span>
-            </button>
+            {/* View all button removed from categories */}
           </div>
           <div className={showAllCategories ? "category-grid" : "category-scroll-container"}>
             <motion.div
