@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 import { useStore } from "./StoreContext";
 import { UserIcon } from "./Icons";
 import { formatPrice } from "../lib/utils";
@@ -102,6 +104,21 @@ export default function Drawers() {
                   >
                     Checkout
                   </button>
+                  <Link 
+                    href="/cart" 
+                    className="view-full-cart-link"
+                    onClick={() => setIsCartOpen(false)}
+                    style={{ 
+                      display: 'block', 
+                      textAlign: 'center', 
+                      marginTop: '12px', 
+                      fontSize: '13px', 
+                      color: 'rgba(27, 98, 75, 0.6)',
+                      textDecoration: 'underline'
+                    }}
+                  >
+                    View Detailed Cart
+                  </Link>
                 </div>
               </>
             ) : (

@@ -14,8 +14,6 @@ import {
 import Link from "next/link";
 import { useStore } from "../components/StoreContext";
 import {
-  categories,
-  products,
   heroSlides,
   peopleChoiceVideos,
   socialGalleryItems
@@ -401,7 +399,9 @@ function HomeContent() {
                   onClick={() => {
                     setSelectedCategory(category);
                     setShowAllProducts(true);
-                    document.getElementById("featured")?.scrollIntoView({ behavior: "smooth" });
+                    setTimeout(() => {
+                      document.getElementById("featured")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                    }, 100);
                   }}
                   key={`${category.name}-${index}`}
                 >
@@ -420,6 +420,15 @@ function HomeContent() {
               <h2>{productHeading}</h2>
             </div>
             <div className="section-actions">
+              {selectedCategory && (
+                <button 
+                  className="view-all btn-clear-filter" 
+                  type="button" 
+                  onClick={() => setSelectedCategory(null)}
+                >
+                  Clear Filter
+                </button>
+              )}
               <button className="view-all" type="button" onClick={() => setShowAllProducts((v) => !v)}>
                 {showAllProducts ? "Show less" : "See more"} <span>&gt;</span>
               </button>

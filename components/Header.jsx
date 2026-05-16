@@ -177,7 +177,7 @@ export default function Header() {
             className="navbar-icon navbar-cart cart-action"
             type="button"
             aria-label={`Open cart with ${cartCount} item${cartCount === 1 ? "" : "s"}`}
-            onClick={prepareShopifyCartNavigation}
+            onClick={() => router.push("/cart")}
           >
             <motion.div
               key={cartPulseKey}
@@ -352,7 +352,7 @@ export default function Header() {
         <button className="mobile-drawer-trigger" type="button" onClick={prepareShopifyAccountNavigation}>
           Profile
         </button>
-        <button className="mobile-drawer-trigger" type="button" onClick={prepareShopifyCartNavigation}>
+        <button className="mobile-drawer-trigger" type="button" onClick={() => { setIsMenuOpen(false); router.push("/cart"); }}>
           Cart ({cartCount})
         </button>
       </div>

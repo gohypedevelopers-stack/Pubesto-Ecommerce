@@ -3,6 +3,7 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import {
   getShopifyProducts,
+  getShopifyCollections,
   createShopifyCart,
   addToShopifyCart,
   getShopifyCartPermalink,
@@ -41,6 +42,7 @@ function mergeShopifyProductWithLocalFallback(shopifyProduct, localProducts) {
   return {
     ...localProduct,
     ...shopifyProduct,
+    inStock: localProduct.inStock === true ? true : shopifyProduct.inStock,
     highlights: hasHighlights(shopifyProduct) ? shopifyProduct.highlights : localProduct.highlights,
     specifications: shopifyProduct.specifications || localProduct.specifications,
     rating: shopifyProduct.rating || localProduct.rating,
@@ -76,16 +78,23 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
   useEffect(() => {
     async function syncShopify() {
       if (process.env.NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN && process.env.NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN !== 'your_token') {
-        const shopifyProducts = await getShopifyProducts();
+        const [shopifyProducts, shopifyCollections] = await Promise.all([
+          getShopifyProducts(),
+          getShopifyCollections()
+        ]);
+
         if (shopifyProducts && shopifyProducts.length > 0) {
           // Merge logic: Prioritize Shopify products, using local products as a source for detailed fallbacks
           setProducts((prevLocal) => {
             const merged = shopifyProducts
               .map((shopifyProduct) => mergeShopifyProductWithLocalFallback(shopifyProduct, prevLocal))
               .filter(Boolean);
-            // We no longer push extra local products that aren't in Shopify
-            return merged.slice(0, 10); // Strictly limit to the top 10 Shopify products
+            return merged;
           });
+        }
+
+        if (shopifyCollections && shopifyCollections.length > 0) {
+          setCategories(shopifyCollections);
         }
       }
     }
