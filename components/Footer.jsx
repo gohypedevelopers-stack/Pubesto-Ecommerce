@@ -41,8 +41,9 @@ const footerPanelContent = {
     eyebrow: "Learn More",
     title: "Contact Us",
     body: [
-      "For order help, product questions, or support, email support@pubesto.com.",
-      "Customer support is available Monday to Saturday during business hours.",
+      "For order help, product questions, or support, email support@pubesto.com or call us at +91 7056063693.",
+      "Customer support is available Monday to Saturday: 10AM - 7PM.",
+      "Office: D-6/1, Okhla Phase 2, New Delhi-110020"
     ],
   },
   faq: {
@@ -111,16 +112,20 @@ export default function Footer() {
           <div className="footer-contact-info">
             <h2>Contact Us</h2>
             <p className="footer-contact-item">support@pubesto.com</p>
+            <p className="footer-contact-item">+91 7056063693</p>
             <p className="footer-contact-item">Mon - Sat: 10AM - 7PM</p>
           </div>
 
-          <nav className="footer-socials" aria-label="Social links">
+          <div className="footer-social-section">
+            <p className="footer-social-label">Follow Us</p>
+            <nav className="footer-socials" aria-label="Social links">
             {footerSocialLinks.map(({ label, href, Icon }) => (
               <a href={href} target="_blank" rel="noreferrer" aria-label={label} key={label}>
-                <Icon size={18} />
+                <Icon size={22} />
               </a>
             ))}
           </nav>
+        </div>
         </div>
       </div>
 

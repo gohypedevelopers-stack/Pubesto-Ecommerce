@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import { Mail, Clock, ShieldCheck, Send } from 'lucide-react';
+import { Mail, Clock, ShieldCheck, Send, PhoneCall, MapPin } from 'lucide-react';
 import '../contact.css';
 
 export default function ContactPage() {
@@ -49,12 +49,23 @@ export default function ContactPage() {
 
               <div className="contact-info-card-v2">
                 <div className="icon-wrapper">
-                  <ShieldCheck size={22} />
+                  <PhoneCall size={22} />
                 </div>
                 <div className="card-details">
-                  <span className="card-label">Customer Support</span>
-                  <p className="card-value">Trusted & Secure</p>
-                  <p className="card-sub">Your satisfaction is our priority</p>
+                  <span className="card-label">Call Us</span>
+                  <p className="card-value">+91 7056063693</p>
+                  <p className="card-sub">Mon - Sat: 10AM - 7PM</p>
+                </div>
+              </div>
+
+              <div className="contact-info-card-v2">
+                <div className="icon-wrapper">
+                  <MapPin size={22} />
+                </div>
+                <div className="card-details">
+                  <span className="card-label">Our Address</span>
+                  <p className="card-value">D-6/1, Okhla Phase 2, New Delhi-110020</p>
+                  <p className="card-sub">Our corporate headquarters</p>
                 </div>
               </div>
             </div>

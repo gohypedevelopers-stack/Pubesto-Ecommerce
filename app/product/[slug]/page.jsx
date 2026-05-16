@@ -39,6 +39,9 @@ function ProductPageContent() {
       setActiveImage(product.image);
       if (product.colors && product.colors.length > 0) {
         setSelectedColor(product.colors[0]);
+        if (product.colors[0].image) {
+          setActiveImage(product.colors[0].image);
+        }
       } else {
         setSelectedColor(null);
       }
@@ -268,7 +271,7 @@ function ProductPageContent() {
 
             <div className="units-sold-ticker">
               <div className="pulsing-dot"></div>
-              <span><strong>+{product.reviews ? Number(product.reviews) * 26 : 900} units sold</strong> in the last 24 hours</span>
+              <span><strong>1100 + units sold</strong> in the last 24 hours</span>
             </div>
 
             <div className="bundle-separator">

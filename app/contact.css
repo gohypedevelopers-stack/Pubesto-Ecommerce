@@ -1,8 +1,8 @@
 /* Contact Page V2 - Dedicated Styles */
 .pubesto-contact-page-v2 {
   background-color: #f6f4f2; /* var(--off-white) fallback */
-  min-height: 100vh;
-  padding: 80px 24px;
+  min-height: auto;
+  padding: 50px 24px;
   display: flex;
   justify-content: center;
   width: 100%;
@@ -16,7 +16,7 @@
 
 .contact-hero-v2 {
   text-align: center;
-  margin-bottom: 60px;
+  margin-bottom: 40px;
 }
 
 .contact-eyebrow {
@@ -32,10 +32,10 @@
 
 .contact-title {
   font-family: var(--font-display), serif;
-  font-size: 56px;
+  font-size: 42px;
   font-style: italic;
   color: #3f6469;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
 .contact-divider {
@@ -47,11 +47,11 @@
 }
 
 .contact-description {
-  font-size: 18px;
+  font-size: 15px;
   color: #6f8588; /* var(--muted) fallback */
-  max-width: 650px;
+  max-width: 600px;
   margin: 0 auto;
-  line-height: 1.6;
+  line-height: 1.5;
 }
 
 .contact-main-content {
@@ -61,7 +61,7 @@
 .contact-layout-grid {
   display: grid;
   grid-template-columns: 1fr 1.5fr;
-  gap: 60px;
+  gap: 40px;
   align-items: start;
 }
 
@@ -73,10 +73,10 @@
 
 .contact-info-card-v2 {
   display: flex;
-  gap: 20px;
-  padding: 24px;
+  gap: 16px;
+  padding: 18px 24px;
   background: white;
-  border-radius: 16px;
+  border-radius: 12px;
   box-shadow: 0 10px 30px rgba(63, 100, 105, 0.04);
   border: 1px solid rgba(63, 100, 105, 0.05);
   transition: all 0.3s ease;
@@ -88,11 +88,11 @@
 }
 
 .contact-info-card-v2 .icon-wrapper {
-  width: 50px;
-  height: 50px;
+  width: 44px;
+  height: 44px;
   background: #3f6469;
   color: white;
-  border-radius: 12px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -112,7 +112,7 @@
 }
 
 .card-details .card-value {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 700;
   color: #3f6469;
   margin-bottom: 2px;
@@ -129,18 +129,18 @@
 
 .contact-form-card-v2 {
   background: white;
-  padding: 48px;
-  border-radius: 24px;
+  padding: 32px;
+  border-radius: 16px;
   box-shadow: 0 30px 60px rgba(0,0,0,0.05);
   border: 1px solid rgba(0,0,0,0.02);
 }
 
 .contact-form-card-v2 h3 {
   font-family: var(--font-display), serif;
-  font-size: 32px;
+  font-size: 26px;
   font-style: italic;
   color: #3f6469;
-  margin-bottom: 32px;
+  margin-bottom: 24px;
 }
 
 .contact-form-v2 {
@@ -184,12 +184,12 @@
 
 .contact-send-btn {
   margin-top: 10px;
-  padding: 18px 32px;
+  padding: 14px 28px;
   background: #3f6469;
   color: white;
   border: none;
-  border-radius: 12px;
-  font-size: 17px;
+  border-radius: 10px;
+  font-size: 16px;
   font-weight: 700;
   display: flex;
   align-items: center;
