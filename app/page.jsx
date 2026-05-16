@@ -153,9 +153,11 @@ function HomeContent() {
   const [heroSoundOn, setHeroSoundOn] = useState(false);
 
   const normalizedSearchQuery = searchQuery.trim().toLowerCase();
-  const activeProducts = products.filter((product) => {
-    const hasRealImage = product.image && (product.image.startsWith('/images/') || product.image.includes('shopify.com'));
-    const isNotDummy = product.image && !product.image.includes('unsplash.com');
+  const activeProducts = (products || []).filter((product) => {
+    if (!product || !product.image) return false;
+    const img = String(product.image);
+    const hasRealImage = img.startsWith('/images/') || img.includes('shopify.com');
+    const isNotDummy = !img.includes('unsplash.com');
     return hasRealImage && isNotDummy;
   });
   

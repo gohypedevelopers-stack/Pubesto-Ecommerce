@@ -34,7 +34,8 @@ function findLocalProductFallback(shopifyProduct, localProducts) {
 }
 
 function mergeShopifyProductWithLocalFallback(shopifyProduct, localProducts) {
-  const localProduct = findLocalProductFallback(shopifyProduct, localProducts);
+  if (!shopifyProduct) return null;
+  const localProduct = findLocalProductFallback(shopifyProduct, localProducts || []);
   if (!localProduct) return shopifyProduct;
 
   return {
@@ -79,9 +80,9 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
         if (shopifyProducts && shopifyProducts.length > 0) {
           // Merge logic: Prioritize Shopify products, using local products as a source for detailed fallbacks
           setProducts((prevLocal) => {
-            const merged = shopifyProducts.map((shopifyProduct) =>
-              mergeShopifyProductWithLocalFallback(shopifyProduct, prevLocal)
-            );
+            const merged = shopifyProducts
+              .map((shopifyProduct) => mergeShopifyProductWithLocalFallback(shopifyProduct, prevLocal))
+              .filter(Boolean);
             // We no longer push extra local products that aren't in Shopify
             return merged.slice(0, 10); // Strictly limit to the top 10 Shopify products
           });
