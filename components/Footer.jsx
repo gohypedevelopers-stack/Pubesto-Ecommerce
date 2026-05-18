@@ -190,6 +190,11 @@ export default function Footer() {
       <div className="footer-brand-endcap" aria-label="Pubesto">
         <span aria-hidden="true">PUBESTO</span>
       </div>
+
+      <div className="footer-ownership-statement">
+        <p>Pubesto is owned and operated by GO HYPE MEDIA.</p>
+      </div>
+
       <div className="footer-copyright">
         &copy; 2026 PUBESTO . ALL RIGHTS RESERVED.
       </div>
