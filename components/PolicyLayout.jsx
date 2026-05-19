@@ -30,16 +30,6 @@ export default function PolicyLayout({ title, children }) {
           <div className="policy-divider" />
         </div>
 
-        {/* Quick Nav */}
-        <nav className="policy-quick-nav" aria-label="Policy navigation">
-          {policyNav.map(({ label, href, icon: Icon }) => (
-            <Link href={href} key={href} className="policy-nav-chip">
-              <Icon size={14} />
-              {label}
-            </Link>
-          ))}
-        </nav>
-
         {/* Body */}
         <div className="policy-body">
           {children}

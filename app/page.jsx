@@ -455,7 +455,7 @@ function HomeContent() {
 
         <ReviewsSection />
 
-        <div className="section-heading centered">
+        <div className="section-heading centered" style={{ marginTop: "100px" }}>
           <div>
             <p className="eyebrow">Follow Us</p>
             <h2 id="social-circle-title">Join the Pubesto Home Circle</h2>

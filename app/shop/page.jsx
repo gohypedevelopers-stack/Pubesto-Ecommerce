@@ -25,7 +25,9 @@ function ShopContent() {
   // Derive dynamic categories from products
   const dynamicCategories = useMemo(() => {
     const allCats = products.flatMap(p => p.categories || []);
-    const uniqueCats = Array.from(new Set(allCats)).sort();
+    const uniqueCats = Array.from(new Set(allCats))
+      .filter(cat => cat.toLowerCase() !== 'home page')
+      .sort();
     return uniqueCats;
   }, [products]);
 
