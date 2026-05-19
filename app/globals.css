@@ -109,7 +109,6 @@ main {
 
 .brand {
   color: var(--deep);
-  animation: logoColorChange 12s infinite alternate ease-in-out;
   font-family: var(--font-display);
   font-style: italic;
   font-size: 34px;
