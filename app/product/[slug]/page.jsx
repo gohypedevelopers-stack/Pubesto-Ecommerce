@@ -77,8 +77,19 @@ function ProductPageContent() {
       setAddEffectKey((currentKey) => (currentKey === nextKey ? null : currentKey));
     }, 1050);
 
-    // Pass the selected options and quantity
-    addToCart(product, { 
+    const perItemPrice = selectedBundle.price / quantity;
+    const perItemOldPrice = selectedBundle.oldPrice / quantity;
+    
+    // Pass the selected options and quantity, and override price for bundle savings
+    addToCart({
+      ...product,
+      id: quantity > 1 ? `${product.slug}-bundle-${quantity}` : product.id || product.slug,
+      name: quantity > 1 ? `${product.name} (${selectedBundle.title})` : product.name,
+      price: `Rs. ${Math.round(perItemPrice)}`,
+      salePrice: Math.round(perItemPrice),
+      oldPrice: `Rs. ${Math.round(perItemOldPrice)}`,
+      originalPrice: Math.round(perItemOldPrice)
+    }, { 
       color: selectedColor?.name,
       quantity: quantity 
     });
@@ -95,14 +106,25 @@ function ProductPageContent() {
       window.location.href = checkoutUrl;
     } catch (err) {
       console.warn("Shopify checkout unavailable, falling back to Razorpay:", err.message);
-      const selectedBundle = bundles.find(b => b.id === quantity) || bundles[0];
-      addToCart(product, {
+      
+      const perItemPrice = selectedBundle.price / quantity;
+      const perItemOldPrice = selectedBundle.oldPrice / quantity;
+
+      addToCart({
+        ...product,
+        id: quantity > 1 ? `${product.slug}-bundle-${quantity}` : product.id || product.slug,
+        name: quantity > 1 ? `${product.name} (${selectedBundle.title})` : product.name,
+        price: `Rs. ${Math.round(perItemPrice)}`,
+        salePrice: Math.round(perItemPrice),
+        oldPrice: `Rs. ${Math.round(perItemOldPrice)}`,
+        originalPrice: Math.round(perItemOldPrice)
+      }, {
         color: selectedColor?.name,
         quantity: quantity,
         openCart: false
       });
       checkout({
-        items: [{ id: getProductId(product), product, quantity }],
+        items: [{ id: quantity > 1 ? `${product.slug}-bundle-${quantity}` : getProductId(product), product, quantity }],
         amount: selectedBundle.price
       });
     } finally {
@@ -166,6 +188,8 @@ function ProductPageContent() {
     }
   ];
 
+  const selectedBundle = bundles.find(b => b.id === quantity) || bundles[0];
+
   return (
     <motion.main 
       className="product-details-page"
@@ -217,13 +241,11 @@ function ProductPageContent() {
 
             
             <div className="price-display-v2">
-              <span className="current-price">{product.price}</span>
-              {product.oldPrice && <span className="old-price">{product.oldPrice}</span>}
-              {(() => {
-                const savings = (product.originalPrice || Number((product.oldPrice || '').replace(/[^\d.]/g, '')) || 0) 
-                              - (product.salePrice || Number((product.price || '').replace(/[^\d.]/g, '')) || 0);
-                return savings > 0 ? <span className="discount-tag">SAVE Rs. {savings}</span> : null;
-              })()}
+              <span className="current-price">Rs. {selectedBundle.price}</span>
+              <span className="old-price">Rs. {selectedBundle.oldPrice}</span>
+              {selectedBundle.oldPrice - selectedBundle.price > 0 && (
+                <span className="discount-tag">SAVE Rs. {selectedBundle.oldPrice - selectedBundle.price}</span>
+              )}
             </div>
 
             <p className="product-short-desc">
