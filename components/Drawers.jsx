@@ -3,11 +3,12 @@
 import Link from "next/link";
 
 import { useStore } from "./StoreContext";
-import { UserIcon } from "./Icons";
+import { UserIcon, SearchIcon } from "./Icons";
 import { formatPrice } from "../lib/utils";
-import { motion } from "framer-motion";
-import { ChevronRight, ExternalLink, LogIn, MapPin, Package } from "lucide-react";
-import { useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { ChevronRight, ExternalLink, LogIn, MapPin, Package, TrendingUp, ShoppingBag } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   getShopifyAccountAddressesUrl,
   getShopifyAccountLoginUrl,
@@ -23,11 +24,56 @@ export default function Drawers() {
     updateCartQuantity, removeFromCart, checkout,
     profileNotice,
     getProductPrice,
-    openShopifyCart
+    openShopifyCart,
+    isSearchOpen, setIsSearchOpen,
+    searchQuery, setSearchQuery,
+    products,
+    setSelectedCategory, setShowAllProducts
   } = useStore();
   const shopifyAccountUrl = getShopifyAccountUrl();
   const shopifyLoginUrl = getShopifyAccountLoginUrl();
   const shopifyAddressesUrl = getShopifyAccountAddressesUrl();
+  const router = useRouter();
+
+  const [recentSearches, setRecentSearches] = useState([]);
+
+  useEffect(() => {
+    if (isSearchOpen) {
+      const saved = localStorage.getItem("pubesto_recent_searches");
+      if (saved) {
+        try {
+          setRecentSearches(JSON.parse(saved));
+        } catch (e) {
+          console.error(e);
+        }
+      }
+    }
+  }, [isSearchOpen]);
+
+  const handleSearchSubmit = (term = searchQuery) => {
+    const trimmed = term.trim();
+    if (!trimmed) return;
+    
+    setSearchQuery(trimmed);
+    setIsSearchOpen(false);
+    setShowAllProducts(true);
+
+    // Save to recent searches
+    const updated = [trimmed, ...recentSearches.filter(t => t.toLowerCase() !== trimmed.toLowerCase())].slice(0, 5);
+    setRecentSearches(updated);
+    localStorage.setItem("pubesto_recent_searches", JSON.stringify(updated));
+
+    if (window.location.pathname !== '/shop') {
+      router.push('/shop');
+    }
+  };
+
+  const handleClearHistory = (e) => {
+    e.stopPropagation();
+    setRecentSearches([]);
+    localStorage.removeItem("pubesto_recent_searches");
+  };
+
 
 
 
@@ -42,94 +88,160 @@ export default function Drawers() {
             onClick={() => setIsCartOpen(false)}
           />
           <aside className="cart-drawer" role="dialog" aria-modal="true" aria-label="Shopping cart">
-            <div className="cart-drawer-header">
-              <div>
-                <p className="eyebrow">Your cart</p>
-                <h2>{cartCount} item{cartCount === 1 ? "" : "s"} selected</h2>
-              </div>
-              <button type="button" onClick={() => setIsCartOpen(false)} aria-label="Close cart">
-                Close
+            {/* Header */}
+            <div className="cart-drawer-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: '16px', borderBottom: '1px solid rgba(211, 201, 189, 0.5)' }}>
+              <h2 style={{ fontSize: '20px', fontWeight: 600, margin: 0 }}>
+                Your Cart {cartCount > 0 && <span style={{ fontSize: '14px', fontWeight: 500, color: 'var(--muted)', marginLeft: '6px' }}>({cartCount} item{cartCount !== 1 ? 's' : ''})</span>}
+              </h2>
+              <button
+                type="button"
+                onClick={() => setIsCartOpen(false)}
+                aria-label="Close cart"
+                style={{ border: 'none', background: 'transparent', padding: '4px 8px', fontSize: '20px', color: 'var(--muted)', cursor: 'pointer', lineHeight: 1 }}
+              >
+                ✕
               </button>
             </div>
 
-            {cartItems.length > 0 ? (
-              <>
+            {/* Body */}
+            <div className="cart-drawer-body" style={{ flex: 1, overflowY: 'auto', padding: '16px 0', display: 'flex', flexDirection: 'column' }}>
+              {cartItems.length > 0 ? (
                 <div className="cart-items">
                   {cartItems.map((item) => (
-                    <article className="cart-item" key={item.id}>
-                      <div className="cart-item-media">
-                        {item.product.image ? (
-                          <img src={item.product.image} alt={item.product.name} />
-                        ) : (
-                          <span>Image pending</span>
-                        )}
-                      </div>
-                      <div className="cart-item-body">
-                        <h3>{item.product.name}</h3>
-                        <p>{formatPrice(getProductPrice(item.product))}</p>
-                        <div className="quantity-control" aria-label={`Quantity for ${item.product.name}`}>
+                    <article
+                      key={item.id}
+                      style={{ display: 'grid', gridTemplateColumns: '68px 1fr auto', gap: '12px', alignItems: 'start', border: '1px solid rgba(211, 201, 189, 0.4)', borderRadius: '10px', padding: '12px', background: 'var(--panel)', marginBottom: '12px' }}
+                    >
+                      {/* Product Image → links to product page */}
+                      <Link
+                        href={`/product/${item.product.slug}`}
+                        onClick={() => setIsCartOpen(false)}
+                        style={{ display: 'block', width: '68px', height: '68px', overflow: 'hidden', borderRadius: '6px', flexShrink: 0 }}
+                      >
+                        <img
+                          src={item.product.image}
+                          alt={item.product.name}
+                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        />
+                      </Link>
+
+                      {/* Product Details */}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', minWidth: 0 }}>
+                        <Link
+                          href={`/product/${item.product.slug}`}
+                          onClick={() => setIsCartOpen(false)}
+                          style={{ textDecoration: 'none', color: 'inherit' }}
+                        >
+                          <h3 style={{ fontSize: '13px', fontWeight: 700, margin: 0, color: 'var(--ink)', lineHeight: 1.4 }}>
+                            {item.product.name}
+                          </h3>
+                        </Link>
+                        <p style={{ fontSize: '13px', fontWeight: 800, color: 'var(--brand-color)', margin: 0 }}>
+                          {formatPrice(getProductPrice(item.product))}
+                        </p>
+                        {/* Quantity Controls */}
+                        <div style={{ display: 'inline-grid', gridTemplateColumns: '26px 32px 26px', alignItems: 'center', border: '1px solid rgba(211, 201, 189, 0.8)', borderRadius: '6px', background: 'var(--cream)', width: 'fit-content', marginTop: '4px', overflow: 'hidden' }}>
                           <button
                             type="button"
+                            aria-label="Decrease quantity"
                             onClick={() => updateCartQuantity(item.id, item.quantity - 1)}
-                            aria-label={`Decrease ${item.product.name} quantity`}
+                            style={{ border: 'none', background: 'transparent', width: '26px', height: '26px', cursor: 'pointer', fontWeight: 'bold', fontSize: '16px', color: 'var(--ink)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                           >
-                            -
+                            −
                           </button>
-                          <span>{item.quantity}</span>
+                          <span style={{ textAlign: 'center', fontSize: '12px', fontWeight: 700, color: 'var(--ink)', borderLeft: '1px solid rgba(211,201,189,0.6)', borderRight: '1px solid rgba(211,201,189,0.6)', height: '26px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            {item.quantity}
+                          </span>
                           <button
                             type="button"
+                            aria-label="Increase quantity"
                             onClick={() => updateCartQuantity(item.id, item.quantity + 1)}
-                            aria-label={`Increase ${item.product.name} quantity`}
+                            style={{ border: 'none', background: 'transparent', width: '26px', height: '26px', cursor: 'pointer', fontWeight: 'bold', fontSize: '16px', color: 'var(--ink)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                           >
                             +
                           </button>
                         </div>
                       </div>
-                      <button className="remove-item" type="button" onClick={() => removeFromCart(item.id)}>
-                        Remove
-                      </button>
+
+                      {/* Right side: line total + remove */}
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px', flexShrink: 0 }}>
+                        <span style={{ fontSize: '13px', fontWeight: 800, color: 'var(--ink)' }}>
+                          {formatPrice(getProductPrice(item.product) * item.quantity)}
+                        </span>
+                        <button
+                          type="button"
+                          aria-label={`Remove ${item.product.name}`}
+                          onClick={() => removeFromCart(item.id)}
+                          title="Remove item"
+                          style={{ border: '1px solid rgba(211,201,189,0.6)', background: 'transparent', borderRadius: '50%', width: '24px', height: '24px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--muted)', fontSize: '11px', padding: 0, flexShrink: 0 }}
+                        >
+                          ✕
+                        </button>
+                      </div>
                     </article>
                   ))}
                 </div>
-                <div className="cart-summary">
-                  <div>
-                    <span>Subtotal</span>
-                    <strong>{formatPrice(cartTotal)}</strong>
+              ) : (
+                /* Empty State */
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, padding: '60px 20px', textAlign: 'center' }}>
+                  <div style={{ width: '80px', height: '80px', borderRadius: '50%', border: '1px solid rgba(211, 201, 189, 0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '24px', background: 'var(--panel)' }}>
+                    <ShoppingBag size={34} style={{ color: 'var(--muted)' }} />
                   </div>
+                  <h3 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--ink)', margin: '0 0 8px 0' }}>Your cart is empty</h3>
+                  <p style={{ fontSize: '13px', color: 'var(--muted)', margin: '0 0 24px 0', maxWidth: '220px', lineHeight: 1.5 }}>Let's add something you'll love.</p>
                   <button
                     type="button"
                     onClick={() => {
-                      checkout();
+                      setIsCartOpen(false);
+                      router.push('/shop');
                     }}
+                    style={{ background: '#59323f', color: '#fff', border: 'none', borderRadius: '24px', padding: '12px 28px', fontSize: '14px', fontWeight: 700, cursor: 'pointer' }}
                   >
-                    Checkout
+                    Continue shopping
                   </button>
-                  <Link 
-                    href="/cart" 
-                    className="view-full-cart-link"
-                    onClick={() => setIsCartOpen(false)}
-                    style={{ 
-                      display: 'block', 
-                      textAlign: 'center', 
-                      marginTop: '12px', 
-                      fontSize: '13px', 
-                      color: 'rgba(27, 98, 75, 0.6)',
-                      textDecoration: 'underline'
-                    }}
-                  >
-                    View Detailed Cart
-                  </Link>
                 </div>
-              </>
-            ) : (
-              <div className="empty-cart">
-                <h3>Your cart is empty</h3>
-                <p>Add products from the featured section to see them here.</p>
-                <button type="button" onClick={() => setIsCartOpen(false)}>
-                  Continue shopping
-                </button>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div style={{ borderTop: '1px solid rgba(211, 201, 189, 0.5)', paddingTop: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--muted)' }}>Subtotal</span>
+                <strong style={{ fontSize: '18px', fontWeight: 800, color: 'var(--brand-color)' }}>{formatPrice(cartTotal)}</strong>
               </div>
-            )}
+              <p style={{ fontSize: '12px', color: 'var(--muted)', margin: 0, textAlign: 'center' }}>Taxes &amp; shipping calculated at checkout.</p>
+
+              <button
+                type="button"
+                disabled={cartItems.length === 0}
+                onClick={() => checkout()}
+                style={{
+                  width: '100%',
+                  padding: '13px',
+                  borderRadius: '24px',
+                  fontSize: '14px',
+                  fontWeight: 700,
+                  border: 'none',
+                  background: cartItems.length === 0 ? 'rgba(163,147,150,0.4)' : '#a39396',
+                  color: cartItems.length === 0 ? 'rgba(255,255,255,0.5)' : '#fff',
+                  cursor: cartItems.length === 0 ? 'not-allowed' : 'pointer',
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                {cartItems.length === 0 ? 'Cart is empty' : `Checkout — ${formatPrice(cartTotal)}`}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setIsCartOpen(false);
+                  router.push('/shop');
+                }}
+                style={{ width: '100%', padding: '12px', borderRadius: '24px', fontSize: '14px', fontWeight: 700, border: '1px solid rgba(211, 201, 189, 0.8)', background: 'var(--panel)', color: 'var(--ink)', cursor: 'pointer' }}
+              >
+                Continue shopping
+              </button>
+            </div>
           </aside>
         </div>
       )}
@@ -217,6 +329,144 @@ export default function Drawers() {
                   {profileNotice}
                 </motion.p>
               )}
+            </div>
+          </motion.aside>
+        </div>
+      )}
+
+      {isSearchOpen && (
+        <div className="cart-layer">
+          <motion.button
+            className="cart-backdrop"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setIsSearchOpen(false)}
+          />
+          <motion.aside 
+            className="cart-drawer search-drawer"
+            initial={{ x: "100%" }}
+            animate={{ x: 0 }}
+            exit={{ x: "100%" }}
+            transition={{ type: "spring", damping: 25, stiffness: 200 }}
+            style={{ right: 0, left: 'auto', borderLeft: '1px solid rgba(211, 201, 189, 0.86)' }}
+          >
+            <div className="cart-drawer-header">
+              <h2 style={{ fontSize: '20px' }}>Search</h2>
+              <button 
+                type="button" 
+                onClick={() => setIsSearchOpen(false)} 
+                style={{ border: 'none', background: 'transparent', padding: '0', fontSize: '20px', color: 'var(--muted)' }}
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="search-drawer-body">
+              <div className="search-drawer-input-container">
+                <SearchIcon />
+                <input
+                  type="search"
+                  placeholder="Search products or collections..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      handleSearchSubmit();
+                    }
+                  }}
+                  autoFocus
+                />
+                {searchQuery && (
+                  <button 
+                    onClick={() => setSearchQuery("")} 
+                    style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: '0 4px', fontSize: '14px', color: 'var(--muted)' }}
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+
+              {searchQuery.trim().length >= 2 ? (
+                <div className="search-drawer-results">
+                  {products.filter(p => 
+                    p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                    p.categories?.some(c => c.toLowerCase().includes(searchQuery.toLowerCase()))
+                  ).slice(0, 6).map((product) => (
+                    <Link
+                      key={product.slug}
+                      href={`/product/${product.slug}`}
+                      className="search-drawer-result-item"
+                      onClick={() => {
+                        setIsSearchOpen(false);
+                        setSearchQuery("");
+                      }}
+                    >
+                      <img src={product.image} alt={product.name} />
+                      <div>
+                        <h4>{product.name}</h4>
+                        <p>{product.price}</p>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              ) : (
+                <>
+                  <div className="search-drawer-section">
+                    <h3>Recent searches</h3>
+                    {recentSearches.length > 0 ? (
+                      <div className="search-pills" style={{ marginBottom: '8px' }}>
+                        {recentSearches.map((term) => (
+                          <button 
+                            key={term} 
+                            className="search-pill"
+                            onClick={() => handleSearchSubmit(term)}
+                          >
+                            {term}
+                          </button>
+                        ))}
+                        <button 
+                          className="search-pill" 
+                          style={{ border: 'none', background: 'transparent', textDecoration: 'underline', color: 'var(--muted)', fontSize: '12px' }}
+                          onClick={handleClearHistory}
+                        >
+                          Clear all
+                        </button>
+                      </div>
+                    ) : (
+                      <p className="empty-text">No recent searches yet.</p>
+                    )}
+                  </div>
+
+                  <div className="search-drawer-section">
+                    <h3>Popular right now</h3>
+                    <div className="search-pills">
+                      {["Neck Fan", "Bottles", "Lunch Box", "Speaker Tumbler", "Wall Mounted AC", "Copper Bottle", "LED Fan", "Sale"].map((term) => (
+                        <button 
+                          key={term} 
+                          className="search-pill"
+                          onClick={() => handleSearchSubmit(term)}
+                        >
+                          <TrendingUp size={14} />
+                          {term}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+
+            <div className="search-drawer-footer">
+              <button 
+                className="btn-search-submit" 
+                onClick={() => handleSearchSubmit()}
+              >
+                Search {searchQuery ? `"${searchQuery}"` : '""'}
+              </button>
+              <button className="btn-search-close" onClick={() => setIsSearchOpen(false)}>
+                Close
+              </button>
             </div>
           </motion.aside>
         </div>

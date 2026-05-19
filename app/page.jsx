@@ -198,6 +198,18 @@ function HomeContent() {
       ? `${selectedCategory.label || selectedCategory.name} products`
       : "Featured products";
 
+  // Dynamic marquee calculations to prevent gaps on ultra-wide screens
+  const minRequiredWidth = 6000;
+  const estimatedItemWidth = 160;
+  const copyWidth = Math.max(categories.length, 1) * estimatedItemWidth;
+  let numCopies = Math.ceil(minRequiredWidth / copyWidth);
+  if (numCopies % 2 !== 0) numCopies += 1;
+  const translatedCopies = numCopies / 2;
+  const marqueeDuration = translatedCopies * 25;
+  const displayCategories = showAllCategories 
+    ? categories 
+    : Array(numCopies).fill(categories).flat();
+
   return (
     <>
       <main>
@@ -386,13 +398,13 @@ function HomeContent() {
               transition={{ 
                 x: { 
                   repeat: Infinity, 
-                  duration: 25, 
+                  duration: marqueeDuration, 
                   ease: "linear",
                   repeatType: "loop"
                 } 
               }}
             >
-              {(showAllCategories ? categories : [...categories, ...categories]).map((category, index) => (
+              {displayCategories.map((category, index) => (
                 <button
                   className={`category-tile ${category.name === "Sale" ? "sale" : ""} ${selectedCategory?.name === category.name ? "selected" : ""}`}
                   type="button"

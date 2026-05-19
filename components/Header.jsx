@@ -6,7 +6,7 @@ import { useState, useEffect, useRef } from "react";
 import { motion, useScroll, useMotionValueEvent, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { getShopifyAccountUrl } from "../lib/shopify";
+import { getShopifyAccountUrl, getShopifyAccountLoginUrl } from "../lib/shopify";
 
 export default function Header() {
   const {
@@ -27,6 +27,7 @@ export default function Header() {
   const [activeIndex, setActiveIndex] = useState(-1);
   const router = useRouter();
   const shopifyAccountUrl = getShopifyAccountUrl();
+  const shopifyLoginUrl = getShopifyAccountLoginUrl();
   const searchInputRef = useRef(null);
   const mobileSearchInputRef = useRef(null);
 
@@ -118,7 +119,7 @@ export default function Header() {
     e?.preventDefault();
     setIsMenuOpen(false);
     setIsSearchOpen(false);
-    setIsProfileOpen(true);
+    window.location.href = shopifyLoginUrl;
   }
 
   function prepareShopifyCartNavigation(e) {
@@ -177,7 +178,7 @@ export default function Header() {
             className="navbar-icon navbar-cart cart-action"
             type="button"
             aria-label={`Open cart with ${cartCount} item${cartCount === 1 ? "" : "s"}`}
-            onClick={() => router.push("/cart")}
+            onClick={prepareShopifyCartNavigation}
           >
             <motion.div
               key={cartPulseKey}
@@ -209,79 +210,7 @@ export default function Header() {
         </button>
       </div>
 
-      {isSearchOpen ? (
-        <>
-          <motion.div 
-            className="search-backdrop" 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setIsSearchOpen(false)}
-          />
-          <form className="search navbar-search-panel" role="search" onSubmit={submitSearch}>
-            <SearchIcon />
-            <label className="sr-only" htmlFor="site-search">
-              Search products
-            </label>
-            <input
-              ref={searchInputRef}
-              id="site-search"
-              type="search"
-              placeholder="Try 'Lunch Box' or Search by Product..."
-              value={searchQuery}
-              autoComplete="off"
-              onKeyDown={(e) => handleKeyDown(e)}
-              onChange={(event) => {
-                setSearchQuery(event.target.value);
-                setSelectedCategory(null);
-              }}
-            />
-            {searchQuery ? (
-              <button className="search-clear" type="button" onClick={clearSearch} aria-label="Clear search">
-                x
-              </button>
-            ) : null}
-
-            <AnimatePresence>
-              {searchQuery.trim().length >= 2 && (
-                <motion.div 
-                  className="search-results-dropdown"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 10 }}
-                >
-                  {filteredResults.length > 0 ? (
-                    filteredResults.map((product, index) => (
-                      <Link
-                        key={product.slug}
-                        href={`/product/${product.slug}`}
-                        className={`search-result-item ${index === activeIndex ? 'active' : ''}`}
-                        onClick={() => {
-                          setIsSearchOpen(false);
-                          setSearchQuery("");
-                        }}
-                        onMouseEnter={() => setActiveIndex(index)}
-                      >
-                        <div className="search-result-image">
-                          <img src={product.image} alt="" />
-                        </div>
-                        <div className="search-result-info">
-                          <h4>{product.name}</h4>
-                          <p>{product.price}</p>
-                        </div>
-                      </Link>
-                    ))
-                  ) : (
-                    <div className="search-no-results">
-                      <p>No products found for "{searchQuery}"</p>
-                    </div>
-                  )}
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </form>
-        </>
-      ) : null}
+      {/* Search drawer is now rendered globally by Drawers.jsx */}
 
       <div className={`mobile-nav-content ${isMenuOpen ? "open" : ""}`}>
         <Link href="/" onClick={resetStoreView}>
@@ -290,69 +219,11 @@ export default function Header() {
         <Link href="/shop" onClick={() => setIsMenuOpen(false)}>
           Shop
         </Link>
-        <form className="mobile-search" role="search" onSubmit={submitSearch}>
-          <label className="sr-only" htmlFor="mobile-site-search">
-            Search products
-          </label>
-          <div style={{ position: 'relative', width: '100%' }}>
-            <input
-              ref={mobileSearchInputRef}
-              id="mobile-site-search"
-              type="search"
-              placeholder="Search products"
-              value={searchQuery}
-              autoComplete="off"
-              onKeyDown={(e) => handleKeyDown(e, true)}
-              onChange={(event) => {
-                setSearchQuery(event.target.value);
-                setSelectedCategory(null);
-              }}
-            />
-            <AnimatePresence>
-              {searchQuery.trim().length >= 2 && (
-                <motion.div 
-                  className="search-results-dropdown"
-                  style={{ position: 'absolute', top: '100%', left: 0, right: 0, marginTop: '8px' }}
-                  initial={{ opacity: 0, y: 5 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 5 }}
-                >
-                  {filteredResults.length > 0 ? (
-                    filteredResults.map((product, index) => (
-                      <Link
-                        key={product.slug}
-                        href={`/product/${product.slug}`}
-                        className={`search-result-item ${index === activeIndex ? 'active' : ''}`}
-                        onClick={() => {
-                          setIsMenuOpen(false);
-                          setSearchQuery("");
-                        }}
-                        onMouseEnter={() => setActiveIndex(index)}
-                      >
-                        <div className="search-result-image" style={{ width: '40px', height: '40px' }}>
-                          <img src={product.image} alt="" />
-                        </div>
-                        <div className="search-result-info">
-                          <h4 style={{ fontSize: '13px' }}>{product.name}</h4>
-                          <p style={{ fontSize: '12px' }}>{product.price}</p>
-                        </div>
-                      </Link>
-                    ))
-                  ) : (
-                    <div className="search-no-results" style={{ padding: '16px' }}>
-                      <p style={{ fontSize: '13px' }}>No products found</p>
-                    </div>
-                  )}
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-          <button type="submit">Search</button>
-        </form>
+
         <button className="mobile-drawer-trigger" type="button" onClick={prepareShopifyAccountNavigation}>
           Profile
         </button>
-        <button className="mobile-drawer-trigger" type="button" onClick={() => { setIsMenuOpen(false); router.push("/cart"); }}>
+        <button className="mobile-drawer-trigger" type="button" onClick={prepareShopifyCartNavigation}>
           Cart ({cartCount})
         </button>
       </div>

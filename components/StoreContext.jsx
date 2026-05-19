@@ -271,13 +271,25 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
 
     if (activeItems.length === 0) return;
 
-    // If there's a Shopify cart with a checkout URL, use it
+    // Priority 1: Shopify cart with a live checkout URL
     if (shopifyCart?.checkoutUrl) {
-      window.location.href = shopifyCart.checkoutUrl;
+      window.open(shopifyCart.checkoutUrl, '_blank');
       return;
     }
 
-    // Otherwise, use Razorpay
+    // Priority 2: Build a Shopify cart permalink from variant IDs
+    const permalinkUrl = getShopifyCartPermalink(activeItems);
+    const hasVariants = activeItems.some(item => {
+      const variantId = item.product?.shopifyVariantId || item.product?.variantId || item.product?.sku || item.variantId;
+      return variantId && String(variantId).includes('gid://shopify/');
+    });
+
+    if (hasVariants && permalinkUrl) {
+      window.open(permalinkUrl, '_blank');
+      return;
+    }
+
+    // Priority 3: Fallback to Razorpay for local-only items
     const res = await loadRazorpay();
     if (!res) {
       alert("Razorpay SDK failed to load. Are you online?");
@@ -294,7 +306,7 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
       const order = await response.json();
       if (order.error) throw new Error(order.error);
 
-      const options = {
+      const rzpOptions = {
         key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_test_RwcLAPO7q0AESo",
         amount: order.amount,
         currency: order.currency,
@@ -317,7 +329,7 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
         theme: { color: "#1b624b" },
       };
 
-      const paymentObject = new window.Razorpay(options);
+      const paymentObject = new window.Razorpay(rzpOptions);
       paymentObject.open();
     } catch (error) {
       console.error("Checkout Error:", error);

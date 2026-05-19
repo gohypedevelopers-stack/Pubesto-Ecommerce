@@ -1,10 +1,75 @@
 "use client";
 
-import React from 'react';
-import { Mail, Clock, ShieldCheck, Send, PhoneCall, MapPin } from 'lucide-react';
+import React, { useState } from 'react';
+import { Mail, Clock, ShieldCheck, Send, PhoneCall, MapPin, Loader2 } from 'lucide-react';
 import '../contact.css';
 
 export default function ContactPage() {
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    subject: '',
+    message: ''
+  });
+
+  const [status, setStatus] = useState({
+    loading: false,
+    success: null,
+    message: ''
+  });
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setStatus({ loading: true, success: null, message: '' });
+
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        setStatus({
+          loading: false,
+          success: true,
+          message: result.message || 'Thank you! Your message has been sent successfully.'
+        });
+        setFormData({
+          name: '',
+          email: '',
+          subject: '',
+          message: ''
+        });
+      } else {
+        setStatus({
+          loading: false,
+          success: false,
+          message: result.message || 'Failed to send message. Please try again later.'
+        });
+      }
+    } catch (error) {
+      console.error('Contact submission error:', error);
+      setStatus({
+        loading: false,
+        success: false,
+        message: 'Something went wrong. Please check your connection and try again.'
+      });
+    }
+  };
+
   return (
     <main className="pubesto-contact-page-v2">
       <div className="contact-page-container">
@@ -74,26 +139,69 @@ export default function ContactPage() {
             <div className="contact-form-panel">
               <div className="contact-form-card-v2">
                 <h3>Send a Message</h3>
-                <form className="contact-form-v2" onSubmit={(e) => e.preventDefault()}>
+
+                {status.success !== null && (
+                  <div className={`contact-alert ${status.success ? 'success' : 'error'}`}>
+                    <span>{status.message}</span>
+                  </div>
+                )}
+
+                <form className="contact-form-v2" onSubmit={handleSubmit}>
                   <div className="form-group-v2">
                     <label>Full Name</label>
-                    <input type="text" placeholder="Your name" required />
+                    <input 
+                      type="text" 
+                      name="name"
+                      placeholder="Your name" 
+                      value={formData.name}
+                      onChange={handleChange}
+                      required 
+                      disabled={status.loading}
+                    />
                   </div>
                   <div className="form-group-v2">
                     <label>Email Address</label>
-                    <input type="email" placeholder="Your email" required />
+                    <input 
+                      type="email" 
+                      name="email"
+                      placeholder="Your email" 
+                      value={formData.email}
+                      onChange={handleChange}
+                      required 
+                      disabled={status.loading}
+                    />
                   </div>
                   <div className="form-group-v2">
                     <label>Subject</label>
-                    <input type="text" placeholder="How can we help?" required />
+                    <input 
+                      type="text" 
+                      name="subject"
+                      placeholder="How can we help?" 
+                      value={formData.subject}
+                      onChange={handleChange}
+                      required 
+                      disabled={status.loading}
+                    />
                   </div>
                   <div className="form-group-v2">
                     <label>Message</label>
-                    <textarea rows="4" placeholder="Type your message here..." required></textarea>
+                    <textarea 
+                      rows="4" 
+                      name="message"
+                      placeholder="Type your message here..." 
+                      value={formData.message}
+                      onChange={handleChange}
+                      required
+                      disabled={status.loading}
+                    ></textarea>
                   </div>
-                  <button type="submit" className="contact-send-btn">
-                    <span>Send Message</span>
-                    <Send size={18} />
+                  <button type="submit" className="contact-send-btn" disabled={status.loading}>
+                    <span>{status.loading ? 'Sending...' : 'Send Message'}</span>
+                    {status.loading ? (
+                      <Loader2 size={18} className="spinner-icon" />
+                    ) : (
+                      <Send size={18} />
+                    )}
                   </button>
                 </form>
               </div>

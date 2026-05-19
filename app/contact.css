@@ -197,12 +197,54 @@
   gap: 12px;
   box-shadow: 0 15px 30px rgba(63, 100, 105, 0.2);
   transition: all 0.3s ease;
+  cursor: pointer;
 }
 
-.contact-send-btn:hover {
+.contact-send-btn:hover:not(:disabled) {
   background: #2a3d40;
   transform: translateY(-2px);
   box-shadow: 0 20px 40px rgba(63, 100, 105, 0.3);
+}
+
+.contact-send-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.contact-alert {
+  padding: 16px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 500;
+}
+
+.contact-alert.success {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+  border: 1px solid #c8e6c9;
+}
+
+.contact-alert.error {
+  background-color: #ffebee;
+  color: #c62828;
+  border: 1px solid #ffcdd2;
+}
+
+.spinner-icon {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @media (max-width: 900px) {

@@ -2352,15 +2352,15 @@ main {
 .social-gallery-copy strong {
   font-family: var(--font-display);
   font-style: italic;
-  font-size: clamp(32px, 3.2vw, 48px);
+  font-size: clamp(24px, 2.5vw, 36px);
   font-weight: 650;
   line-height: 0.95;
 }
 
 .social-gallery-copy span {
   max-width: 260px;
-  font-size: 13px;
-  font-weight: 780;
+  font-size: 12px;
+  font-weight: 600;
   line-height: 1.45;
 }
 
@@ -3010,15 +3010,11 @@ main {
   }
 
   .social-gallery-copy strong {
-    font-size: 20px;
+    font-size: 24px;
   }
 
   .social-gallery-copy span {
-    font-size: 13px;
-  }
-
-  .social-gallery-copy strong {
-    font-size: 34px;
+    font-size: 12px;
   }
 
   .cart-drawer {
@@ -8951,3 +8947,182 @@ body,
     grid-template-columns: 1fr;
   }
 }
+
+/* Search Drawer Styles */
+.search-drawer {
+  background: var(--cream) !important;
+  color: var(--ink) !important;
+  z-index: 70 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100vh !important;
+}
+
+.search-drawer-body {
+  flex: 1;
+  padding: 16px 6px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.search-drawer-input-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid rgba(211, 201, 189, 0.86);
+  border-radius: 8px;
+  padding: 10px 14px;
+  background: var(--panel);
+  transition: all 0.2s ease;
+}
+
+.search-drawer-input-container:focus-within {
+  border-color: var(--brand-color);
+  box-shadow: 0 0 0 1px var(--brand-color);
+}
+
+.search-drawer-input-container svg {
+  width: 18px;
+  height: 18px;
+  color: var(--muted);
+  stroke-width: 2.2;
+}
+
+.search-drawer-input-container input {
+  border: none;
+  outline: none;
+  background: transparent;
+  width: 100%;
+  font-size: 14px;
+  color: var(--ink);
+}
+
+.search-drawer-section h3 {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0 0 12px 0;
+  text-transform: none;
+}
+
+.search-drawer-section .empty-text {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 0;
+}
+
+.search-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.search-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid rgba(211, 201, 189, 0.6);
+  border-radius: 999px;
+  background: var(--panel);
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.search-pill:hover {
+  background: rgba(63, 100, 105, 0.08);
+  border-color: var(--brand-color);
+}
+
+.search-pill svg {
+  color: var(--muted);
+}
+
+.search-drawer-results {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.search-drawer-result-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(211, 201, 189, 0.4);
+  background: var(--panel);
+  transition: all 0.2s ease;
+  text-decoration: none;
+  color: inherit;
+}
+
+.search-drawer-result-item:hover {
+  background: rgba(63, 100, 105, 0.04);
+  border-color: var(--brand-color);
+}
+
+.search-drawer-result-item img {
+  width: 48px;
+  height: 48px;
+  border-radius: 6px;
+  object-fit: cover;
+}
+
+.search-drawer-result-item div h4 {
+  font-size: 13px;
+  font-weight: 600;
+  margin: 0 0 2px 0;
+}
+
+.search-drawer-result-item div p {
+  font-size: 12px;
+  color: var(--brand-color);
+  font-weight: 700;
+  margin: 0;
+}
+
+.search-drawer-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(211, 201, 189, 0.5);
+  margin-top: auto;
+}
+
+.search-drawer-footer button {
+  width: 100%;
+  padding: 12px;
+  border-radius: 24px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-search-submit {
+  background: #a39396 !important;
+  color: #fff !important;
+  border: none !important;
+}
+
+.btn-search-submit:hover {
+  opacity: 0.9;
+}
+
+.btn-search-close {
+  background: var(--panel) !important;
+  color: var(--ink) !important;
+  border: 1px solid rgba(211, 201, 189, 0.8) !important;
+}
+
+.btn-search-close:hover {
+  background: rgba(63, 100, 105, 0.05) !important;
+}
+
