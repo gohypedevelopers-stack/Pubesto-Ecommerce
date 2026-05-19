@@ -109,6 +109,7 @@ main {
 
 .brand {
   color: var(--deep);
+  animation: logoColorChange 12s infinite alternate ease-in-out;
   font-family: var(--font-display);
   font-style: italic;
   font-size: 34px;
@@ -2250,7 +2251,7 @@ main {
   position: relative;
   isolation: isolate;
   margin-top: 20px;
-  margin-bottom: 60px;
+  margin-bottom: 120px;
   overflow: hidden;
   border-top: 8px solid var(--deep);
   border-radius: 24px 24px 0 0;
@@ -2312,7 +2313,7 @@ main {
 
 .social-gallery-card {
   position: relative;
-  min-height: 360px;
+  min-height: 440px;
   overflow: hidden;
   color: var(--cream);
 }
@@ -2376,7 +2377,7 @@ main {
 }
 
 .social-circle-section+.site-footer {
-  margin-top: 100px;
+  margin-top: 150px;
 }
 
 .site-footer {
@@ -9307,6 +9308,51 @@ body,
   max-width: 1100px;
   margin: 0 auto;
   gap: 32px;
+}
+
+@keyframes logoColorChange {
+  0% {
+    color: #ffffff;
+  }
+  25% {
+    color: #c2d9d0; /* Soft sage */
+  }
+  50% {
+    color: #e8d1a7; /* Champagne gold */
+  }
+  75% {
+    color: #e5c2b8; /* Rose gold */
+  }
+  100% {
+    color: #ffffff;
+  }
+}
+
+/* Card Quick Add Plus Button */
+.card-quick-add-plus {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--white-color);
+  color: var(--brand-color);
+  border: 1px solid rgba(63, 100, 105, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.card-quick-add-plus:hover {
+  background: var(--brand-color);
+  color: var(--white-color);
+  transform: scale(1.1) rotate(90deg);
+  box-shadow: 0 6px 16px rgba(63, 100, 105, 0.2);
 }
 
 

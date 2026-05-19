@@ -66,6 +66,20 @@ function ProductCard({ product, index = 0 }) {
         {product.badge ? (
           <span className={`badge ${product.badgeClass || ""}`}>{product.badge}</span>
         ) : null}
+        {product.inStock !== false && (
+          <button
+            className="card-quick-add-plus"
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleAddToCart();
+            }}
+            aria-label="Quick add to cart"
+          >
+            <Plus size={18} />
+          </button>
+        )}
         <AnimatePresence>
           {addEffectKey ? (
             <motion.div
