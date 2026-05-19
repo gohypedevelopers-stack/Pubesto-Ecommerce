@@ -145,6 +145,69 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
     return Number(rawPrice) || 0;
   }
 
+  function getProductBasePrice(product) {
+    const original = products.find(p => p.slug === product.slug || p.sku === product.sku);
+    const target = original || product;
+    if (typeof target.salePrice === "number") {
+      return target.salePrice;
+    }
+    const rawPrice = String(target.price || "0").replace(/[^\d.]/g, "");
+    return Number(rawPrice) || 0;
+  }
+
+  function getProductBaseOldPrice(product) {
+    const original = products.find(p => p.slug === product.slug || p.sku === product.sku);
+    const target = original || product;
+    if (typeof target.originalPrice === "number") {
+      return target.originalPrice;
+    }
+    const rawPrice = String(target.oldPrice || "0").replace(/[^\d.]/g, "");
+    return Number(rawPrice) || 0;
+  }
+
+  function getCartItemTotalPrice(product, quantity) {
+    const basePrice = getProductBasePrice(product);
+    const pack2UnitPrice = Math.round(Math.floor(basePrice * 1.417) / 2);
+    const pack4UnitPrice = Math.round(Math.floor(basePrice * 3.003) / 4);
+    
+    const pack4Price = pack4UnitPrice * 4;
+    const pack2Price = pack2UnitPrice * 2;
+    const singlePrice = basePrice;
+    
+    const num4 = Math.floor(quantity / 4);
+    const remainder = quantity % 4;
+    const num2 = Math.floor(remainder / 2);
+    const num1 = remainder % 2;
+    
+    return (num4 * pack4Price) + (num2 * pack2Price) + (num1 * singlePrice);
+  }
+
+  function getCartItemTotalOldPrice(product, quantity) {
+    const baseOldPrice = getProductBaseOldPrice(product) || Math.round(getProductBasePrice(product) * 1.35);
+    return baseOldPrice * quantity;
+  }
+
+  function getCartItemDisplayName(product, quantity) {
+    const original = products.find(p => p.slug === product.slug || p.sku === product.sku);
+    const baseName = original ? original.name : product.name.replace(/\s*\([^)]+\)/g, "").trim();
+    
+    if (quantity === 1) return baseName;
+    if (quantity === 2) return `${baseName} (Pack of 2)`;
+    if (quantity === 4) return `${baseName} (Pack of 4)`;
+    
+    const num4 = Math.floor(quantity / 4);
+    const remainder = quantity % 4;
+    const num2 = Math.floor(remainder / 2);
+    const num1 = remainder % 2;
+    
+    const parts = [];
+    if (num4 > 0) parts.push(`Pack of 4${num4 > 1 ? ` x ${num4}` : ""}`);
+    if (num2 > 0) parts.push("Pack of 2");
+    if (num1 > 0) parts.push("Single");
+    
+    return `${baseName} (${parts.join(" + ")})`;
+  }
+
   function closeUtilityPanels() {
     setIsCartOpen(false);
     setIsProfileOpen(false);
@@ -271,13 +334,39 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
 
     if (activeItems.length === 0) return;
 
-    // Priority 1: Shopify cart with a live checkout URL
-    if (shopifyCart?.checkoutUrl) {
-      window.open(shopifyCart.checkoutUrl, '_blank');
-      return;
+    // Try dynamic Shopify checkout creation first
+    try {
+      const payloadItems = activeItems.map(item => {
+        const variantId = item.product?.shopifyVariantId || item.product?.variantId || item.product?.sku || item.variantId;
+        const name = getCartItemDisplayName(item.product, item.quantity);
+        const totalPrice = getCartItemTotalPrice(item.product, item.quantity);
+        const discountedUnitPrice = item.quantity > 0 ? totalPrice / item.quantity : 0;
+        return {
+          variantId,
+          quantity: item.quantity,
+          name,
+          discountedUnitPrice
+        };
+      });
+
+      const response = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ items: payloadItems }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.checkoutUrl) {
+          window.location.href = data.checkoutUrl;
+          return;
+        }
+      }
+    } catch (error) {
+      console.error("Dynamic Shopify checkout failed:", error);
     }
 
-    // Priority 2: Build a Shopify cart permalink from variant IDs
+    // Fallback 1: Build a Shopify cart permalink from variant IDs
     const permalinkUrl = getShopifyCartPermalink(activeItems);
     const hasVariants = activeItems.some(item => {
       const variantId = item.product?.shopifyVariantId || item.product?.variantId || item.product?.sku || item.variantId;
@@ -285,11 +374,11 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
     });
 
     if (hasVariants && permalinkUrl) {
-      window.open(permalinkUrl, '_blank');
+      window.location.href = permalinkUrl;
       return;
     }
 
-    // Priority 3: Fallback to Razorpay for local-only items
+    // Fallback 2: Fallback to Razorpay for local-only items
     const res = await loadRazorpay();
     if (!res) {
       alert("Razorpay SDK failed to load. Are you online?");
@@ -351,7 +440,7 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
   }
 
   const cartCount = cartItems.reduce((total, item) => total + item.quantity, 0);
-  const cartTotal = cartItems.reduce((total, item) => total + getProductPrice(item.product) * item.quantity, 0);
+  const cartTotal = cartItems.reduce((total, item) => total + getCartItemTotalPrice(item.product, item.quantity), 0);
   const shopifyCartUrl = getShopifyCartPermalink(cartItems);
 
   const value = {
@@ -369,6 +458,7 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
     cartCount, cartTotal,
     shopifyCartUrl, openShopifyCart,
     getProductId, getProductPrice,
+    getCartItemTotalPrice, getCartItemTotalOldPrice, getCartItemDisplayName,
     closeUtilityPanels, addToCart, updateCartQuantity, removeFromCart, checkout,
     categories, products,
     footerPanel, setFooterPanel,

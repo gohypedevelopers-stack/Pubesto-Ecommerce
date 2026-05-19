@@ -24,6 +24,7 @@ export default function Drawers() {
     updateCartQuantity, removeFromCart, checkout,
     profileNotice,
     getProductPrice,
+    getCartItemTotalPrice, getCartItemDisplayName,
     openShopifyCart,
     isSearchOpen, setIsSearchOpen,
     searchQuery, setSearchQuery,
@@ -133,11 +134,11 @@ export default function Drawers() {
                           style={{ textDecoration: 'none', color: 'inherit' }}
                         >
                           <h3 style={{ fontSize: '13px', fontWeight: 700, margin: 0, color: 'var(--ink)', lineHeight: 1.4 }}>
-                            {item.product.name}
+                            {getCartItemDisplayName(item.product, item.quantity)}
                           </h3>
                         </Link>
                         <p style={{ fontSize: '13px', fontWeight: 800, color: 'var(--brand-color)', margin: 0 }}>
-                          {formatPrice(getProductPrice(item.product))}
+                          {formatPrice(getCartItemTotalPrice(item.product, item.quantity) / item.quantity)}
                         </p>
                         {/* Quantity Controls */}
                         <div style={{ display: 'inline-grid', gridTemplateColumns: '26px 32px 26px', alignItems: 'center', border: '1px solid rgba(211, 201, 189, 0.8)', borderRadius: '6px', background: 'var(--cream)', width: 'fit-content', marginTop: '4px', overflow: 'hidden' }}>
@@ -166,7 +167,7 @@ export default function Drawers() {
                       {/* Right side: line total + remove */}
                       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px', flexShrink: 0 }}>
                         <span style={{ fontSize: '13px', fontWeight: 800, color: 'var(--ink)' }}>
-                          {formatPrice(getProductPrice(item.product) * item.quantity)}
+                          {formatPrice(getCartItemTotalPrice(item.product, item.quantity))}
                         </span>
                         <button
                           type="button"
@@ -195,7 +196,7 @@ export default function Drawers() {
                       setIsCartOpen(false);
                       router.push('/shop');
                     }}
-                    style={{ background: '#59323f', color: '#fff', border: 'none', borderRadius: '24px', padding: '12px 28px', fontSize: '14px', fontWeight: 700, cursor: 'pointer' }}
+                    className="cart-empty-continue-btn"
                   >
                     Continue shopping
                   </button>
@@ -215,18 +216,7 @@ export default function Drawers() {
                 type="button"
                 disabled={cartItems.length === 0}
                 onClick={() => checkout()}
-                style={{
-                  width: '100%',
-                  padding: '13px',
-                  borderRadius: '24px',
-                  fontSize: '14px',
-                  fontWeight: 700,
-                  border: 'none',
-                  background: cartItems.length === 0 ? 'rgba(163,147,150,0.4)' : '#a39396',
-                  color: cartItems.length === 0 ? 'rgba(255,255,255,0.5)' : '#fff',
-                  cursor: cartItems.length === 0 ? 'not-allowed' : 'pointer',
-                  transition: 'all 0.2s ease'
-                }}
+                className="cart-checkout-btn"
               >
                 {cartItems.length === 0 ? 'Cart is empty' : `Checkout — ${formatPrice(cartTotal)}`}
               </button>
@@ -237,7 +227,7 @@ export default function Drawers() {
                   setIsCartOpen(false);
                   router.push('/shop');
                 }}
-                style={{ width: '100%', padding: '12px', borderRadius: '24px', fontSize: '14px', fontWeight: 700, border: '1px solid rgba(211, 201, 189, 0.8)', background: 'var(--panel)', color: 'var(--ink)', cursor: 'pointer' }}
+                className="cart-continue-btn"
               >
                 Continue shopping
               </button>

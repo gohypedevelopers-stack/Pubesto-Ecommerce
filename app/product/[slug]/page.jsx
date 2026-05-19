@@ -12,7 +12,7 @@ import { getShopifyCheckoutUrl } from "../../../lib/shopify";
 function ProductPageContent() {
   const { slug } = useParams();
   const { 
-    addToCart, cartItems, getProductId, products, updateCartQuantity, checkout
+    addToCart, cartItems, getProductId, getProductPrice, products, updateCartQuantity, checkout
   } = useStore();
   const [activeTab, setActiveTab] = useState("specs");
   const [addEffectKey, setAddEffectKey] = useState(null);
@@ -77,19 +77,8 @@ function ProductPageContent() {
       setAddEffectKey((currentKey) => (currentKey === nextKey ? null : currentKey));
     }, 1050);
 
-    const perItemPrice = selectedBundle.price / quantity;
-    const perItemOldPrice = selectedBundle.oldPrice / quantity;
-    
-    // Pass the selected options and quantity, and override price for bundle savings
-    addToCart({
-      ...product,
-      id: quantity > 1 ? `${product.slug}-bundle-${quantity}` : product.id || product.slug,
-      name: quantity > 1 ? `${product.name} (${selectedBundle.title})` : product.name,
-      price: `Rs. ${Math.round(perItemPrice)}`,
-      salePrice: Math.round(perItemPrice),
-      oldPrice: `Rs. ${Math.round(perItemOldPrice)}`,
-      originalPrice: Math.round(perItemOldPrice)
-    }, { 
+    // Pass the selected options and quantity
+    addToCart(product, { 
       color: selectedColor?.name,
       quantity: quantity 
     });
@@ -102,30 +91,46 @@ function ProductPageContent() {
     setIsBuyingNow(true);
 
     try {
+      const variantId = product.shopifyVariantId || product.variantId || product.sku;
+      const name = product.name;
+      const totalPrice = selectedBundle?.price || getProductPrice(product);
+      const discountedUnitPrice = quantity > 0 ? totalPrice / quantity : totalPrice;
+
+      const response = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          items: [{
+            variantId,
+            quantity,
+            name,
+            discountedUnitPrice
+          }]
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.checkoutUrl) {
+          window.location.href = data.checkoutUrl;
+          return;
+        }
+      }
+
+      // Fallback to standard checkout if dynamic endpoint fails
       const checkoutUrl = await getShopifyCheckoutUrl(shopifyHandle, quantity);
       window.location.href = checkoutUrl;
     } catch (err) {
       console.warn("Shopify checkout unavailable, falling back to Razorpay:", err.message);
       
-      const perItemPrice = selectedBundle.price / quantity;
-      const perItemOldPrice = selectedBundle.oldPrice / quantity;
-
-      addToCart({
-        ...product,
-        id: quantity > 1 ? `${product.slug}-bundle-${quantity}` : product.id || product.slug,
-        name: quantity > 1 ? `${product.name} (${selectedBundle.title})` : product.name,
-        price: `Rs. ${Math.round(perItemPrice)}`,
-        salePrice: Math.round(perItemPrice),
-        oldPrice: `Rs. ${Math.round(perItemOldPrice)}`,
-        originalPrice: Math.round(perItemOldPrice)
-      }, {
+      addToCart(product, {
         color: selectedColor?.name,
         quantity: quantity,
         openCart: false
       });
       checkout({
-        items: [{ id: quantity > 1 ? `${product.slug}-bundle-${quantity}` : getProductId(product), product, quantity }],
-        amount: selectedBundle.price
+        items: [{ id: getProductId(product), product, quantity }],
+        amount: selectedBundle?.price || getProductPrice(product)
       });
     } finally {
       setIsBuyingNow(false);
@@ -163,7 +168,7 @@ function ProductPageContent() {
     { 
       id: 1, 
       title: 'Single', 
-      badge: '25% off',
+      badge: `${Math.round(((baseOldPrice - basePrice) / baseOldPrice) * 100)}% OFF`,
       subtext: 'Additional Prepaid Discount', 
       price: basePrice, 
       oldPrice: baseOldPrice 
@@ -171,6 +176,7 @@ function ProductPageContent() {
     { 
       id: 2, 
       title: 'Pack of 2', 
+      badge: `${Math.round(((baseOldPrice * 2 - Math.floor(basePrice * 1.417)) / (baseOldPrice * 2)) * 100)}% OFF`,
       badgeLabel: `Save ₹${(baseOldPrice * 2) - Math.floor(basePrice * 1.417)}`,
       subtext: 'Free Priority Shipping', 
       price: Math.floor(basePrice * 1.417), 
@@ -180,6 +186,7 @@ function ProductPageContent() {
     { 
       id: 4, 
       title: 'Pack of 4', 
+      badge: `${Math.round(((baseOldPrice * 4 - Math.floor(basePrice * 3.003)) / (baseOldPrice * 4)) * 100)}% OFF`,
       badgeLabel: `Save ₹${(baseOldPrice * 4) - Math.floor(basePrice * 3.003)}`,
       subtext: 'Free Priority Shipping', 
       price: Math.floor(basePrice * 3.003), 
@@ -189,6 +196,21 @@ function ProductPageContent() {
   ];
 
   const selectedBundle = bundles.find(b => b.id === quantity) || bundles[0];
+
+  const displayBadge = (() => {
+    if (quantity === 1) {
+      return product.badge;
+    }
+    const discountPercent = Math.round(((selectedBundle.oldPrice - selectedBundle.price) / selectedBundle.oldPrice) * 100);
+    return discountPercent > 0 ? `${discountPercent}% OFF` : null;
+  })();
+
+  const displayBadgeClass = (() => {
+    if (quantity === 1) {
+      return product.badgeClass || 'badge-discount';
+    }
+    return 'badge-discount';
+  })();
 
   return (
     <motion.main 
@@ -209,7 +231,7 @@ function ProductPageContent() {
             >
               <div className="image-glow" />
               <img src={activeImage || product.image} alt={product.name} />
-              {product.badge && <span className={`product-status-badge ${product.badgeClass}`}>{product.badge}</span>}
+              {displayBadge && <span className={`product-status-badge ${displayBadgeClass}`}>{displayBadge}</span>}
             </motion.div>
           </div>
           
