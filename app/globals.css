@@ -7459,12 +7459,12 @@ body,
 }
 
 .reviews-header h2 {
-  font-size: 48px;
-  font-weight: 700;
+  font-size: 54px;
+  font-weight: 800;
   color: var(--ink);
   margin-bottom: 16px;
   font-family: var(--font-display);
-  font-style: italic;
+  font-style: normal;
   letter-spacing: -0.02em;
 }
 
@@ -7813,12 +7813,12 @@ body,
 }
 
 .reviews-header h2 {
-  font-size: 48px;
-  font-weight: 700;
+  font-size: 54px;
+  font-weight: 800;
   color: #111;
   margin-bottom: 16px;
   font-family: var(--font-display);
-  font-style: italic;
+  font-style: normal;
   letter-spacing: -0.02em;
 }
 

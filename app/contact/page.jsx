@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { Mail, Clock, ShieldCheck, Send, PhoneCall, MapPin, Loader2 } from 'lucide-react';
-import '../contact.css';
+
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({

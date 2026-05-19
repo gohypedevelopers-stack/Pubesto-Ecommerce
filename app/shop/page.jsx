@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Plus, Minus, Filter, X as CloseIcon, ShoppingBag, Search } from "lucide-react";
 import Link from "next/link";
 import { useStore } from "../../components/StoreContext";
-import '../shop.css';
+
 
 function getShopProductKey(product) {
   return product.sku || product.slug || product.name;

@@ -152,18 +152,23 @@
 }
 
 .hero-title {
-  font-size: clamp(2.5rem, 6vw, 4.5rem);
+  font-size: clamp(2rem, 5vw, 3.8rem);
   line-height: 1.1;
-  color: #ffffff;
   font-weight: 900;
   margin: 0;
   letter-spacing: -0.02em;
-  text-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  background: linear-gradient(to right, #ffffff 20%, #f6e6cd 40%, #ffffff 60%, #ffffff 80%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent !important;
+  color: #ffffff; /* fallback */
+  text-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  animation: shine-effect 3.5s linear infinite;
 }
 
 .hero-description {
   font-size: 0.9rem;
-  color: #ffffff;
+  color: #ffffff !important;
   line-height: 1.5;
   margin: 0;
   font-weight: 600;
@@ -347,4 +352,13 @@
   0%, 45% { transform: translateX(0); }
   50%, 95% { transform: translateX(-33.33%); }
   100% { transform: translateX(-66.66%); }
+}
+
+@keyframes shine-effect {
+  0% {
+    background-position: 200% center;
+  }
+  100% {
+    background-position: -200% center;
+  }
 }

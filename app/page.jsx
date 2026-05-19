@@ -20,7 +20,7 @@ import {
 } from "../lib/data";
 import { formatPrice } from "../lib/utils";
 import ReviewsSection from "../components/ReviewsSection";
-import "./reviews.css";
+
 
 function ProductCard({ product, index = 0 }) {
   const { 

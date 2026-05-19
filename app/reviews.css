@@ -27,12 +27,12 @@
 }
 
 .reviews-section .reviews-header h2 {
-  font-size: 46px;
+  font-size: 54px;
   margin-top: 0 !important;
   margin-bottom: 16px;
   font-family: var(--font-display);
-  font-style: italic;
-  font-weight: 700;
+  font-style: normal;
+  font-weight: 800;
   color: var(--white-color) !important;
 }
 
@@ -255,7 +255,9 @@
   }
   
   .reviews-header h2 {
-    font-size: 32px;
+    font-size: 38px;
+    font-style: normal;
+    font-weight: 800;
   }
   
   .review-card {
