@@ -77,7 +77,11 @@ export default function ReviewsSection() {
                 <footer className="review-footer">
                   <div className="reviewer-info">
                     <div className="reviewer-avatar">
-                      {review.initials}
+                      {review.image ? (
+                        <img src={review.image} alt={review.name} />
+                      ) : (
+                        review.initials
+                      )}
                     </div>
                     <div className="reviewer-details">
                       <span className="reviewer-name">{review.name}</span>
