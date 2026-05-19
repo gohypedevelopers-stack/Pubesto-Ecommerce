@@ -7,6 +7,7 @@ import { motion, useScroll, useMotionValueEvent, AnimatePresence } from "framer-
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { getShopifyAccountUrl, getShopifyAccountLoginUrl } from "../lib/shopify";
+import { Home, ShoppingBag as LucideShoppingBag, User, ShoppingCart, ChevronRight } from "lucide-react";
 
 export default function Header() {
   const {
@@ -213,19 +214,52 @@ export default function Header() {
       {/* Search drawer is now rendered globally by Drawers.jsx */}
 
       <div className={`mobile-nav-content ${isMenuOpen ? "open" : ""}`}>
-        <Link href="/" onClick={resetStoreView}>
-          Home
-        </Link>
-        <Link href="/shop" onClick={() => setIsMenuOpen(false)}>
-          Shop
-        </Link>
+        <div className="mobile-nav-header">
+          <span className="mobile-nav-logo">Pubesto</span>
+        </div>
+        
+        <div className="mobile-nav-links">
+          <Link href="/" className="mobile-nav-item" onClick={() => { resetStoreView(); setIsMenuOpen(false); }}>
+            <span className="mobile-nav-item-content">
+              <Home size={20} />
+              <span>Home</span>
+            </span>
+            <ChevronRight size={18} className="chevron-icon" />
+          </Link>
 
-        <button className="mobile-drawer-trigger" type="button" onClick={prepareShopifyAccountNavigation}>
-          Profile
-        </button>
-        <button className="mobile-drawer-trigger" type="button" onClick={prepareShopifyCartNavigation}>
-          Cart ({cartCount})
-        </button>
+          <Link href="/shop" className="mobile-nav-item" onClick={() => setIsMenuOpen(false)}>
+            <span className="mobile-nav-item-content">
+              <LucideShoppingBag size={20} />
+              <span>Shop</span>
+            </span>
+            <ChevronRight size={18} className="chevron-icon" />
+          </Link>
+
+          <button className="mobile-nav-item" type="button" onClick={() => { setIsMenuOpen(false); prepareShopifyAccountNavigation(); }}>
+            <span className="mobile-nav-item-content">
+              <User size={20} />
+              <span>Profile</span>
+            </span>
+            <ChevronRight size={18} className="chevron-icon" />
+          </button>
+
+          <button className="mobile-nav-item" type="button" onClick={() => { setIsMenuOpen(false); prepareShopifyCartNavigation(); }}>
+            <span className="mobile-nav-item-content">
+              <ShoppingCart size={20} />
+              <span>Cart</span>
+            </span>
+            <span className="mobile-nav-item-right">
+              {cartCount > 0 && <span className="mobile-cart-badge">{cartCount}</span>}
+              <ChevronRight size={18} className="chevron-icon" />
+            </span>
+          </button>
+        </div>
+
+        <div className="mobile-nav-footer">
+          <p className="mobile-nav-footer-title">Need help?</p>
+          <a href="mailto:support@pubesto.com" className="mobile-nav-footer-link">support@pubesto.com</a>
+          <p className="mobile-nav-footer-hours">Mon - Sat: 10AM - 7PM</p>
+        </div>
       </div>
     </motion.header>
   );

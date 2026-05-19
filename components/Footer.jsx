@@ -4,7 +4,7 @@ import { useStore } from "./StoreContext";
 import { motion } from "framer-motion";
 import { InstagramIcon, FacebookIcon } from "./Icons";
 import { ArrowRight } from "lucide-react";
-import { useState } from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 
 const footerLinkGroups = [
@@ -89,7 +89,7 @@ export default function Footer() {
           viewport={{ once: true }}
         >
           {footerLinkGroups.map((group, idx) => (
-            <div className="footer-column-wrapper" key={group.title}>
+            <React.Fragment key={group.title}>
               <nav className="footer-column" aria-label={group.label}>
                 {group.title && <motion.h2 initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} transition={{ delay: 0.2 + idx * 0.1 }}>{group.title}</motion.h2>}
                 <div className="footer-links-list">
@@ -123,50 +123,48 @@ export default function Footer() {
                 </div>
               </nav>
               {idx < footerLinkGroups.length && <div className="footer-v-divider" />}
-            </div>
+            </React.Fragment>
           ))}
 
-          <div className="footer-column-wrapper">
-            <div className="footer-column footer-contact-col">
-              <motion.div 
-                className="footer-contact-info"
+          <div className="footer-column footer-contact-col">
+            <motion.div 
+              className="footer-contact-info"
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              transition={{ delay: 0.6 }}
+            >
+              <h2>Contact Us</h2>
+              <p className="footer-contact-item">support@pubesto.com</p>
+              <p className="footer-contact-item">+91 7056063693</p>
+              <p className="footer-contact-item">Mon - Sat: 10AM - 7PM</p>
+            </motion.div>
+
+            <div className="footer-social-section">
+              <motion.p 
+                className="footer-social-label"
                 initial={{ opacity: 0 }}
                 whileInView={{ opacity: 1 }}
-                transition={{ delay: 0.6 }}
+                transition={{ delay: 0.7 }}
               >
-                <h2>Contact Us</h2>
-                <p className="footer-contact-item">support@pubesto.com</p>
-                <p className="footer-contact-item">+91 7056063693</p>
-                <p className="footer-contact-item">Mon - Sat: 10AM - 7PM</p>
-              </motion.div>
-
-              <div className="footer-social-section">
-                <motion.p 
-                  className="footer-social-label"
-                  initial={{ opacity: 0 }}
-                  whileInView={{ opacity: 1 }}
-                  transition={{ delay: 0.7 }}
-                >
-                  Follow Us
-                </motion.p>
-                <nav className="footer-socials" aria-label="Social links">
-                  {footerSocialLinks.map(({ label, href, Icon }, sIdx) => (
-                    <motion.a 
-                      href={href} 
-                      target="_blank" 
-                      rel="noreferrer" 
-                      aria-label={label} 
-                      key={label}
-                      initial={{ scale: 0, opacity: 0 }}
-                      whileInView={{ scale: 1, opacity: 1 }}
-                      whileHover={{ scale: 1.2, rotate: 8 }}
-                      transition={{ delay: 0.8 + sIdx * 0.1, type: "spring", stiffness: 300 }}
-                    >
-                      <Icon size={24} />
-                    </motion.a>
-                  ))}
-                </nav>
-              </div>
+                Follow Us
+              </motion.p>
+              <nav className="footer-socials" aria-label="Social links">
+                {footerSocialLinks.map(({ label, href, Icon }, sIdx) => (
+                  <motion.a 
+                    href={href} 
+                    target="_blank" 
+                    rel="noreferrer" 
+                    aria-label={label} 
+                    key={label}
+                    initial={{ scale: 0, opacity: 0 }}
+                    whileInView={{ scale: 1, opacity: 1 }}
+                    whileHover={{ scale: 1.2, rotate: 8 }}
+                    transition={{ delay: 0.8 + sIdx * 0.1, type: "spring", stiffness: 300 }}
+                  >
+                    <Icon size={24} />
+                  </motion.a>
+                ))}
+              </nav>
             </div>
           </div>
         </motion.div>

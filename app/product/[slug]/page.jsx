@@ -451,8 +451,8 @@ function ProductPageContent() {
     <section className="customer-reviews-section">
       <div className="reviews-header">
         <p className="eyebrow" style={{ textAlign: 'center', marginBottom: '8px' }}>Trusted by thousands</p>
-        <div className="loved-badge" style={{ margin: '0 auto 12px', width: 'fit-content' }}>
-          💖 Loved by {product.reviews ? Number(product.reviews) * 127 : '10,000'}+ Customers
+        <div className="loved-badge">
+          <span className="heart-icon">💖</span> Loved by {product.reviews ? Number(product.reviews) * 127 : '10,000'}+ Customers
         </div>
         <h2>What Our Customers Say</h2>
         <div className="reviews-meta">
