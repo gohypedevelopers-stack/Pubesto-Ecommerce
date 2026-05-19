@@ -9,6 +9,9 @@ export const metadata = {
 export default function TermsOfService() {
   return (
     <PolicyLayout title="Terms of Service">
+      <h2>Business Ownership</h2>
+      <p>Pubesto is owned and operated by GO HYPE MEDIA.</p>
+
       <h2>Introduction</h2>
       <p>Welcome to Pubesto. These Terms of Service govern the use of our website, products, services, and all related interactions carried out through the platform. By accessing, browsing, registering, or purchasing products from our website, users acknowledge that they have read, understood, and agreed to comply with these Terms of Service.</p>
       <p>These terms are intended to establish a clear understanding between Pubesto and its users regarding rights, responsibilities, limitations, and acceptable usage of the website and services. If a user does not agree with any part of these terms, they should discontinue the use of the website immediately.</p>

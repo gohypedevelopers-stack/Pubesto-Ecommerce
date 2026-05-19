@@ -207,6 +207,12 @@ export default function AboutPage() {
           </div>
         </section>
 
+        {/* Section 6: Business Ownership */}
+        <section className="about-ownership" style={{ padding: "80px 24px", textAlign: "center", backgroundColor: "#f6f4f2" }}>
+          <h2 style={{ fontSize: "32px", color: "#3f6469", marginBottom: "16px", fontFamily: "var(--font-display)", fontStyle: "italic" }}>Business Ownership</h2>
+          <p style={{ color: "#666", fontSize: "18px" }}>Pubesto is owned and operated by <strong>GO HYPE MEDIA</strong>.</p>
+        </section>
+
       </main>
 
       <style jsx>{`

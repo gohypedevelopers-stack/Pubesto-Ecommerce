@@ -9,6 +9,9 @@ export const metadata = {
 export default function RefundReturnPolicy() {
   return (
     <PolicyLayout title="Refund & Return Policy">
+      <h2>Business Ownership</h2>
+      <p>Pubesto is owned and operated by GO HYPE MEDIA.</p>
+
       <h2>Introduction</h2>
       <p>At Pubesto, customer satisfaction is important to us. This Refund & Return Policy explains the conditions under which returns, replacements, and refunds are accepted. By placing an order on our website, you agree to this policy.</p>
 

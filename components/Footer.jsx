@@ -24,7 +24,7 @@ const footerLinkGroups = [
     links: [
       { label: "About Us", href: "/about" },
       { label: "Contact Us", href: "/contact" },
-      { label: "FAQ", panel: "faq" },
+      { label: "FAQ", href: "/faq" },
     ],
   },
 ];
@@ -189,10 +189,6 @@ export default function Footer() {
 
       <div className="footer-brand-endcap" aria-label="Pubesto">
         <span aria-hidden="true">PUBESTO</span>
-      </div>
-
-      <div className="footer-ownership-statement">
-        <p>Pubesto is owned and operated by GO HYPE MEDIA.</p>
       </div>
 
       <div className="footer-copyright">

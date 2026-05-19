@@ -2406,7 +2406,7 @@ main {
 .site-footer {
   position: relative;
   background: #112a2d;
-  padding: 100px 0 60px;
+  padding: 60px 0 40px;
   color: var(--cream);
   overflow: hidden;
 }
@@ -2451,7 +2451,7 @@ main {
 
 .footer-v-divider {
   width: 1px;
-  height: 180px;
+  height: 120px;
   background: linear-gradient(180deg, transparent, rgba(255, 255, 255, 0.1), transparent);
   align-self: center;
 }
@@ -2459,10 +2459,10 @@ main {
 .footer-column h2 {
   font-family: var(--font-display);
   font-style: italic;
-  font-size: 38px;
+  font-size: 24px;
   font-weight: 700;
   color: #fff;
-  margin: 0 0 30px;
+  margin: 0 0 16px;
 }
 
 .footer-links-list {
@@ -2474,15 +2474,15 @@ main {
 .footer-link-button {
   display: block;
   width: fit-content;
-  padding: 8px 16px;
-  margin-left: -16px;
+  padding: 4px 12px;
+  margin-left: -12px;
   background: transparent;
   border: none;
   border-radius: 8px;
   color: rgba(255, 255, 255, 0.7);
   font-family: var(--font-display);
   font-style: italic;
-  font-size: 22px;
+  font-size: 16px;
   font-weight: 500;
   text-align: left;
   text-decoration: none;
@@ -2497,17 +2497,17 @@ main {
 }
 
 .footer-contact-info h2 {
-  font-size: 38px;
-  margin-bottom: 24px;
+  font-size: 24px;
+  margin-bottom: 16px;
 }
 
 .footer-contact-item {
   display: block;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
   color: #ffffff !important;
   font-family: var(--font-display);
   font-style: italic;
-  font-size: 28px;
+  font-size: 18px;
   font-weight: 700;
   line-height: 1.2;
   letter-spacing: 0.03em;
@@ -2522,16 +2522,16 @@ main {
 }
 
 .footer-social-section {
-  margin-top: 40px;
+  margin-top: 20px;
 }
 
 .footer-social-label {
   color: rgba(255, 255, 255, 0.6) !important;
   font-family: var(--font-display);
   font-style: italic;
-  font-size: 24px;
+  font-size: 16px;
   font-weight: 700;
-  margin-bottom: 20px;
+  margin-bottom: 10px;
   letter-spacing: 0.05em;
 }
 
@@ -2544,8 +2544,8 @@ main {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 54px;
-  height: 54px;
+  width: 42px;
+  height: 42px;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -8111,8 +8111,9 @@ body,
 
 /* Policy Page Styles */
 /* Premium Policy Page Styles */
+/* ===== POLICY PAGES — PREMIUM REDESIGN ===== */
 .policy-page {
-  padding: 80px 24px;
+  padding: 120px 24px 80px;
   min-height: 100vh;
   position: relative;
   overflow: hidden;
@@ -8121,102 +8122,271 @@ body,
 
 .policy-accent-glow {
   position: absolute;
-  top: -10%;
-  right: -5%;
+  top: -120px;
+  right: -100px;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(27, 98, 75, 0.06) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.policy-accent-glow-2 {
+  position: absolute;
+  bottom: -200px;
+  left: -100px;
   width: 500px;
   height: 500px;
-  background: radial-gradient(circle, rgba(63, 100, 105, 0.05) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(63, 100, 105, 0.04) 0%, transparent 70%);
   pointer-events: none;
+  z-index: 0;
 }
 
 .policy-container {
-  max-width: 900px;
+  max-width: 820px;
   margin: 0 auto;
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(20px);
-  padding: 80px;
-  border-radius: 24px;
-  box-shadow: 0 40px 100px rgba(63, 100, 105, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.5);
   position: relative;
   z-index: 1;
 }
 
+/* Header */
 .policy-header {
   text-align: center;
-  margin-bottom: 60px;
+  margin-bottom: 40px;
 }
 
-.policy-eyebrow {
-  font-family: var(--font-body);
+.policy-eyebrow-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(27, 98, 75, 0.08);
+  color: var(--brand-color);
+  padding: 6px 18px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 2px;
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--gold);
-  margin-bottom: 12px;
+  letter-spacing: 0.08em;
+  margin-bottom: 20px;
 }
 
 .policy-header h1 {
-  font-size: 56px;
-  color: var(--brand-color);
-  margin-bottom: 24px;
-  font-weight: 600;
+  font-size: clamp(2rem, 5vw, 3.2rem);
+  color: var(--ink);
+  margin: 0 0 12px;
+  font-weight: 800;
+  font-family: var(--font-display);
+  font-style: italic;
+  line-height: 1.15;
+}
+
+.policy-subtitle {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 0 0 24px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
 }
 
 .policy-divider {
-  width: 60px;
+  width: 50px;
   height: 3px;
-  background: var(--gold);
+  background: linear-gradient(90deg, var(--brand-color), rgba(27, 98, 75, 0.3));
   margin: 0 auto;
   border-radius: 2px;
 }
 
+/* Quick Nav Chips */
+.policy-quick-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  margin-bottom: 48px;
+  padding-bottom: 32px;
+  border-bottom: 1px solid rgba(211, 201, 189, 0.3);
+}
+
+.policy-nav-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  text-decoration: none;
+  background: var(--panel);
+  border: 1px solid rgba(211, 201, 189, 0.5);
+  transition: all 0.3s ease;
+}
+
+.policy-nav-chip:hover {
+  background: var(--brand-color);
+  color: #fff;
+  border-color: var(--brand-color);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(27, 98, 75, 0.15);
+}
+
+/* Body Content */
 .policy-body {
-  color: var(--brand-color);
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  padding: 48px 52px;
+  border-radius: 20px;
+  border: 1px solid rgba(211, 201, 189, 0.35);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.04);
+  color: var(--ink);
   line-height: 1.8;
-  font-size: 17px;
+  font-size: 15px;
+  counter-reset: policy-section;
 }
 
 .policy-body h2 {
-  font-size: 28px;
-  margin: 48px 0 20px;
+  counter-increment: policy-section;
+  font-size: 20px;
+  margin: 40px 0 16px;
   color: var(--brand-color);
   font-family: var(--font-display);
   font-style: italic;
-  font-weight: 600;
+  font-weight: 700;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(211, 201, 189, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.policy-body h2::before {
+  content: counter(policy-section, decimal-leading-zero);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(27, 98, 75, 0.08);
+  color: var(--brand-color);
+  font-size: 12px;
+  font-weight: 800;
+  font-style: normal;
+  font-family: var(--font-body);
+  flex-shrink: 0;
+}
+
+.policy-body h2:first-child {
+  margin-top: 0;
 }
 
 .policy-body p {
-  margin-bottom: 24px;
-  opacity: 0.9;
+  margin-bottom: 18px;
+  color: rgba(30, 30, 30, 0.75);
+  font-size: 14.5px;
+  line-height: 1.85;
 }
 
+.policy-body p:last-child {
+  margin-bottom: 0;
+}
+
+/* Footer CTA Card */
 .policy-footer {
-  margin-top: 80px;
-  padding-top: 40px;
-  border-top: 1px solid rgba(63, 100, 105, 0.1);
+  margin-top: 40px;
+}
+
+.policy-footer-card {
   text-align: center;
+  padding: 32px;
+  background: rgba(27, 98, 75, 0.03);
+  border-radius: 16px;
+  border: 1px solid rgba(27, 98, 75, 0.08);
+}
+
+.policy-footer-title {
+  margin: 0 0 4px;
   font-size: 15px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.policy-footer-text {
+  margin: 0 0 18px;
+  font-size: 13px;
   color: var(--muted);
 }
 
+.policy-footer-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+}
+
+.policy-footer-btn {
+  padding: 10px 24px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: all 0.25s ease;
+  cursor: pointer;
+}
+
+.policy-footer-btn.primary {
+  background: var(--brand-color);
+  color: #fff;
+  border: 1px solid var(--brand-color);
+}
+
+.policy-footer-btn.primary:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.policy-footer-btn.outline {
+  background: transparent;
+  color: var(--brand-color);
+  border: 1px solid var(--brand-color);
+}
+
+.policy-footer-btn.outline:hover {
+  background: var(--brand-color);
+  color: #fff;
+}
+
+/* Mobile */
 @media (max-width: 768px) {
   .policy-page {
-    padding: 40px 16px;
+    padding: 100px 16px 60px;
   }
 
-  .policy-container {
-    padding: 40px 24px;
-    border-radius: 16px;
+  .policy-body {
+    padding: 28px 20px;
+    border-radius: 14px;
   }
 
   .policy-header h1 {
-    font-size: 36px;
+    font-size: 28px;
   }
 
   .policy-body h2 {
-    font-size: 24px;
+    font-size: 17px;
+  }
+
+  .policy-quick-nav {
+    gap: 8px;
+  }
+
+  .policy-nav-chip {
+    font-size: 12px;
+    padding: 6px 12px;
+  }
+
+  .policy-footer-card {
+    padding: 24px 16px;
   }
 }
 
