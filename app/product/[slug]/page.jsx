@@ -370,9 +370,9 @@ function ProductPageContent() {
                 <span className="buy-text">{isBuyingNow ? 'Redirecting...' : 'BUY NOW'}</span>
                 {!isBuyingNow && (
                   <div className="buy-icons-pill">
-                     <div className="payment-circle gpay">G</div>
-                     <div className="payment-circle phonepe">Pe</div>
-                     <div className="payment-circle paytm">pay</div>
+                     <span className="payment-badge gpay">GPay</span>
+                     <span className="payment-badge phonepe">Pe</span>
+                     <span className="payment-badge paytm">Paytm</span>
                   </div>
                 )}
                 {isBuyingNow ? (
