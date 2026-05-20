@@ -122,6 +122,8 @@ export default function Drawers() {
                         <img
                           src={item.product.image}
                           alt={item.product.name}
+                          loading="lazy"
+                          decoding="async"
                           style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                         />
                       </Link>
@@ -392,7 +394,7 @@ export default function Drawers() {
                         setSearchQuery("");
                       }}
                     >
-                      <img src={product.image} alt={product.name} />
+                      <img src={product.image} alt={product.name} loading="lazy" decoding="async" />
                       <div>
                         <h4>{product.name}</h4>
                         <p>{product.price}</p>

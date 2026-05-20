@@ -9,10 +9,36 @@ import { useStore } from "../../../components/StoreContext";
 import { peopleChoiceVideos } from "../../../lib/data";
 import { getShopifyCheckoutUrl } from "../../../lib/shopify";
 
+const INDIAN_NAMES = [
+  "Rahul", "Kavya", "Vivek", "Sunita", "Srinivas", "Priya", "Amit", "Riya", 
+  "Deepa", "Harish", "Ananya", "Vikram", "Sneha", "Rohan", "Pooja", "Arjun", 
+  "Karan", "Neha", "Aditya", "Manish", "Shikha", "Aman", "Rajesh", "Meera", 
+  "Suresh", "Divya", "Sanjay", "Komal", "Abhishek", "Preeti"
+];
+
+const INDIAN_CITIES = [
+  "Mumbai", "Delhi", "Bangalore", "Pune", "Hyderabad", "Chennai", "Kolkata", 
+  "Ahmedabad", "Gurgaon", "Noida", "Jaipur", "Lucknow", "Chandigarh", "Surat", 
+  "Kochi", "Indore", "Patna", "Bhopal", "Visakhapatnam", "Coimbatore"
+];
+
+const getDeterministicSales = (prod) => {
+  if (!prod) return 1100;
+  const hash = (prod.slug || prod.name || "").split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  return 850 + (hash % 650); // Generates between 850 and 1500
+};
+
+const getDeterministicStock = (prod, colorName) => {
+  if (!prod) return 8;
+  const key = (prod.slug || "") + (colorName || "");
+  const hash = key.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  return 5 + (hash % 10); // Generates between 5 and 14
+};
+
 function ProductPageContent() {
   const { slug } = useParams();
   const { 
-    addToCart, cartItems, getProductId, getProductPrice, products, updateCartQuantity, checkout
+    addToCart, cartItems, getProductId, getProductPrice, products, updateCartQuantity, checkout, setIsCartOpen
   } = useStore();
   const [activeTab, setActiveTab] = useState("specs");
   const [addEffectKey, setAddEffectKey] = useState(null);
@@ -21,7 +47,16 @@ function ProductPageContent() {
   const [activeImage, setActiveImage] = useState(null);
   const [videoSoundOn, setVideoSoundOn] = useState(false);
   const [isBuyingNow, setIsBuyingNow] = useState(false);
+  const [selectedBundleItems, setSelectedBundleItems] = useState({});
+  const [bundleInitialized, setBundleInitialized] = useState(false);
   const reviewTrackRef = useRef(null);
+
+  // Dynamic ticker states
+  const [unitsSold, setUnitsSold] = useState(1100);
+  const [stockCount, setStockCount] = useState(8);
+  const [activeViewers, setActiveViewers] = useState(24);
+  const [tickerIndex, setTickerIndex] = useState(0);
+  const [lastBuyer, setLastBuyer] = useState({ name: "Rahul", city: "Mumbai", qty: 2 });
 
   useEffect(() => {
     // Force scroll to top with a slight delay to ensure content is ready
@@ -56,6 +91,84 @@ function ProductPageContent() {
     (p.slug && p.slug.toLowerCase().includes(slug.toLowerCase()))
   );
 
+  // Initialize bundle selections when product loads
+  useEffect(() => {
+    if (product && product.bundleProducts && product.bundleProducts.length > 0 && !bundleInitialized) {
+      const initialSelections = {};
+      // Current product is always selected
+      initialSelections['__current__'] = true;
+      product.bundleProducts.forEach((bp) => {
+        initialSelections[bp.id] = true;
+      });
+      setSelectedBundleItems(initialSelections);
+      setBundleInitialized(true);
+    }
+  }, [product, bundleInitialized]);
+
+  // Initialize and update ticker data based on product
+  useEffect(() => {
+    if (product) {
+      const sales = getDeterministicSales(product);
+      setUnitsSold(sales);
+      
+      const hash = (product.slug || "").split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
+      setActiveViewers(12 + (hash % 20));
+      
+      const initialColor = product.colors && product.colors.length > 0 ? product.colors[0].name : "";
+      setStockCount(getDeterministicStock(product, initialColor));
+    }
+  }, [product]);
+
+  // Update variant stock levels when color is changed
+  useEffect(() => {
+    if (product && selectedColor) {
+      setStockCount(getDeterministicStock(product, selectedColor.name));
+    }
+  }, [selectedColor, product]);
+
+  // Periodically increment sales and toggle viewer count / stock levels
+  useEffect(() => {
+    if (!product) return;
+    
+    const interval = setInterval(() => {
+      // Randomly increment units sold
+      const increment = Math.random() > 0.5 ? 2 : 1;
+      setUnitsSold(prev => prev + increment);
+      
+      // Select new buyer details
+      const randomName = INDIAN_NAMES[Math.floor(Math.random() * INDIAN_NAMES.length)];
+      const randomCity = INDIAN_CITIES[Math.floor(Math.random() * INDIAN_CITIES.length)];
+      const randomQty = Math.random() > 0.7 ? 4 : (Math.random() > 0.4 ? 2 : 1);
+      
+      setLastBuyer({
+        name: randomName,
+        city: randomCity,
+        qty: randomQty
+      });
+      
+      // Randomly toggle viewers slightly
+      setActiveViewers(prev => {
+        const change = Math.floor(Math.random() * 5) - 2; // -2 to +2
+        return Math.max(8, prev + change);
+      });
+      
+      // Randomly decrement stock count occasionally
+      if (Math.random() > 0.75) {
+        setStockCount(prev => Math.max(2, prev - 1));
+      }
+    }, 12000 + Math.random() * 6000); // 12-18s
+    
+    return () => clearInterval(interval);
+  }, [product]);
+
+  // Cycle through ticker messages
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTickerIndex(prev => (prev + 1) % 4);
+    }, 6000);
+    return () => clearInterval(interval);
+  }, []);
+
   if (!product) {
     return (
       <div className="error-page">
@@ -78,8 +191,8 @@ function ProductPageContent() {
     }, 1050);
 
     // Pass the selected options and quantity
-    addToCart(product, { 
-      color: selectedColor?.name,
+    addToCart(product, {
+      color: selectedColorName,
       quantity: quantity 
     });
   }
@@ -92,7 +205,7 @@ function ProductPageContent() {
 
     try {
       const variantId = product.shopifyVariantId || product.variantId || product.sku;
-      const name = product.name;
+      const name = getSelectedProductName();
       const totalPrice = selectedBundle?.price || getProductPrice(product);
       const discountedUnitPrice = quantity > 0 ? totalPrice / quantity : totalPrice;
 
@@ -124,12 +237,15 @@ function ProductPageContent() {
       console.warn("Shopify checkout unavailable, falling back to Razorpay:", err.message);
       
       addToCart(product, {
-        color: selectedColor?.name,
+        color: selectedColorName,
         quantity: quantity,
         openCart: false
       });
+      const fallbackProduct = selectedColorName
+        ? { ...product, selectedColor: selectedColorName }
+        : product;
       checkout({
-        items: [{ id: getProductId(product), product, quantity }],
+        items: [{ id: getProductId(fallbackProduct), product: fallbackProduct, quantity }],
         amount: selectedBundle?.price || getProductPrice(product)
       });
     } finally {
@@ -212,6 +328,67 @@ function ProductPageContent() {
     return 'badge-discount';
   })();
 
+  const productColors = Array.isArray(product.colors)
+    ? product.colors.filter((color) => color && color.name && color.hex)
+    : [];
+  const selectedColorName = selectedColor?.name || productColors[0]?.name || "";
+
+  function handleColorSelect(color) {
+    if (!color || color.available === false) return;
+
+    setSelectedColor(color);
+    setActiveImage(color.image || product.image);
+  }
+
+  function getSelectedProductName() {
+    return selectedColorName ? `${product.name} - ${selectedColorName}` : product.name;
+  }
+
+  const tickerMessages = [
+    {
+      id: "sales",
+      content: (
+        <span>
+          <strong>
+            <motion.span
+              key={unitsSold}
+              initial={{ scale: 1.25, color: "#ef4444" }}
+              animate={{ scale: 1, color: "inherit" }}
+              style={{ display: "inline-block" }}
+              transition={{ duration: 0.4, type: "spring", stiffness: 200 }}
+            >
+              {unitsSold}+ units sold
+            </motion.span>
+          </strong> in the last 24 hours
+        </span>
+      )
+    },
+    {
+      id: "live",
+      content: (
+        <span>
+          🔥 <strong>{lastBuyer.name}</strong> from <strong>{lastBuyer.city}</strong> just bought <strong>{lastBuyer.qty} {lastBuyer.qty > 1 ? "units" : "unit"}</strong>!
+        </span>
+      )
+    },
+    {
+      id: "stock",
+      content: (
+        <span>
+          ⚡ <strong>High Demand:</strong> Only <strong>{stockCount}</strong> left in stock {selectedColorName ? `for ${selectedColorName}` : ""}!
+        </span>
+      )
+    },
+    {
+      id: "viewers",
+      content: (
+        <span>
+          ✨ <strong>{activeViewers} people</strong> are viewing this product right now
+        </span>
+      )
+    }
+  ];
+
   return (
     <motion.main 
       className="product-details-page"
@@ -230,7 +407,13 @@ function ProductPageContent() {
               transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
             >
               <div className="image-glow" />
-              <img src={activeImage || product.image} alt={product.name} />
+              <img
+                src={activeImage || product.image}
+                alt={product.name}
+                loading="eager"
+                fetchPriority="high"
+                decoding="async"
+              />
               {displayBadge && <span className={`product-status-badge ${displayBadgeClass}`}>{displayBadge}</span>}
             </motion.div>
           </div>
@@ -243,7 +426,7 @@ function ProductPageContent() {
                   className={`thumb-item ${activeImage === img ? 'active' : ''}`}
                   onClick={() => setActiveImage(img)}
                 >
-                  <img src={img} alt="thumbnail" />
+                  <img src={img} alt="thumbnail" loading="lazy" decoding="async" />
                 </div>
               ))}
             </div>
@@ -274,25 +457,30 @@ function ProductPageContent() {
               {product.description}
             </p>
 
-            {product.colors && product.colors.length > 0 && (
+            {productColors.length > 0 && (
               <div className="variant-selector">
-                <p className="variant-label">Select Color: <span>{selectedColor?.name || product.colors[0]?.name}</span></p>
-                <div className="color-options">
-                  {product.colors.map((color, i) => {
+                <p className="variant-label">
+                  Select Color: <span>{selectedColorName}</span>
+                </p>
+                <div className="color-options" role="radiogroup" aria-label="Select product color">
+                  {productColors.map((color, i) => {
                     const isActive = selectedColor ? selectedColor.name === color.name : i === 0;
+                    const isUnavailable = color.available === false;
                     return (
                       <button 
-                        key={i} 
-                        className={`color-bubble ${isActive ? 'active' : ''}`}
-                        style={{ backgroundColor: color.hex }}
-                        title={color.name}
-                        onClick={() => {
-                          setSelectedColor(color);
-                          if (color.image) {
-                            setActiveImage(color.image);
-                          }
-                        }}
-                      />
+                        key={color.name} 
+                        className={`color-bubble ${isActive ? 'active' : ''} ${isUnavailable ? 'is-disabled' : ''}`}
+                        style={{ "--swatch-color": color.hex }}
+                        title={isUnavailable ? `${color.name} unavailable` : color.name}
+                        type="button"
+                        role="radio"
+                        aria-label={`${color.name}${isUnavailable ? " unavailable" : ""}`}
+                        aria-checked={isActive}
+                        disabled={isUnavailable}
+                        onClick={() => handleColorSelect(color)}
+                      >
+                        {isActive ? <Check size={14} strokeWidth={3} /> : null}
+                      </button>
                     );
                   })}
                 </div>
@@ -313,9 +501,21 @@ function ProductPageContent() {
               <div className="banner-text">🎇 SUMMER SALE- BEST PRICE GUARENTEED!</div>
             </div>
 
-            <div className="units-sold-ticker">
-              <div className="pulsing-dot"></div>
-              <span><strong>1100 + units sold</strong> in the last 24 hours</span>
+            <div className="units-sold-ticker" style={{ overflow: "hidden", display: "inline-flex", alignItems: "center", width: "100%", minHeight: "42px" }}>
+              <div className="pulsing-dot" style={{ flexShrink: 0 }}></div>
+              <div style={{ flex: 1, overflow: "hidden", position: "relative", minHeight: "20px", display: "flex", alignItems: "center" }}>
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={tickerIndex}
+                    initial={{ y: 15, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    exit={{ y: -15, opacity: 0 }}
+                    transition={{ duration: 0.3, ease: "easeOut" }}
+                  >
+                    {tickerMessages[tickerIndex].content}
+                  </motion.div>
+                </AnimatePresence>
+              </div>
             </div>
 
             <div className="bundle-separator">
@@ -382,6 +582,150 @@ function ProductPageContent() {
                 )}
               </button>
             </div>
+
+            {/* Frequently Bought Together - Bundle Products from Shopify Metafield */}
+            {product.bundleProducts && product.bundleProducts.length > 0 && (
+              <div className="fbt-section">
+                <div className="fbt-separator">
+                  <span>FREQUENTLY BOUGHT TOGETHER</span>
+                </div>
+                <div className="fbt-products-row">
+                  {/* Current Product */}
+                  <div className={`fbt-product-card fbt-current ${selectedBundleItems['__current__'] ? 'fbt-selected' : ''}`}>
+                    <div className="fbt-checkbox-wrapper">
+                      <input 
+                        type="checkbox" 
+                        id="fbt-current" 
+                        checked={selectedBundleItems['__current__'] !== false} 
+                        onChange={(e) => {
+                          setSelectedBundleItems(prev => ({ ...prev, '__current__': e.target.checked }));
+                        }}
+                      />
+                      <label htmlFor="fbt-current" className="fbt-checkmark">
+                        <Check size={12} strokeWidth={3} />
+                      </label>
+                    </div>
+                    <div className="fbt-product-image">
+                      <img src={activeImage || product.image} alt={product.name} loading="lazy" />
+                    </div>
+                    <div className="fbt-product-info">
+                      <span className="fbt-this-item">This item</span>
+                      <h4>{product.name}</h4>
+                      <div className="fbt-product-price">
+                        <span className="fbt-price">Rs. {basePrice}</span>
+                        {baseOldPrice > basePrice && (
+                          <span className="fbt-old-price">Rs. {baseOldPrice}</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Bundle Products */}
+                  {product.bundleProducts.map((bp, idx) => (
+                    <div key={bp.id} className="fbt-plus-and-card">
+                      <div className="fbt-plus-sign">
+                        <Plus size={20} strokeWidth={2.5} />
+                      </div>
+                      <div className={`fbt-product-card ${selectedBundleItems[bp.id] ? 'fbt-selected' : ''}`}>
+                        <div className="fbt-checkbox-wrapper">
+                          <input 
+                            type="checkbox" 
+                            id={`fbt-${idx}`}
+                            checked={selectedBundleItems[bp.id] || false}
+                            onChange={(e) => {
+                              setSelectedBundleItems(prev => ({ ...prev, [bp.id]: e.target.checked }));
+                            }}
+                          />
+                          <label htmlFor={`fbt-${idx}`} className="fbt-checkmark">
+                            <Check size={12} strokeWidth={3} />
+                          </label>
+                        </div>
+                        <div className="fbt-product-image">
+                          <img src={bp.image || product.image} alt={bp.name} loading="lazy" />
+                        </div>
+                        <div className="fbt-product-info">
+                          <h4>{bp.name}</h4>
+                          <div className="fbt-product-price">
+                            <span className="fbt-price">Rs. {bp.price}</span>
+                            {bp.compareAtPrice && bp.compareAtPrice > bp.price && (
+                              <span className="fbt-old-price">Rs. {bp.compareAtPrice}</span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Total Price & Add Bundle Button */}
+                {(() => {
+                  const selectedItems = [];
+                  if (selectedBundleItems['__current__'] !== false) {
+                    selectedItems.push({ name: product.name, price: basePrice, oldPrice: baseOldPrice });
+                  }
+                  product.bundleProducts.forEach(bp => {
+                    if (selectedBundleItems[bp.id]) {
+                      selectedItems.push({ name: bp.name, price: bp.price, oldPrice: bp.compareAtPrice || bp.price });
+                    }
+                  });
+                  const bundleTotalPrice = selectedItems.reduce((sum, item) => sum + item.price, 0);
+                  const bundleTotalOldPrice = selectedItems.reduce((sum, item) => sum + item.oldPrice, 0);
+                  const bundleSavings = bundleTotalOldPrice - bundleTotalPrice;
+
+                  return selectedItems.length > 0 ? (
+                    <div className="fbt-total-bar">
+                      <div className="fbt-total-info">
+                        <div className="fbt-total-label">Total for {selectedItems.length} item{selectedItems.length > 1 ? 's' : ''}</div>
+                        <div className="fbt-total-prices">
+                          <span className="fbt-total-price">Rs. {bundleTotalPrice.toLocaleString('en-IN')}</span>
+                          {bundleSavings > 0 && (
+                            <>
+                              <span className="fbt-total-old-price">Rs. {bundleTotalOldPrice.toLocaleString('en-IN')}</span>
+                              <span className="fbt-total-savings">Save Rs. {bundleSavings.toLocaleString('en-IN')}</span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                      <button 
+                        className="fbt-add-btn" 
+                        type="button"
+                        onClick={() => {
+                          // Add current product if selected
+                          if (selectedBundleItems['__current__'] !== false) {
+                            addToCart(product, {
+                              color: selectedColorName,
+                              quantity: 1,
+                              openCart: false
+                            });
+                          }
+                          // Add each selected bundle product
+                          product.bundleProducts.forEach(bp => {
+                            if (selectedBundleItems[bp.id]) {
+                              const bundledProduct = products.find(p => p.slug === bp.slug) || {
+                                name: bp.name,
+                                slug: bp.slug,
+                                image: bp.image,
+                                price: `₹${bp.price}`,
+                                salePrice: bp.price,
+                                shopifyVariantId: bp.shopifyVariantId,
+                                sku: bp.shopifyVariantId,
+                                inStock: bp.inStock,
+                              };
+                              addToCart(bundledProduct, { quantity: 1, openCart: false });
+                            }
+                          });
+                          // Open cart after all items added
+                          setTimeout(() => setIsCartOpen(true), 100);
+                        }}
+                      >
+                        <ShoppingBag size={16} strokeWidth={2.2} />
+                        Add {selectedItems.length} item{selectedItems.length > 1 ? 's' : ''} to cart
+                      </button>
+                    </div>
+                  ) : null;
+                })()}
+              </div>
+            )}
 
 
 
@@ -505,7 +849,12 @@ function ProductPageContent() {
                     review.name === "Sunita Patil" ? "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=150&h=150&q=80" :
                     review.name === "Srinivas Murthy" ? "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=150&h=150&q=80" :
                     "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&h=150&q=80"
-                  )} alt={review.name} />
+                  )}
+                    alt={review.name}
+                    loading="lazy"
+                    fetchPriority="low"
+                    decoding="async"
+                  />
                 </div>
                 <div className="reviewer-details">
                   <h4>{review.name}</h4>
@@ -547,7 +896,7 @@ function ProductPageContent() {
               >
                 <div className="product-media">
                   <Link className="product-media-link" href={`/product/${p.slug}`} aria-label={`View ${p.name}`}>
-                    <img src={p.image} alt={p.name} />
+                    <img src={p.image} alt={p.name} loading="lazy" fetchPriority="low" decoding="async" />
                   </Link>
                   {p.badge ? (
                     <span className={`badge ${p.badgeClass || ""}`}>{p.badge}</span>

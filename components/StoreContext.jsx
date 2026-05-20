@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useState, useEffect, useRef } from "react";
 import {
   getShopifyProducts,
   getShopifyCollections,
@@ -50,6 +50,7 @@ function mergeShopifyProductWithLocalFallback(shopifyProduct, localProducts) {
     badge: shopifyProduct.badge || localProduct.badge,
     badgeClass: shopifyProduct.badgeClass || localProduct.badgeClass,
     detail: shopifyProduct.detail || localProduct.detail,
+    bundleProducts: shopifyProduct.bundleProducts || localProduct.bundleProducts || [],
     categories: Array.from(new Set([
       ...(localProduct.categories || []),
       ...(shopifyProduct.categories || [])
@@ -74,6 +75,7 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState(null);
   const [wishlist, setWishlist] = useState([]);
+  const shopifyCartQueueRef = useRef(Promise.resolve());
 
   useEffect(() => {
     async function syncShopify() {
@@ -84,11 +86,13 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
         ]);
 
         if (shopifyProducts && shopifyProducts.length > 0) {
-          // Merge logic: Prioritize Shopify products, using local products as a source for detailed fallbacks
-          setProducts((prevLocal) => {
+          // Only show products that exist in Shopify, enriched with local fallback data.
+          setProducts(() => {
+            const localProducts = initialProducts || [];
             const merged = shopifyProducts
-              .map((shopifyProduct) => mergeShopifyProductWithLocalFallback(shopifyProduct, prevLocal))
+              .map((shopifyProduct) => mergeShopifyProductWithLocalFallback(shopifyProduct, localProducts))
               .filter(Boolean);
+
             return merged;
           });
         }
@@ -134,7 +138,8 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
   const [footerPanel, setFooterPanel] = useState(null);
 
   function getProductId(product) {
-    return product.sku || product.slug || product.name;
+    const baseId = product.sku || product.slug || product.name;
+    return product.selectedColor ? `${baseId}::${product.selectedColor}` : baseId;
   }
 
   function getProductPrice(product) {
@@ -190,10 +195,11 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
   function getCartItemDisplayName(product, quantity) {
     const original = products.find(p => p.slug === product.slug || p.sku === product.sku);
     const baseName = original ? original.name : product.name.replace(/\s*\([^)]+\)/g, "").trim();
+    const displayBaseName = product.selectedColor ? `${baseName} - ${product.selectedColor}` : baseName;
     
-    if (quantity === 1) return baseName;
-    if (quantity === 2) return `${baseName} (Pack of 2)`;
-    if (quantity === 4) return `${baseName} (Pack of 4)`;
+    if (quantity === 1) return displayBaseName;
+    if (quantity === 2) return `${displayBaseName} (Pack of 2)`;
+    if (quantity === 4) return `${displayBaseName} (Pack of 4)`;
     
     const num4 = Math.floor(quantity / 4);
     const remainder = quantity % 4;
@@ -205,7 +211,7 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
     if (num2 > 0) parts.push("Pack of 2");
     if (num1 > 0) parts.push("Single");
     
-    return `${baseName} (${parts.join(" + ")})`;
+    return `${displayBaseName} (${parts.join(" + ")})`;
   }
 
   function closeUtilityPanels() {
@@ -283,7 +289,11 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
     const shouldOpenCart = options.openCart !== false;
 
     const addQuantity = options.quantity || 1;
-    const cartProduct = await resolveShopifyCartProduct(product);
+    const selectedColor = options.color || product.selectedColor || "";
+    const resolvedProduct = await resolveShopifyCartProduct(product);
+    const cartProduct = selectedColor
+      ? { ...resolvedProduct, selectedColor }
+      : resolvedProduct;
     const nextCartItems = getNextCartItems(cartItems, cartProduct, addQuantity);
 
     setCartItems(nextCartItems);
@@ -303,19 +313,36 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
   }
 
   async function handleShopifyAddToCart(product, quantity = 1) {
-    try {
-      let currentCart = shopifyCart;
-      if (!currentCart) {
-        currentCart = await createShopifyCart();
-        setShopifyCart(currentCart);
-        localStorage.setItem("shopify_cart", JSON.stringify(currentCart));
+    // Queue ensures Shopify cart mutations run sequentially, preventing CONFLICT errors
+    shopifyCartQueueRef.current = shopifyCartQueueRef.current.then(async () => {
+      try {
+        let currentCart = shopifyCart;
+        if (!currentCart) {
+          currentCart = await createShopifyCart();
+          setShopifyCart(currentCart);
+          localStorage.setItem("shopify_cart", JSON.stringify(currentCart));
+        }
+        try {
+          const updatedCart = await addToShopifyCart(currentCart.id, product.sku, quantity);
+          setShopifyCart(updatedCart);
+          localStorage.setItem("shopify_cart", JSON.stringify(updatedCart));
+        } catch (conflictError) {
+          // On CONFLICT, create a fresh cart and retry once
+          if (String(conflictError).includes('CONFLICT') || String(conflictError).includes('conflicted')) {
+            console.warn("Shopify cart conflict, creating fresh cart and retrying...");
+            const freshCart = await createShopifyCart();
+            const retryCart = await addToShopifyCart(freshCart.id, product.sku, quantity);
+            setShopifyCart(retryCart);
+            localStorage.setItem("shopify_cart", JSON.stringify(retryCart));
+          } else {
+            throw conflictError;
+          }
+        }
+      } catch (error) {
+        console.error("Shopify Add to Cart Error:", error);
       }
-      const updatedCart = await addToShopifyCart(currentCart.id, product.sku, quantity);
-      setShopifyCart(updatedCart);
-      localStorage.setItem("shopify_cart", JSON.stringify(updatedCart));
-    } catch (error) {
-      console.error("Shopify Add to Cart Error:", error);
-    }
+    });
+    return shopifyCartQueueRef.current;
   }
 
   const loadRazorpay = () => {

@@ -78,7 +78,7 @@ export default function ReviewsSection() {
                   <div className="reviewer-info">
                     <div className="reviewer-avatar">
                       {review.image ? (
-                        <img src={review.image} alt={review.name} />
+                        <img src={review.image} alt={review.name} loading="lazy" decoding="async" />
                       ) : (
                         review.initials
                       )}

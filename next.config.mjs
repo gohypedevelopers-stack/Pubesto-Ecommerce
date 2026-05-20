@@ -7,6 +7,16 @@ const nextConfig = {
         destination: '/icon.svg',
         permanent: false,
       },
+      {
+        source: '/notebook-bottle',
+        destination: '/product/b-65-do-your-best-notebook-bottle',
+        permanent: false,
+      },
+      {
+        source: '/product/notebook-bottle',
+        destination: '/product/b-65-do-your-best-notebook-bottle',
+        permanent: false,
+      },
     ];
   },
 };

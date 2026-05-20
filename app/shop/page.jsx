@@ -182,7 +182,7 @@ function ShopContent() {
                     <div className="card-visual">
                       {product.badge && <span className="card-badge">{product.badge}</span>}
                       <Link href={`/product/${product.slug}`} className="image-wrapper">
-                        <img src={product.image} alt={product.name} loading="lazy" />
+                        <img src={product.image} alt={product.name} loading="lazy" decoding="async" />
                         <div className="image-overlay" />
                       </Link>
                       <button className="quick-add-circle" onClick={() => handleAddToCart(product)}>

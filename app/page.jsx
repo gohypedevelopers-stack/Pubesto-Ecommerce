@@ -61,7 +61,7 @@ function ProductCard({ product, index = 0 }) {
     >
       <div className="product-media">
         <Link className="product-media-link" href={`/product/${product.slug}`} aria-label={`View ${product.name}`}>
-          <img src={product.image} alt={product.name} />
+          <img src={product.image} alt={product.name} loading="lazy" decoding="async" />
         </Link>
         {product.badge ? (
           <span className={`badge ${product.badgeClass || ""}`}>{product.badge}</span>
@@ -346,11 +346,11 @@ function HomeContent() {
                         <source src={item.video} type="video/mp4" />
                       </video>
                     ) : (
-                      <img className="video-choice-video simulated-video" src={item.image} alt={item.title} />
+                      <img className="video-choice-video simulated-video" src={item.image} alt={item.title} loading="lazy" decoding="async" />
                     )}
                     <span className="video-choice-gradient" />
                     <span className="video-choice-product">
-                      <span className="video-choice-thumb"><img src={item.thumb} alt="" /></span>
+                      <span className="video-choice-thumb"><img src={item.thumb} alt="" loading="lazy" decoding="async" /></span>
                       <span className="video-choice-copy">
                         <strong>{item.title}</strong>
                       </span>
@@ -431,7 +431,7 @@ function HomeContent() {
                   }}
                   key={`${category.name}-${index}`}
                 >
-                  <img src={category.image} alt="" />
+                  <img src={category.image} alt="" loading="lazy" decoding="async" />
                   <span>{category.name}</span>
                 </button>
               ))}
@@ -485,7 +485,7 @@ function HomeContent() {
                 role="listitem"
                 key={item.title}
               >
-                <img src={item.image} alt="" />
+                <img src={item.image} alt="" loading="lazy" decoding="async" />
                 <span className="social-gallery-shade" />
                 <span className="social-gallery-copy">
                   <strong>{item.title}</strong>
