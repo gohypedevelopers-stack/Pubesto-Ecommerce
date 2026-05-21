@@ -2,7 +2,7 @@
 
 import { useParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { ShoppingBag, ChevronDown, Check, Plus, Minus, ArrowRight, ShieldCheck, Sparkles, ChevronRight, CheckSquare, Tag, Undo2, Volume2, VolumeX } from "lucide-react";
+import { ShoppingBag, ChevronDown, Check, Plus, Minus, ArrowRight, ShieldCheck, Sparkles, ChevronRight, CheckSquare, Tag, Undo2, Volume2, VolumeX, X } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useStore } from "../../../components/StoreContext";
@@ -50,6 +50,12 @@ function ProductPageContent() {
   const [selectedBundleItems, setSelectedBundleItems] = useState({});
   const [bundleInitialized, setBundleInitialized] = useState(false);
   const reviewTrackRef = useRef(null);
+
+  // Bundle Customization Popup State
+  const [isBundlePopupOpen, setIsBundlePopupOpen] = useState(false);
+  const [popupBundleSize, setPopupBundleSize] = useState(2);
+  const [popupColors, setPopupColors] = useState([]);
+  const [popupQuantity, setPopupQuantity] = useState(1);
 
   // Dynamic ticker states
   const [unitsSold, setUnitsSold] = useState(1100);
@@ -257,6 +263,19 @@ function ProductPageContent() {
     setQuantity(prev => Math.max(1, prev + amount));
   }
 
+  function openCustomizationPopup(bundleId) {
+    const colors = Array.isArray(product.colors) ? product.colors.filter(c => c && c.name && c.hex) : [];
+    if (colors.length === 0) {
+      return; // Bypass popup entirely if product has no color options
+    }
+    const size = bundleId === 1 ? 1 : bundleId; // bundleId is 1, 2, or 4
+    setPopupBundleSize(size);
+    const defaultColor = colors[0].name;
+    setPopupColors(Array(size).fill(defaultColor));
+    setPopupQuantity(1);
+    setIsBundlePopupOpen(true);
+  }
+
   // Related products (Curated Companions) - prioritizing same category
   const relatedProducts = products
     .filter((p) => p.slug !== product.slug && p.image)
@@ -280,32 +299,42 @@ function ProductPageContent() {
     ? product.highlights.filter(Boolean)
     : ["Premium Quality", "Artisanal Design", "Durability Guaranteed"];
 
+  const FREE_SHIPPING_THRESHOLD = 999;
+  const SHIPPING_FEE = 99;
+
+  const getShippingSubtext = (price, label = "") => {
+    const shippingText = price >= FREE_SHIPPING_THRESHOLD
+      ? "Free Priority Shipping"
+      : `+ ₹${SHIPPING_FEE} Shipping (Free above ₹${FREE_SHIPPING_THRESHOLD})`;
+    return label ? `${label} | ${shippingText}` : shippingText;
+  };
+
   const bundles = [
     { 
       id: 1, 
       title: 'Single', 
-      badge: `${Math.round(((baseOldPrice - basePrice) / baseOldPrice) * 100)}% OFF`,
-      subtext: 'Additional Prepaid Discount', 
+      badge: null,
+      subtext: getShippingSubtext(basePrice, 'Additional Prepaid Discount'), 
       price: basePrice, 
       oldPrice: baseOldPrice 
     },
     { 
       id: 2, 
       title: 'Pack of 2', 
-      badge: `${Math.round(((baseOldPrice * 2 - Math.floor(basePrice * 1.417)) / (baseOldPrice * 2)) * 100)}% OFF`,
-      badgeLabel: `Save ₹${(baseOldPrice * 2) - Math.floor(basePrice * 1.417)}`,
-      subtext: 'Free Priority Shipping', 
-      price: Math.floor(basePrice * 1.417), 
+      badge: '10% OFF',
+      badgeLabel: `Save ₹${(baseOldPrice * 2) - Math.floor(basePrice * 2 * 0.90)}`,
+      subtext: getShippingSubtext(Math.floor(basePrice * 2 * 0.90)), 
+      price: Math.floor(basePrice * 2 * 0.90), 
       oldPrice: baseOldPrice * 2,
       topBadge: 'MOST POPULAR'
     },
     { 
       id: 4, 
       title: 'Pack of 4', 
-      badge: `${Math.round(((baseOldPrice * 4 - Math.floor(basePrice * 3.003)) / (baseOldPrice * 4)) * 100)}% OFF`,
-      badgeLabel: `Save ₹${(baseOldPrice * 4) - Math.floor(basePrice * 3.003)}`,
-      subtext: 'Free Priority Shipping', 
-      price: Math.floor(basePrice * 3.003), 
+      badge: '20% OFF',
+      badgeLabel: `Save ₹${(baseOldPrice * 4) - Math.floor(basePrice * 4 * 0.80)}`,
+      subtext: getShippingSubtext(Math.floor(basePrice * 4 * 0.80)), 
+      price: Math.floor(basePrice * 4 * 0.80), 
       oldPrice: baseOldPrice * 4,
       topBadge: 'LOWEST PRICE EVER!'
     }
@@ -317,8 +346,7 @@ function ProductPageContent() {
     if (quantity === 1) {
       return product.badge;
     }
-    const discountPercent = Math.round(((selectedBundle.oldPrice - selectedBundle.price) / selectedBundle.oldPrice) * 100);
-    return discountPercent > 0 ? `${discountPercent}% OFF` : null;
+    return selectedBundle.badge;
   })();
 
   const displayBadgeClass = (() => {
@@ -453,6 +481,18 @@ function ProductPageContent() {
               )}
             </div>
 
+            <div className="shipping-dynamic-notice" style={{ fontSize: "14px", fontWeight: "600", marginTop: "8px", display: "flex", alignItems: "center", gap: "6px" }}>
+              {selectedBundle.price >= FREE_SHIPPING_THRESHOLD ? (
+                <span style={{ color: "var(--brand-color)", display: "inline-flex", alignItems: "center", gap: "4px" }}>
+                  <Check size={16} strokeWidth={3} /> Free Priority Shipping Eligible
+                </span>
+              ) : (
+                <span style={{ color: "#c27803", display: "inline-flex", alignItems: "center", gap: "4px" }}>
+                  🚚 Add Rs. {FREE_SHIPPING_THRESHOLD - selectedBundle.price} more for Free Shipping (Current: +₹{SHIPPING_FEE} Shipping)
+                </span>
+              )}
+            </div>
+
             <p className="product-short-desc">
               {product.description}
             </p>
@@ -527,7 +567,10 @@ function ProductPageContent() {
                 <div 
                   key={b.id} 
                   className={`bundle-option ${quantity === b.id ? 'selected' : ''}`}
-                  onClick={() => setQuantity(b.id)}
+                  onClick={() => {
+                    setQuantity(b.id);
+                    openCustomizationPopup(b.id);
+                  }}
                 >
                   {b.topBadge && <div className="bundle-top-badge">{b.topBadge}</div>}
                   <div className="bundle-radio">
@@ -582,151 +625,6 @@ function ProductPageContent() {
                 )}
               </button>
             </div>
-
-            {/* Frequently Bought Together - Bundle Products from Shopify Metafield */}
-            {product.bundleProducts && product.bundleProducts.length > 0 && (
-              <div className="fbt-section">
-                <div className="fbt-separator">
-                  <span>FREQUENTLY BOUGHT TOGETHER</span>
-                </div>
-                <div className="fbt-products-row">
-                  {/* Current Product */}
-                  <div className={`fbt-product-card fbt-current ${selectedBundleItems['__current__'] ? 'fbt-selected' : ''}`}>
-                    <div className="fbt-checkbox-wrapper">
-                      <input 
-                        type="checkbox" 
-                        id="fbt-current" 
-                        checked={selectedBundleItems['__current__'] !== false} 
-                        onChange={(e) => {
-                          setSelectedBundleItems(prev => ({ ...prev, '__current__': e.target.checked }));
-                        }}
-                      />
-                      <label htmlFor="fbt-current" className="fbt-checkmark">
-                        <Check size={12} strokeWidth={3} />
-                      </label>
-                    </div>
-                    <div className="fbt-product-image">
-                      <img src={activeImage || product.image} alt={product.name} loading="lazy" />
-                    </div>
-                    <div className="fbt-product-info">
-                      <span className="fbt-this-item">This item</span>
-                      <h4>{product.name}</h4>
-                      <div className="fbt-product-price">
-                        <span className="fbt-price">Rs. {basePrice}</span>
-                        {baseOldPrice > basePrice && (
-                          <span className="fbt-old-price">Rs. {baseOldPrice}</span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Bundle Products */}
-                  {product.bundleProducts.map((bp, idx) => (
-                    <div key={bp.id} className="fbt-plus-and-card">
-                      <div className="fbt-plus-sign">
-                        <Plus size={20} strokeWidth={2.5} />
-                      </div>
-                      <div className={`fbt-product-card ${selectedBundleItems[bp.id] ? 'fbt-selected' : ''}`}>
-                        <div className="fbt-checkbox-wrapper">
-                          <input 
-                            type="checkbox" 
-                            id={`fbt-${idx}`}
-                            checked={selectedBundleItems[bp.id] || false}
-                            onChange={(e) => {
-                              setSelectedBundleItems(prev => ({ ...prev, [bp.id]: e.target.checked }));
-                            }}
-                          />
-                          <label htmlFor={`fbt-${idx}`} className="fbt-checkmark">
-                            <Check size={12} strokeWidth={3} />
-                          </label>
-                        </div>
-                        <div className="fbt-product-image">
-                          <img src={bp.image || product.image} alt={bp.name} loading="lazy" />
-                        </div>
-                        <div className="fbt-product-info">
-                          <h4>{bp.name}</h4>
-                          <div className="fbt-product-price">
-                            <span className="fbt-price">Rs. {bp.price}</span>
-                            {bp.compareAtPrice && bp.compareAtPrice > bp.price && (
-                              <span className="fbt-old-price">Rs. {bp.compareAtPrice}</span>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Total Price & Add Bundle Button */}
-                {(() => {
-                  const selectedItems = [];
-                  if (selectedBundleItems['__current__'] !== false) {
-                    selectedItems.push({ name: product.name, price: basePrice, oldPrice: baseOldPrice });
-                  }
-                  product.bundleProducts.forEach(bp => {
-                    if (selectedBundleItems[bp.id]) {
-                      selectedItems.push({ name: bp.name, price: bp.price, oldPrice: bp.compareAtPrice || bp.price });
-                    }
-                  });
-                  const bundleTotalPrice = selectedItems.reduce((sum, item) => sum + item.price, 0);
-                  const bundleTotalOldPrice = selectedItems.reduce((sum, item) => sum + item.oldPrice, 0);
-                  const bundleSavings = bundleTotalOldPrice - bundleTotalPrice;
-
-                  return selectedItems.length > 0 ? (
-                    <div className="fbt-total-bar">
-                      <div className="fbt-total-info">
-                        <div className="fbt-total-label">Total for {selectedItems.length} item{selectedItems.length > 1 ? 's' : ''}</div>
-                        <div className="fbt-total-prices">
-                          <span className="fbt-total-price">Rs. {bundleTotalPrice.toLocaleString('en-IN')}</span>
-                          {bundleSavings > 0 && (
-                            <>
-                              <span className="fbt-total-old-price">Rs. {bundleTotalOldPrice.toLocaleString('en-IN')}</span>
-                              <span className="fbt-total-savings">Save Rs. {bundleSavings.toLocaleString('en-IN')}</span>
-                            </>
-                          )}
-                        </div>
-                      </div>
-                      <button 
-                        className="fbt-add-btn" 
-                        type="button"
-                        onClick={() => {
-                          // Add current product if selected
-                          if (selectedBundleItems['__current__'] !== false) {
-                            addToCart(product, {
-                              color: selectedColorName,
-                              quantity: 1,
-                              openCart: false
-                            });
-                          }
-                          // Add each selected bundle product
-                          product.bundleProducts.forEach(bp => {
-                            if (selectedBundleItems[bp.id]) {
-                              const bundledProduct = products.find(p => p.slug === bp.slug) || {
-                                name: bp.name,
-                                slug: bp.slug,
-                                image: bp.image,
-                                price: `₹${bp.price}`,
-                                salePrice: bp.price,
-                                shopifyVariantId: bp.shopifyVariantId,
-                                sku: bp.shopifyVariantId,
-                                inStock: bp.inStock,
-                              };
-                              addToCart(bundledProduct, { quantity: 1, openCart: false });
-                            }
-                          });
-                          // Open cart after all items added
-                          setTimeout(() => setIsCartOpen(true), 100);
-                        }}
-                      >
-                        <ShoppingBag size={16} strokeWidth={2.2} />
-                        Add {selectedItems.length} item{selectedItems.length > 1 ? 's' : ''} to cart
-                      </button>
-                    </div>
-                  ) : null;
-                })()}
-              </div>
-            )}
-
 
 
             <div className="trust-features-grid">
@@ -945,6 +843,163 @@ function ProductPageContent() {
           })}
         </div>
       </motion.section>
+
+      <AnimatePresence>
+        {isBundlePopupOpen && (
+          <motion.div 
+            className="bundle-popup-backdrop"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setIsBundlePopupOpen(false)}
+          >
+            <motion.div 
+              className="bundle-popup-content"
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              transition={{ type: "spring", duration: 0.5 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button 
+                className="bundle-popup-close"
+                onClick={() => setIsBundlePopupOpen(false)}
+                aria-label="Close customization popup"
+              >
+                <X size={18} />
+              </button>
+
+              <div className="bundle-popup-header">
+                <h2>Customize Your Bundle</h2>
+                <p>Select your preferred color combination below</p>
+              </div>
+
+              <div className="bundle-popup-grid">
+                <div className="bundle-popup-slots">
+                  {Array.from({ length: popupBundleSize }).map((_, index) => {
+                    const chosenColorName = popupColors[index] || "";
+                    const chosenColorObj = productColors.find(c => c.name === chosenColorName) || productColors[0];
+                    const slotImg = chosenColorObj?.image || product.image;
+
+                    return (
+                      <div key={index} className="bundle-slot-card">
+                        <span className="slot-title">Fan #{index + 1} Color</span>
+                        <div className="slot-body">
+                          <div className="slot-preview">
+                            <img src={slotImg} alt={chosenColorName} />
+                          </div>
+                          <div className="slot-colors">
+                            <p className="color-name-label">{chosenColorName || "Select Color"}</p>
+                            <div className="color-options-row">
+                              {productColors.map((color) => {
+                                const isSelected = chosenColorName === color.name;
+                                return (
+                                  <button
+                                    key={color.name}
+                                    className={`color-chip ${isSelected ? 'active' : ''}`}
+                                    style={{ "--swatch-color": color.hex }}
+                                    title={color.name}
+                                    type="button"
+                                    onClick={() => {
+                                      const updated = [...popupColors];
+                                      updated[index] = color.name;
+                                      setPopupColors(updated);
+                                    }}
+                                  >
+                                    {isSelected && <Check size={14} strokeWidth={3} />}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="bundle-popup-footer">
+                <div className="footer-left">
+                  <div className="bundle-quantity-control">
+                    <span className="qty-label">Quantity:</span>
+                    <div className="qty-selector">
+                      <button 
+                        type="button" 
+                        onClick={() => setPopupQuantity(q => Math.max(1, q - 1))}
+                        aria-label="Decrease bundle quantity"
+                      >
+                        <Minus size={14} strokeWidth={2.5} />
+                      </button>
+                      <span className="qty-count">{popupQuantity}</span>
+                      <button 
+                        type="button" 
+                        onClick={() => setPopupQuantity(q => q + 1)}
+                        aria-label="Increase bundle quantity"
+                      >
+                        <Plus size={14} strokeWidth={2.5} />
+                      </button>
+                    </div>
+                  </div>
+
+                  {(() => {
+                    const bundleObj = bundles.find(b => b.id === popupBundleSize) || bundles[0];
+                    const currentPrice = bundleObj.price * popupQuantity;
+                    const oldPrice = bundleObj.oldPrice * popupQuantity;
+
+                    return (
+                      <div className="bundle-popup-price">
+                        <div className="popup-price-row">
+                          <span className="current-price">Rs. {currentPrice}</span>
+                          {oldPrice > currentPrice && (
+                            <span className="old-price">Rs. {oldPrice}</span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
+
+                <button 
+                  className="bundle-popup-next"
+                  type="button"
+                  onClick={async () => {
+                    if (isBuyingNow) return;
+                    setIsBuyingNow(true);
+                    try {
+                      // 1. Add customized bundle to cart
+                      await addToCart(product, {
+                        quantity: popupQuantity,
+                        selectedColors: popupColors,
+                        openCart: false
+                      });
+                      // 2. Direct storefront checkout redirect
+                      await checkout({
+                        items: [{
+                          product: {
+                            ...product,
+                            selectedColors: popupColors
+                          },
+                          quantity: popupQuantity
+                        }]
+                      });
+                    } catch (error) {
+                      console.error("Popup checkout redirection failed:", error);
+                    } finally {
+                      setIsBuyingNow(false);
+                      setIsBundlePopupOpen(false);
+                    }
+                  }}
+                  disabled={isBuyingNow}
+                >
+                  <span>{isBuyingNow ? "Redirecting..." : "Next"}</span>
+                  {!isBuyingNow && <ArrowRight size={18} strokeWidth={2.2} />}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.main>
   );
 }

@@ -2,12 +2,11 @@
 
 import { createContext, useContext, useState, useEffect, useRef } from "react";
 import {
-  getShopifyProducts,
-  getShopifyCollections,
   createShopifyCart,
   addToShopifyCart,
   getShopifyCartPermalink,
   getShopifyVariantIdByHandle,
+  getShopifyVariantIdForColor,
 } from "../lib/shopify";
 
 const StoreContext = createContext();
@@ -79,27 +78,35 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
 
   useEffect(() => {
     async function syncShopify() {
-      if (process.env.NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN && process.env.NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN !== 'your_token') {
-        const [shopifyProducts, shopifyCollections] = await Promise.all([
-          getShopifyProducts(),
-          getShopifyCollections()
+      try {
+        const [prodRes, colRes] = await Promise.all([
+          fetch("/api/products"),
+          fetch("/api/collections")
         ]);
 
-        if (shopifyProducts && shopifyProducts.length > 0) {
-          // Only show products that exist in Shopify, enriched with local fallback data.
-          setProducts(() => {
-            const localProducts = initialProducts || [];
-            const merged = shopifyProducts
-              .map((shopifyProduct) => mergeShopifyProductWithLocalFallback(shopifyProduct, localProducts))
-              .filter(Boolean);
+        if (prodRes.ok) {
+          const shopifyProducts = await prodRes.json();
+          if (shopifyProducts && shopifyProducts.length > 0) {
+            // Only show products that exist in Shopify, enriched with local fallback data.
+            setProducts(() => {
+              const localProducts = initialProducts || [];
+              const merged = shopifyProducts
+                .map((shopifyProduct) => mergeShopifyProductWithLocalFallback(shopifyProduct, localProducts))
+                .filter(Boolean);
 
-            return merged;
-          });
+              return merged;
+            });
+          }
         }
 
-        if (shopifyCollections && shopifyCollections.length > 0) {
-          setCategories(shopifyCollections);
+        if (colRes.ok) {
+          const shopifyCollections = await colRes.json();
+          if (shopifyCollections && shopifyCollections.length > 0) {
+            setCategories(shopifyCollections);
+          }
         }
+      } catch (error) {
+        console.error("Error syncing with Shopify API proxy:", error);
       }
     }
     syncShopify();
@@ -139,6 +146,10 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
 
   function getProductId(product) {
     const baseId = product.sku || product.slug || product.name;
+    if (product.selectedColors && product.selectedColors.length > 0) {
+      const sorted = [...product.selectedColors].sort();
+      return `${baseId}::${sorted.join(",")}`;
+    }
     return product.selectedColor ? `${baseId}::${product.selectedColor}` : baseId;
   }
 
@@ -172,8 +183,22 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
 
   function getCartItemTotalPrice(product, quantity) {
     const basePrice = getProductBasePrice(product);
-    const pack2UnitPrice = Math.round(Math.floor(basePrice * 1.417) / 2);
-    const pack4UnitPrice = Math.round(Math.floor(basePrice * 3.003) / 4);
+    
+    if (product.selectedColors && product.selectedColors.length > 0) {
+      const bundleSize = product.selectedColors.length;
+      if (bundleSize === 2) {
+        const pack2UnitPrice = Math.round(Math.floor(basePrice * 2 * 0.90) / 2);
+        return pack2UnitPrice * 2 * quantity;
+      } else if (bundleSize === 4) {
+        const pack4UnitPrice = Math.round(Math.floor(basePrice * 4 * 0.80) / 4);
+        return pack4UnitPrice * 4 * quantity;
+      } else {
+        return basePrice * quantity;
+      }
+    }
+
+    const pack2UnitPrice = Math.round(Math.floor(basePrice * 2 * 0.90) / 2);
+    const pack4UnitPrice = Math.round(Math.floor(basePrice * 4 * 0.80) / 4);
     
     const pack4Price = pack4UnitPrice * 4;
     const pack2Price = pack2UnitPrice * 2;
@@ -189,12 +214,22 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
 
   function getCartItemTotalOldPrice(product, quantity) {
     const baseOldPrice = getProductBaseOldPrice(product) || Math.round(getProductBasePrice(product) * 1.35);
+    if (product.selectedColors && product.selectedColors.length > 0) {
+      return baseOldPrice * product.selectedColors.length * quantity;
+    }
     return baseOldPrice * quantity;
   }
 
   function getCartItemDisplayName(product, quantity) {
     const original = products.find(p => p.slug === product.slug || p.sku === product.sku);
     const baseName = original ? original.name : product.name.replace(/\s*\([^)]+\)/g, "").trim();
+    
+    if (product.selectedColors && product.selectedColors.length > 0) {
+      const displayBaseName = `${baseName} - ${product.selectedColors.join(" & ")}`;
+      if (quantity === 1) return `${displayBaseName} (Pack of ${product.selectedColors.length})`;
+      return `${displayBaseName} (Pack of ${product.selectedColors.length}) x ${quantity}`;
+    }
+    
     const displayBaseName = product.selectedColor ? `${baseName} - ${product.selectedColor}` : baseName;
     
     if (quantity === 1) return displayBaseName;
@@ -290,10 +325,16 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
 
     const addQuantity = options.quantity || 1;
     const selectedColor = options.color || product.selectedColor || "";
+    const selectedColors = options.selectedColors || product.selectedColors || null;
     const resolvedProduct = await resolveShopifyCartProduct(product);
-    const cartProduct = selectedColor
+    let cartProduct = selectedColor
       ? { ...resolvedProduct, selectedColor }
       : resolvedProduct;
+      
+    if (selectedColors && selectedColors.length > 0) {
+      cartProduct = { ...cartProduct, selectedColors };
+    }
+    
     const nextCartItems = getNextCartItems(cartItems, cartProduct, addQuantity);
 
     setCartItems(nextCartItems);
@@ -302,9 +343,11 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
     setIsCartOpen(false);
     
     // Shopify Sync
-    const shopifyVariantId = cartProduct.shopifyVariantId || cartProduct.variantId || cartProduct.sku;
-    if (process.env.NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN && shopifyVariantId?.includes('gid://shopify/')) {
-      handleShopifyAddToCart({ ...cartProduct, sku: shopifyVariantId }, addQuantity);
+    if (!selectedColors || selectedColors.length === 0) {
+      const shopifyVariantId = cartProduct.shopifyVariantId || cartProduct.variantId || cartProduct.sku;
+      if (process.env.NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN && shopifyVariantId?.includes('gid://shopify/')) {
+        handleShopifyAddToCart({ ...cartProduct, sku: shopifyVariantId }, addQuantity);
+      }
     }
 
     if (shouldOpenCart) {
@@ -363,18 +406,53 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
 
     // Try dynamic Shopify checkout creation first
     try {
-      const payloadItems = activeItems.map(item => {
-        const variantId = item.product?.shopifyVariantId || item.product?.variantId || item.product?.sku || item.variantId;
-        const name = getCartItemDisplayName(item.product, item.quantity);
-        const totalPrice = getCartItemTotalPrice(item.product, item.quantity);
-        const discountedUnitPrice = item.quantity > 0 ? totalPrice / item.quantity : 0;
-        return {
-          variantId,
-          quantity: item.quantity,
-          name,
-          discountedUnitPrice
-        };
-      });
+      const payloadItems = [];
+      let totalQty = 0;
+      let hasBundles = false;
+
+      for (const item of activeItems) {
+        const qty = Math.max(1, Number(item.quantity) || 1);
+        const colors = item.product?.selectedColors || [];
+        
+        if (colors.length > 0) {
+          hasBundles = true;
+          const bundleTotal = getCartItemTotalPrice(item.product, qty);
+          const bundleUnitCount = colors.length * qty;
+          const unitPrice = bundleUnitCount > 0 ? (bundleTotal / bundleUnitCount) : 0;
+
+          for (const color of colors) {
+            const variantId = getShopifyVariantIdForColor(item.product.slug, color) || 
+                              item.product.shopifyVariantId || item.product.variantId || item.product.sku;
+            
+            const existing = payloadItems.find(e => e.variantId === variantId);
+            if (existing) {
+              existing.quantity += qty;
+            } else {
+              payloadItems.push({
+                variantId,
+                quantity: qty,
+                name: `${item.product.name} - ${color}`,
+                discountedUnitPrice: unitPrice
+              });
+            }
+            totalQty += qty;
+          }
+        } else {
+          const variantId = item.product?.shopifyVariantId || item.product?.variantId || item.product?.sku || item.variantId;
+          const existing = payloadItems.find(e => e.variantId === variantId);
+          if (existing) {
+            existing.quantity += qty;
+          } else {
+            payloadItems.push({
+              variantId,
+              quantity: qty,
+              name: getCartItemDisplayName(item.product, qty),
+              discountedUnitPrice: qty > 0 ? getCartItemTotalPrice(item.product, qty) / qty : 0
+            });
+          }
+          totalQty += qty;
+        }
+      }
 
       const response = await fetch("/api/checkout", {
         method: "POST",
@@ -385,7 +463,16 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
       if (response.ok) {
         const data = await response.json();
         if (data.checkoutUrl) {
-          window.location.href = data.checkoutUrl;
+          let finalUrl = data.checkoutUrl;
+          if (hasBundles) {
+            const separator = finalUrl.includes("?") ? "&" : "?";
+            if (totalQty === 2) {
+              finalUrl = `${finalUrl}${separator}discount=PACKOF2`;
+            } else if (totalQty === 4) {
+              finalUrl = `${finalUrl}${separator}discount=PACKOF4`;
+            }
+          }
+          window.location.href = finalUrl;
           return;
         }
       }
@@ -413,10 +500,11 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
     }
 
     try {
+      const finalAmount = activeAmount + (activeAmount >= 999 ? 0 : 99);
       const response = await fetch("/api/razorpay/order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ amount: activeAmount }),
+        body: JSON.stringify({ amount: finalAmount }),
       });
 
       const order = await response.json();

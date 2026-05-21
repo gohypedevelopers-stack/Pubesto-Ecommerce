@@ -74,7 +74,7 @@
 
 .why-pubesto-heading p {
   margin: 0;
-  font-size: 14px;
+  font-size: var(--text-sm);
   font-weight: 900;
   letter-spacing: 0;
   text-transform: uppercase;
@@ -96,7 +96,7 @@
   min-height: 242px;
   margin: 0 auto;
   padding: 48px 42px;
-  border-radius: 16px;
+  border-radius: var(--radius-xl);
   background: var(--cream);
   color: var(--deep);
   box-shadow: 0 28px 70px rgba(66, 62, 59, 0.18);

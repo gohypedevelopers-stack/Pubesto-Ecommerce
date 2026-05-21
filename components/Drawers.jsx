@@ -107,7 +107,31 @@ export default function Drawers() {
             {/* Body */}
             <div className="cart-drawer-body" style={{ flex: 1, overflowY: 'auto', padding: '16px 0', display: 'flex', flexDirection: 'column' }}>
               {cartItems.length > 0 ? (
-                <div className="cart-items">
+                <>
+                  {/* Dynamic Free Shipping Progress Bar */}
+                  {(() => {
+                    const threshold = 999;
+                    const percent = Math.min(100, (cartTotal / threshold) * 100);
+                    const needed = threshold - cartTotal;
+                    return (
+                      <div style={{ background: 'var(--cream)', border: '1px solid rgba(211, 201, 189, 0.6)', borderRadius: '12px', padding: '12px 14px', marginBottom: '16px', display: 'flex', flexDirection: 'column', gap: '8px', flexShrink: 0 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: 600, color: 'var(--ink)' }}>
+                          <span style={{ fontSize: '16px' }}>{percent >= 100 ? '🎉' : '🚚'}</span>
+                          <span>
+                            {percent >= 100 ? (
+                              <strong style={{ color: 'var(--brand-color)' }}>You've unlocked Free Shipping!</strong>
+                            ) : (
+                              <span>Add <strong>{formatPrice(needed)}</strong> more for <strong>Free Shipping</strong></span>
+                            )}
+                          </span>
+                        </div>
+                        <div style={{ width: '100%', height: '6px', background: 'rgba(211, 201, 189, 0.4)', borderRadius: '3px', overflow: 'hidden' }}>
+                          <div style={{ width: `${percent}%`, height: '100%', background: 'var(--brand-color)', transition: 'width 0.3s ease', borderRadius: '3px' }} />
+                        </div>
+                      </div>
+                    );
+                  })()}
+                  <div className="cart-items">
                   {cartItems.map((item) => (
                     <article
                       key={item.id}
@@ -184,7 +208,8 @@ export default function Drawers() {
                     </article>
                   ))}
                 </div>
-              ) : (
+              </>
+            ) : (
                 /* Empty State */
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, padding: '60px 20px', textAlign: 'center' }}>
                   <div style={{ width: '80px', height: '80px', borderRadius: '50%', border: '1px solid rgba(211, 201, 189, 0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '24px', background: 'var(--panel)' }}>
@@ -210,9 +235,28 @@ export default function Drawers() {
             <div style={{ borderTop: '1px solid rgba(211, 201, 189, 0.5)', paddingTop: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--muted)' }}>Subtotal</span>
-                <strong style={{ fontSize: '18px', fontWeight: 800, color: 'var(--brand-color)' }}>{formatPrice(cartTotal)}</strong>
+                <span style={{ fontSize: '16px', fontWeight: 700, color: 'var(--ink)' }}>{formatPrice(cartTotal)}</span>
               </div>
-              <p style={{ fontSize: '12px', color: 'var(--muted)', margin: 0, textAlign: 'center' }}>Taxes &amp; shipping calculated at checkout.</p>
+              
+              {cartItems.length > 0 && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--muted)' }}>Shipping</span>
+                  <span style={{ fontSize: '14px', fontWeight: 700, color: cartTotal >= 999 ? 'var(--brand-color)' : 'var(--ink)' }}>
+                    {cartTotal >= 999 ? 'FREE' : formatPrice(99)}
+                  </span>
+                </div>
+              )}
+
+              {cartItems.length > 0 && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px', borderTop: '1px dashed rgba(211, 201, 189, 0.4)', paddingTop: '8px' }}>
+                  <span style={{ fontSize: '15px', fontWeight: 700, color: 'var(--ink)' }}>Total</span>
+                  <strong style={{ fontSize: '20px', fontWeight: 800, color: 'var(--brand-color)' }}>
+                    {formatPrice(cartTotal + (cartTotal >= 999 ? 0 : 99))}
+                  </strong>
+                </div>
+              )}
+
+              <p style={{ fontSize: '12px', color: 'var(--muted)', margin: '4px 0 0', textAlign: 'center' }}>Taxes calculated at checkout.</p>
 
               <button
                 type="button"
@@ -220,7 +264,7 @@ export default function Drawers() {
                 onClick={() => checkout()}
                 className="cart-checkout-btn"
               >
-                {cartItems.length === 0 ? 'Cart is empty' : `Checkout — ${formatPrice(cartTotal)}`}
+                {cartItems.length === 0 ? 'Cart is empty' : `Checkout`}
               </button>
 
               <button

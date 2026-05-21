@@ -31,7 +31,7 @@ const faqData = [
       },
       {
         q: "What are the shipping charges and delivery timelines?",
-        a: "We offer free standard shipping on orders above Rs. 499. For orders below Rs. 499, a flat shipping fee is calculated at checkout. Deliveries generally take 3 to 7 business days, depending on your location."
+        a: "We offer free standard shipping on orders above Rs. 999. For orders below Rs. 999, a flat shipping fee of Rs. 99 is charged. Deliveries generally take 3 to 7 business days, depending on your location."
       },
       {
         q: "How can I track my package?",

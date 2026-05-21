@@ -41,6 +41,19 @@ export async function POST(request) {
       return line;
     });
 
+    const totalAmount = items.reduce((sum, item) => {
+      const price = Number(item.discountedUnitPrice || item.price) || 0;
+      return sum + (price * item.quantity);
+    }, 0);
+
+    const shippingLine = totalAmount >= 999 ? {
+      title: "Free Priority Shipping",
+      price: "0.00"
+    } : {
+      title: "Standard Shipping",
+      price: "99.00"
+    };
+
     const query = `
       mutation draftOrderCreate($input: DraftOrderInput!) {
         draftOrderCreate(input: $input) {
@@ -67,6 +80,7 @@ export async function POST(request) {
         variables: {
           input: {
             lineItems,
+            shippingLine,
           }
         }
       })
