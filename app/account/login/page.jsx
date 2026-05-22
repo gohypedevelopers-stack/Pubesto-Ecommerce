@@ -11,7 +11,7 @@ const EMPTY_SIGNUP = { name: "", email: "", phone: "", password: "" };
 
 export default function AccountLoginPage() {
   const router = useRouter();
-  const { refreshAuthSession } = useStore();
+  const { user, isAuthLoading, refreshAuthSession } = useStore();
   const [mode, setMode] = useState("login");
   const [redirectTo, setRedirectTo] = useState("/account");
   const [loginForm, setLoginForm] = useState(EMPTY_LOGIN);
@@ -28,6 +28,31 @@ export default function AccountLoginPage() {
     if (["login", "signup", "forgot"].includes(nextMode)) setMode(nextMode);
     if (nextRedirect?.startsWith("/")) setRedirectTo(nextRedirect);
   }, []);
+
+  useEffect(() => {
+    if (!isAuthLoading && user) {
+      router.replace(redirectTo);
+    }
+  }, [isAuthLoading, redirectTo, router, user]);
+
+  function switchMode(nextMode) {
+    setMode(nextMode);
+    setMessage("");
+    setResetUrl("");
+
+    const params = new URLSearchParams(window.location.search);
+    if (nextMode === "login") {
+      params.delete("mode");
+    } else {
+      params.set("mode", nextMode);
+    }
+    if (redirectTo !== "/account") {
+      params.set("redirect", redirectTo);
+    }
+
+    const query = params.toString();
+    window.history.replaceState(null, "", query ? `/account/login?${query}` : "/account/login");
+  }
 
   function setLoginField(field, value) {
     setLoginForm((current) => ({ ...current, [field]: value }));
@@ -113,13 +138,13 @@ export default function AccountLoginPage() {
 
         <div className="auth-panel auth-form-panel">
           <div className="auth-tabs" role="tablist" aria-label="Account actions">
-            <button className={mode === "login" ? "active" : ""} type="button" onClick={() => { setMode("login"); setMessage(""); }}>
+            <button className={mode === "login" ? "active" : ""} type="button" role="tab" aria-selected={mode === "login"} onClick={() => switchMode("login")}>
               Login
             </button>
-            <button className={mode === "signup" ? "active" : ""} type="button" onClick={() => { setMode("signup"); setMessage(""); }}>
+            <button className={mode === "signup" ? "active" : ""} type="button" role="tab" aria-selected={mode === "signup"} onClick={() => switchMode("signup")}>
               Signup
             </button>
-            <button className={mode === "forgot" ? "active" : ""} type="button" onClick={() => { setMode("forgot"); setMessage(""); }}>
+            <button className={mode === "forgot" ? "active" : ""} type="button" role="tab" aria-selected={mode === "forgot"} onClick={() => switchMode("forgot")}>
               Forgot
             </button>
           </div>
@@ -132,10 +157,12 @@ export default function AccountLoginPage() {
                 <div className="auth-input-wrap">
                   <Mail size={18} />
                   <input
+                    name="email"
                     type="email"
                     value={forgotEmail}
                     onChange={(event) => setForgotEmail(event.target.value)}
                     placeholder="you@example.com"
+                    autoComplete="email"
                     required
                   />
                 </div>
@@ -160,9 +187,11 @@ export default function AccountLoginPage() {
                     <div className="auth-input-wrap">
                       <UserRound size={18} />
                       <input
+                        name="name"
                         value={signupForm.name}
                         onChange={(event) => setSignupField("name", event.target.value)}
                         placeholder="Your name"
+                        autoComplete="name"
                         required
                       />
                     </div>
@@ -172,9 +201,12 @@ export default function AccountLoginPage() {
                     <div className="auth-input-wrap">
                       <UserRound size={18} />
                       <input
+                        name="tel"
                         value={signupForm.phone}
                         onChange={(event) => setSignupField("phone", event.target.value)}
                         placeholder="Optional"
+                        autoComplete="tel"
+                        inputMode="tel"
                       />
                     </div>
                   </label>
@@ -185,10 +217,12 @@ export default function AccountLoginPage() {
                 <div className="auth-input-wrap">
                   <Mail size={18} />
                   <input
+                    name="email"
                     type="email"
                     value={mode === "signup" ? signupForm.email : loginForm.email}
                     onChange={(event) => mode === "signup" ? setSignupField("email", event.target.value) : setLoginField("email", event.target.value)}
                     placeholder="you@example.com"
+                    autoComplete="email"
                     required
                   />
                 </div>
@@ -198,10 +232,12 @@ export default function AccountLoginPage() {
                 <div className="auth-input-wrap">
                   <Lock size={18} />
                   <input
+                    name={mode === "signup" ? "new-password" : "current-password"}
                     type="password"
                     value={mode === "signup" ? signupForm.password : loginForm.password}
                     onChange={(event) => mode === "signup" ? setSignupField("password", event.target.value) : setLoginField("password", event.target.value)}
                     placeholder={mode === "signup" ? "At least 8 characters" : "Your password"}
+                    autoComplete={mode === "signup" ? "new-password" : "current-password"}
                     required
                     minLength={8}
                   />
@@ -212,7 +248,7 @@ export default function AccountLoginPage() {
                 {loading ? "Please wait..." : mode === "signup" ? "Create account" : "Login"}
               </button>
               {mode === "login" ? (
-                <button className="auth-link-button" type="button" onClick={() => setMode("forgot")}>
+                <button className="auth-link-button" type="button" onClick={() => switchMode("forgot")}>
                   Forgot your password?
                 </button>
               ) : null}

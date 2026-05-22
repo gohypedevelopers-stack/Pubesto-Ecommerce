@@ -1,7 +1,8 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { getCustomerById, updateCustomerProfile } from "../../../lib/auth-store";
-import { AUTH_COOKIE_NAME, parseSessionToken } from "../../../lib/auth-session";
+import { AUTH_COOKIE_NAME, createSessionToken, getSessionCookieOptions, parseSessionToken } from "../../../lib/auth-session";
+import { getShopifyCustomer, updateShopifyCustomer } from "../../../lib/shopify-customer";
 
 export const dynamic = "force-dynamic";
 
@@ -10,29 +11,72 @@ async function getCurrentUser() {
   const token = cookieStore.get(AUTH_COOKIE_NAME)?.value;
   const session = parseSessionToken(token);
   if (!session) return null;
-  return getCustomerById(session.sub);
+
+  if (session.provider === "shopify" && session.customerAccessToken) {
+    const user = await getShopifyCustomer(session.customerAccessToken);
+    return user ? { user, session } : null;
+  }
+
+  const user = await getCustomerById(session.sub);
+  return user ? { user, session } : null;
 }
 
 export async function GET() {
-  const user = await getCurrentUser();
-  if (!user) {
+  try {
+    const account = await getCurrentUser();
+    if (!account?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    return NextResponse.json({ user: account.user });
+  } catch (error) {
+    console.error("GET /api/account error:", error);
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  return NextResponse.json({ user });
 }
 
 export async function PATCH(request) {
-  const user = await getCurrentUser();
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  try {
+    const account = await getCurrentUser();
+    if (!account?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const body = await request.json();
+
+    if (account.session.provider === "shopify" && account.session.customerAccessToken) {
+      const result = await updateShopifyCustomer(account.session.customerAccessToken, {
+        name: body.name,
+        phone: body.phone,
+        addresses: body.addresses,
+      });
+
+      if (!result.user) {
+        return NextResponse.json({ error: "Could not update account." }, { status: 400 });
+      }
+
+      const cookieStore = await cookies();
+      cookieStore.set(
+        AUTH_COOKIE_NAME,
+        createSessionToken(result.user, {
+          provider: "shopify",
+          customerAccessToken: result.customerAccessToken,
+          expiresAt: result.expiresAt,
+        }),
+        getSessionCookieOptions()
+      );
+
+      return NextResponse.json({ success: true, user: result.user });
+    }
+
+    const updatedUser = await updateCustomerProfile(account.user.id, {
+      name: body.name,
+      phone: body.phone,
+      addresses: body.addresses,
+    });
+
+    return NextResponse.json({ success: true, user: updatedUser });
+  } catch (error) {
+    console.error("PATCH /api/account error:", error);
+    return NextResponse.json({ error: error.message || "Could not update account." }, { status: 400 });
   }
-
-  const body = await request.json();
-  const updatedUser = await updateCustomerProfile(user.id, {
-    name: body.name,
-    phone: body.phone,
-    addresses: body.addresses,
-  });
-
-  return NextResponse.json({ success: true, user: updatedUser });
 }

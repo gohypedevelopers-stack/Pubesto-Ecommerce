@@ -1,11 +1,34 @@
 import { NextResponse } from "next/server";
 import { createPasswordReset } from "../../../../lib/auth-store";
+import { canUseLocalCustomerAuthFallback } from "../../../../lib/auth-mode";
+import { isRecoverableShopifyCustomerError, recoverShopifyCustomerPassword } from "../../../../lib/shopify-customer";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(request) {
   try {
     const { email } = await request.json();
+    const message = "If an account exists for that email, password reset instructions are ready.";
+
+    try {
+      await recoverShopifyCustomerPassword(email);
+      return NextResponse.json({
+        success: true,
+        message,
+        resetUrl: "",
+      });
+    } catch (error) {
+      if (!isRecoverableShopifyCustomerError(error)) {
+        return NextResponse.json({ error: error.message || "Could not start password reset." }, { status: 400 });
+      }
+
+      if (!canUseLocalCustomerAuthFallback()) {
+        return NextResponse.json({ error: "Account service is temporarily unavailable." }, { status: 503 });
+      }
+
+      console.error("Shopify password recovery unavailable, using local fallback:", error.message);
+    }
+
     const reset = await createPasswordReset(email);
     const resetUrl = reset
       ? `/account/reset?token=${encodeURIComponent(reset.token)}`
@@ -13,7 +36,7 @@ export async function POST(request) {
 
     return NextResponse.json({
       success: true,
-      message: "If an account exists for that email, password reset instructions are ready.",
+      message,
       resetUrl,
     });
   } catch (error) {
