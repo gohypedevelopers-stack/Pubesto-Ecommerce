@@ -16,6 +16,7 @@ const footerLinkGroups = [
       { label: "Terms of Service", href: "/terms-of-service" },
       { label: "Refund Policy", href: "/refund-return-policy" },
       { label: "Shipping Policy", href: "/shipping-policy" },
+      { label: "Request a Return", href: "/returns" },
     ],
   },
   {
@@ -58,7 +59,7 @@ const footerPanelContent = {
 };
 
 const footerSocialLinks = [
-  { label: "Instagram", href: "https://www.instagram.com/pubesto_in/", Icon: InstagramIcon },
+  { label: "Instagram", href: "https://www.instagram.com/pubesto_official/", Icon: InstagramIcon },
   { label: "Facebook", href: "https://www.facebook.com/", Icon: FacebookIcon },
 ];
 
@@ -161,7 +162,7 @@ export default function Footer() {
                     whileHover={{ scale: 1.2, rotate: 8 }}
                     transition={{ delay: 0.8 + sIdx * 0.1, type: "spring", stiffness: 300 }}
                   >
-                    <Icon size={24} />
+                    <Icon size={18} />
                   </motion.a>
                 ))}
               </nav>

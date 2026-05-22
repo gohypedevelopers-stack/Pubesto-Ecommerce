@@ -35,17 +35,63 @@ function findLocalProductFallback(shopifyProduct, localProducts) {
 
 function mergeShopifyProductWithLocalFallback(shopifyProduct, localProducts) {
   if (!shopifyProduct) return null;
+  const shopifyHandle = shopifyProduct.shopifyHandle || shopifyProduct.slug;
   const localProduct = findLocalProductFallback(shopifyProduct, localProducts || []);
-  if (!localProduct) return shopifyProduct;
+  if (!localProduct) {
+    return {
+      ...shopifyProduct,
+      shopifyHandle,
+      slugAliases: Array.from(new Set([shopifyProduct.slug, shopifyHandle].filter(Boolean))),
+    };
+  }
+
+  const mergedColors = localProduct.colors ? localProduct.colors.map(color => {
+    if (color.image) return color;
+    const gallery = shopifyProduct.gallery || [];
+    const colorName = color.name.toLowerCase();
+    let matchedImg = null;
+    
+    // 1. Keyword match
+    if (colorName.includes("pink") || colorName.includes("blush")) {
+      matchedImg = gallery.find(url => url.toLowerCase().includes("pink") || url.includes("_21_17_"));
+    } else if (colorName.includes("green") || colorName.includes("forest") || colorName.includes("black")) {
+      matchedImg = gallery.find(url => url.toLowerCase().includes("green") || url.toLowerCase().includes("black") || url.includes("_21_49_"));
+    } else if (colorName.includes("white") || colorName.includes("arctic")) {
+      matchedImg = gallery.find(url => url.toLowerCase().includes("white") || url.toLowerCase().includes("arctic") || url.includes("_24_59_"));
+    }
+    
+    // 2. Fallback index match specifically for the neck fan
+    if (!matchedImg && (localProduct.slug === "adjustable-bladeless-neck-fan" || shopifyHandle === "adjustable-bladeless-neck-fan")) {
+      if ((colorName.includes("pink") || colorName.includes("blush")) && gallery[5]) {
+        matchedImg = gallery[5];
+      } else if ((colorName.includes("green") || colorName.includes("forest") || colorName.includes("black")) && gallery[6]) {
+        matchedImg = gallery[6];
+      } else if ((colorName.includes("white") || colorName.includes("arctic")) && gallery[7]) {
+        matchedImg = gallery[7];
+      }
+    }
+    
+    return matchedImg ? { ...color, image: matchedImg } : color;
+  }) : undefined;
 
   return {
     ...localProduct,
     ...shopifyProduct,
+    slug: localProduct.slug || shopifyProduct.slug,
+    shopifyHandle,
+    slugAliases: Array.from(new Set([
+      localProduct.slug,
+      shopifyProduct.slug,
+      shopifyHandle,
+      ...(localProduct.slugAliases || []),
+      ...(shopifyProduct.slugAliases || []),
+    ].filter(Boolean))),
     inStock: localProduct.inStock === true ? true : shopifyProduct.inStock,
     highlights: hasHighlights(shopifyProduct) ? shopifyProduct.highlights : localProduct.highlights,
     specifications: shopifyProduct.specifications || localProduct.specifications,
     rating: shopifyProduct.rating || localProduct.rating,
     reviews: shopifyProduct.reviews || localProduct.reviews,
+    reviewsList: (shopifyProduct.reviewsList && shopifyProduct.reviewsList.length > 0) ? shopifyProduct.reviewsList : localProduct.reviewsList,
     badge: shopifyProduct.badge || localProduct.badge,
     badgeClass: shopifyProduct.badgeClass || localProduct.badgeClass,
     detail: shopifyProduct.detail || localProduct.detail,
@@ -53,7 +99,8 @@ function mergeShopifyProductWithLocalFallback(shopifyProduct, localProducts) {
     categories: Array.from(new Set([
       ...(localProduct.categories || []),
       ...(shopifyProduct.categories || [])
-    ]))
+    ])),
+    colors: mergedColors || localProduct.colors
   };
 }
 
@@ -72,6 +119,7 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
   const [products, setProducts] = useState(initialProducts);
   const [categories, setCategories] = useState(initialCategories);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [user, setUser] = useState(null);
   const [wishlist, setWishlist] = useState([]);
   const shopifyCartQueueRef = useRef(Promise.resolve());
@@ -110,18 +158,7 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
       }
     }
     syncShopify();
-    
-    // Auth Persistence
-    const savedUser = localStorage.getItem("pubesto_user");
-    if (savedUser) {
-      try {
-        const parsed = JSON.parse(savedUser);
-        setUser(parsed);
-        setIsLoggedIn(true);
-      } catch (e) {
-        console.error("Error parsing saved user", e);
-      }
-    }
+    refreshAuthSession();
 
     // Wishlist Persistence
     const savedWishlist = localStorage.getItem("pubesto_wishlist");
@@ -185,38 +222,20 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
     const basePrice = getProductBasePrice(product);
     
     if (product.selectedColors && product.selectedColors.length > 0) {
-      const bundleSize = product.selectedColors.length;
-      if (bundleSize === 2) {
-        const pack2UnitPrice = Math.round(Math.floor(basePrice * 2 * 0.90) / 2);
-        return pack2UnitPrice * 2 * quantity;
-      } else if (bundleSize === 4) {
-        const pack4UnitPrice = Math.round(Math.floor(basePrice * 4 * 0.80) / 4);
-        return pack4UnitPrice * 4 * quantity;
-      } else {
-        return basePrice * quantity;
-      }
+      return basePrice * product.selectedColors.length * quantity;
     }
 
-    const pack2UnitPrice = Math.round(Math.floor(basePrice * 2 * 0.90) / 2);
-    const pack4UnitPrice = Math.round(Math.floor(basePrice * 4 * 0.80) / 4);
-    
-    const pack4Price = pack4UnitPrice * 4;
-    const pack2Price = pack2UnitPrice * 2;
-    const singlePrice = basePrice;
-    
-    const num4 = Math.floor(quantity / 4);
-    const remainder = quantity % 4;
-    const num2 = Math.floor(remainder / 2);
-    const num1 = remainder % 2;
-    
-    return (num4 * pack4Price) + (num2 * pack2Price) + (num1 * singlePrice);
+    return basePrice * quantity;
   }
 
   function getCartItemTotalOldPrice(product, quantity) {
-    const baseOldPrice = getProductBaseOldPrice(product) || Math.round(getProductBasePrice(product) * 1.35);
+    const basePrice = getProductBasePrice(product);
+    const baseOldPrice = getProductBaseOldPrice(product) || Math.round(basePrice * 1.35);
+    
     if (product.selectedColors && product.selectedColors.length > 0) {
       return baseOldPrice * product.selectedColors.length * quantity;
     }
+    
     return baseOldPrice * quantity;
   }
 
@@ -288,18 +307,42 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
     }
   }
 
-  function login(email) {
-    const newUser = { email, name: "Artisanal Member", joinDate: new Date().toISOString() };
-    setUser(newUser);
-    setIsLoggedIn(true);
-    localStorage.setItem("pubesto_user", JSON.stringify(newUser));
+  async function refreshAuthSession() {
+    setIsAuthLoading(true);
+    try {
+      const response = await fetch("/api/auth/session", { cache: "no-store" });
+      const data = await response.json();
+      const nextUser = data?.user || null;
+      setUser(nextUser);
+      setIsLoggedIn(Boolean(nextUser));
+      return nextUser;
+    } catch (error) {
+      console.error("Error loading auth session:", error);
+      setUser(null);
+      setIsLoggedIn(false);
+      return null;
+    } finally {
+      setIsAuthLoading(false);
+    }
+  }
+
+  function login(userData) {
+    const nextUser = typeof userData === "string"
+      ? { email: userData, name: "Pubesto Customer" }
+      : userData;
+    setUser(nextUser);
+    setIsLoggedIn(Boolean(nextUser));
     setProfileNotice("Successfully signed in!");
   }
 
-  function logout() {
+  async function logout() {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+    } catch (error) {
+      console.error("Error logging out:", error);
+    }
     setUser(null);
     setIsLoggedIn(false);
-    localStorage.removeItem("pubesto_user");
     setProfileNotice("Logged out successfully.");
   }
 
@@ -577,10 +620,10 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
     closeUtilityPanels, addToCart, updateCartQuantity, removeFromCart, checkout,
     categories, products,
     footerPanel, setFooterPanel,
-    isLoggedIn, setIsLoggedIn,
+    isLoggedIn, setIsLoggedIn, isAuthLoading,
     user, setUser,
     wishlist, setWishlist,
-    login, logout, addToWishlist, removeFromWishlist
+    login, logout, refreshAuthSession, addToWishlist, removeFromWishlist
   };
 
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;

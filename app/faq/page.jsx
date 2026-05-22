@@ -47,6 +47,10 @@ const faqData = [
         a: "We accept a wide range of secure payment options, including UPI (Google Pay, PhonePe, Paytm), Net Banking, major Credit/Debit Cards, and digital wallets. Payments are processed through trusted, encrypted gateways."
       },
       {
+        q: "Is Cash on Delivery (COD) available?",
+        a: "Yes! Cash on Delivery is available across most serviceable pincodes in India. You can choose COD at checkout. Please note: Prepaid orders (paid online) receive priority processing and dispatch. If COD is not available for your pincode, you will be notified at checkout."
+      },
+      {
         q: "Can I modify or cancel my order after placing it?",
         a: "Since we process orders quickly to ensure rapid delivery, you can only make changes or cancel within 2 hours of placing the order. Please email support@pubesto.com or call +91 7056063693 immediately with your order details."
       }

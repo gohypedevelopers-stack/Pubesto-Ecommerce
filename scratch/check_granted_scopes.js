@@ -1,5 +1,5 @@
 const domain = 'my-store-300000000000000009154.myshopify.com';
-const adminToken = 'YOUR_SHOPIFY_ADMIN_ACCESS_TOKEN';
+const adminToken = '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';
 
 async function run() {
   try {

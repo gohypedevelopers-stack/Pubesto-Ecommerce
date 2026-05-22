@@ -5,15 +5,10 @@ import Link from "next/link";
 import { useStore } from "./StoreContext";
 import { UserIcon, SearchIcon } from "./Icons";
 import { formatPrice } from "../lib/utils";
-import { motion, AnimatePresence } from "framer-motion";
-import { ChevronRight, ExternalLink, LogIn, MapPin, Package, TrendingUp, ShoppingBag } from "lucide-react";
+import { motion } from "framer-motion";
+import { ChevronRight, LogIn, LogOut, MapPin, Package, TrendingUp, ShoppingBag } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import {
-  getShopifyAccountAddressesUrl,
-  getShopifyAccountLoginUrl,
-  getShopifyAccountUrl,
-} from "../lib/shopify";
 
 
 export default function Drawers() {
@@ -23,17 +18,13 @@ export default function Drawers() {
     cartItems, cartCount, cartTotal,
     updateCartQuantity, removeFromCart, checkout,
     profileNotice,
-    getProductPrice,
+    user, isLoggedIn, logout,
     getCartItemTotalPrice, getCartItemDisplayName,
-    openShopifyCart,
     isSearchOpen, setIsSearchOpen,
     searchQuery, setSearchQuery,
     products,
-    setSelectedCategory, setShowAllProducts
+    setShowAllProducts
   } = useStore();
-  const shopifyAccountUrl = getShopifyAccountUrl();
-  const shopifyLoginUrl = getShopifyAccountLoginUrl();
-  const shopifyAddressesUrl = getShopifyAccountAddressesUrl();
   const router = useRouter();
 
   const [recentSearches, setRecentSearches] = useState([]);
@@ -73,6 +64,11 @@ export default function Drawers() {
     e.stopPropagation();
     setRecentSearches([]);
     localStorage.removeItem("pubesto_recent_searches");
+  };
+
+  const handleDrawerLogout = async () => {
+    await logout();
+    setIsProfileOpen(false);
   };
 
 
@@ -301,7 +297,7 @@ export default function Drawers() {
             <div className="cart-drawer-header premium-gradient">
               <div>
                 <p className="eyebrow" style={{ color: 'rgba(255,255,255,0.7)' }}>Your account</p>
-                <h2 style={{ color: '#fff' }}>Shopify Account</h2>
+                <h2 style={{ color: '#fff' }}>Pubesto Account</h2>
               </div>
               <button 
                 type="button" 
@@ -314,45 +310,84 @@ export default function Drawers() {
 
             <div className="utility-panel-body">
               <motion.div
-                key="shopify-account"
+                key={isLoggedIn ? "customer-account" : "guest-account"}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
                 className="shopify-account-panel"
               >
-                <div className="profile-summary premium-card">
-                  <div className="avatar-glow">
-                    <UserIcon />
-                  </div>
-                  <div>
-                    <strong>Continue with Shopify</strong>
-                    <p>Log in through Shopify to view your profile, orders, and saved addresses.</p>
-                  </div>
-                </div>
+                {isLoggedIn && user ? (
+                  <>
+                    <div className="profile-summary premium-card">
+                      <div className="avatar-glow">
+                        <UserIcon />
+                      </div>
+                      <div>
+                        <strong>{user.name || "Pubesto Customer"}</strong>
+                        <p>{user.email}</p>
+                      </div>
+                    </div>
 
-                <div className="shopify-account-actions">
-                  <a className="action-button shopify-account-primary" href={shopifyAccountUrl}>
-                    <span>Open Shopify profile</span>
-                    <ExternalLink size={16} />
-                  </a>
-                  <a className="shopify-account-secondary" href={shopifyLoginUrl}>
-                    <LogIn size={16} />
-                    <span>Log in with Shopify</span>
-                  </a>
-                </div>
+                    <div className="shopify-account-actions">
+                      <Link
+                        className="action-button shopify-account-primary"
+                        href="/account"
+                        onClick={() => setIsProfileOpen(false)}
+                      >
+                        <span>Manage account</span>
+                        <ChevronRight size={16} />
+                      </Link>
+                      <button className="shopify-account-secondary" type="button" onClick={handleDrawerLogout}>
+                        <LogOut size={16} />
+                        <span>Log out</span>
+                      </button>
+                    </div>
 
-                <div className="utility-link-list interactive-list shopify-account-links">
-                  <a href={shopifyAccountUrl}>
-                    <div className="link-icon"><Package size={18} /></div>
-                    <span>Orders</span>
-                    <ChevronRight size={16} className="chevron" />
-                  </a>
-                  <a href={shopifyAddressesUrl}>
-                    <div className="link-icon"><MapPin size={18} /></div>
-                    <span>Addresses</span>
-                    <ChevronRight size={16} className="chevron" />
-                  </a>
-                </div>
+                    <div className="utility-link-list interactive-list shopify-account-links">
+                      <Link href="/account" onClick={() => setIsProfileOpen(false)}>
+                        <div className="link-icon"><Package size={18} /></div>
+                        <span>Profile details</span>
+                        <ChevronRight size={16} className="chevron" />
+                      </Link>
+                      <Link href="/account#addresses" onClick={() => setIsProfileOpen(false)}>
+                        <div className="link-icon"><MapPin size={18} /></div>
+                        <span>Saved addresses</span>
+                        <ChevronRight size={16} className="chevron" />
+                      </Link>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="profile-summary premium-card">
+                      <div className="avatar-glow">
+                        <UserIcon />
+                      </div>
+                      <div>
+                        <strong>Your Pubesto account</strong>
+                        <p>Log in or create an account to manage your profile and saved addresses.</p>
+                      </div>
+                    </div>
+
+                    <div className="shopify-account-actions">
+                      <Link
+                        className="action-button shopify-account-primary"
+                        href="/account/login"
+                        onClick={() => setIsProfileOpen(false)}
+                      >
+                        <span>Log in</span>
+                        <ChevronRight size={16} />
+                      </Link>
+                      <Link
+                        className="shopify-account-secondary"
+                        href="/account/login?mode=signup"
+                        onClick={() => setIsProfileOpen(false)}
+                      >
+                        <LogIn size={16} />
+                        <span>Create account</span>
+                      </Link>
+                    </div>
+                  </>
+                )}
               </motion.div>
               
               {profileNotice && (

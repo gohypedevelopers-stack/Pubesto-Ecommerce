@@ -469,29 +469,51 @@ function HomeContent() {
 
         <ReviewsSection />
 
-        <div className="section-heading centered" style={{ marginTop: "100px" }}>
+        <motion.div
+          className="section-heading centered"
+          style={{ marginTop: "100px" }}
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
+          viewport={{ once: true, margin: "-100px" }}
+        >
           <div>
             <p className="eyebrow">Follow Us</p>
             <h2 id="social-circle-title">Join the Pubesto Home Circle</h2>
           </div>
-        </div>
+        </motion.div>
 
         <section className="social-circle-section" aria-labelledby="social-circle-title">
-          <span className="social-circle-wave" aria-hidden="true" />
           <div className="social-gallery" role="list">
-            {socialGalleryItems.map((item) => (
-              <div
-                className="social-gallery-card"
-                role="listitem"
+            {socialGalleryItems.map((item, index) => (
+              <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.55, delay: index * 0.08, ease: [0.215, 0.61, 0.355, 1] }}
+                viewport={{ once: true, margin: "-80px" }}
                 key={item.title}
+                style={{ display: "flex", width: "100%" }}
               >
-                <img src={item.image} alt="" loading="lazy" decoding="async" />
-                <span className="social-gallery-shade" />
-                <span className="social-gallery-copy">
-                  <strong>{item.title}</strong>
-                  <span>{item.caption}</span>
-                </span>
-              </div>
+                <Link
+                  href={item.link || "/shop"}
+                  className="social-gallery-card"
+                  role="listitem"
+                  style={{ width: "100%" }}
+                >
+                  <div className="social-gallery-image-wrapper">
+                    <img src={item.image} alt={item.title} loading="lazy" decoding="async" />
+                  </div>
+                  <div className="social-gallery-info">
+                    <span className="social-gallery-card-num">0{index + 1}</span>
+                    <h3 className="social-gallery-card-title">{item.title}</h3>
+                    <p className="social-gallery-card-caption">{item.caption}</p>
+                    <div className="social-gallery-card-cta">
+                      <span>Explore Collection</span>
+                      <span className="arrow">→</span>
+                    </div>
+                  </div>
+                </Link>
+              </motion.div>
             ))}
           </div>
         </section>

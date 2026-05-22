@@ -3,23 +3,23 @@
 import { useStore } from "./StoreContext";
 import { SearchIcon, ShoppingBag, UserIcon, MenuIcon } from "./Icons";
 import { useState, useEffect, useRef } from "react";
-import { motion, useScroll, useMotionValueEvent, AnimatePresence } from "framer-motion";
+import { motion, useScroll, useMotionValueEvent } from "framer-motion";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { getShopifyAccountUrl, getShopifyAccountLoginUrl } from "../lib/shopify";
 import { Home, ShoppingBag as LucideShoppingBag, User, ShoppingCart, ChevronRight } from "lucide-react";
 
 export default function Header() {
   const {
     isMenuOpen, setIsMenuOpen,
     isCartOpen, setIsCartOpen,
-    isProfileOpen, setIsProfileOpen,
+    isProfileOpen,
     isSearchOpen, setIsSearchOpen,
     searchQuery, setSearchQuery,
-    cartCount, cartPulseKey, shopifyCartUrl,
+    cartCount, cartPulseKey,
     closeUtilityPanels,
     setSelectedCategory, setShowAllProducts,
-    products
+    products,
+    isLoggedIn
   } = useStore();
 
   const { scrollY } = useScroll();
@@ -27,10 +27,7 @@ export default function Header() {
   const [prevScroll, setPrevScroll] = useState(0);
   const [activeIndex, setActiveIndex] = useState(-1);
   const router = useRouter();
-  const shopifyAccountUrl = getShopifyAccountUrl();
-  const shopifyLoginUrl = getShopifyAccountLoginUrl();
   const searchInputRef = useRef(null);
-  const mobileSearchInputRef = useRef(null);
 
   // Filter products based on search query
   const filteredResults = searchQuery.trim().length >= 2
@@ -116,11 +113,12 @@ export default function Header() {
     setShowAllProducts(false);
   }
 
-  function prepareShopifyAccountNavigation(e) {
+  function prepareAccountNavigation(e) {
     e?.preventDefault();
     setIsMenuOpen(false);
     setIsSearchOpen(false);
-    window.location.href = shopifyLoginUrl;
+    closeUtilityPanels();
+    router.push(isLoggedIn ? "/account" : "/account/login");
   }
 
   function prepareShopifyCartNavigation(e) {
@@ -171,7 +169,7 @@ export default function Header() {
             className="navbar-icon"
             type="button"
             aria-label="Open profile"
-            onClick={prepareShopifyAccountNavigation}
+            onClick={prepareAccountNavigation}
           >
             <UserIcon />
           </button>
@@ -235,7 +233,7 @@ export default function Header() {
             <ChevronRight size={18} className="chevron-icon" />
           </Link>
 
-          <button className="mobile-nav-item" type="button" onClick={() => { setIsMenuOpen(false); prepareShopifyAccountNavigation(); }}>
+          <button className="mobile-nav-item" type="button" onClick={() => { setIsMenuOpen(false); prepareAccountNavigation(); }}>
             <span className="mobile-nav-item-content">
               <User size={20} />
               <span>Profile</span>

@@ -2,7 +2,7 @@
 
 import { useParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { ShoppingBag, ChevronDown, Check, Plus, Minus, ArrowRight, ShieldCheck, Sparkles, ChevronRight, CheckSquare, Tag, Undo2, Volume2, VolumeX, X } from "lucide-react";
+import { ShoppingBag, ChevronDown, Check, Plus, Minus, ArrowRight, ShieldCheck, Sparkles, ChevronRight, CheckSquare, Tag, Undo2, Volume2, VolumeX, X, Star } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useStore } from "../../../components/StoreContext";
@@ -35,6 +35,82 @@ const getDeterministicStock = (prod, colorName) => {
   return 5 + (hash % 10); // Generates between 5 and 14
 };
 
+function productMatchesRouteSlug(product, routeSlug) {
+  const target = String(routeSlug || "").toLowerCase();
+  if (!product || !target) return false;
+
+  const candidates = [
+    product.slug,
+    product.shopifyHandle,
+    product.handle,
+    ...(product.slugAliases || []),
+  ]
+    .filter(Boolean)
+    .map((value) => String(value).toLowerCase());
+
+  return candidates.includes(target) || candidates.some((candidate) => candidate.includes(target));
+}
+
+const getReviewAvatar = (name) => {
+  if (!name) return "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&h=150&q=80";
+  
+  const cleanName = name.trim();
+  const firstName = cleanName.split(/\s+/)[0].toLowerCase();
+  
+  // High quality Unsplash profile pictures
+  const femaleAvatars = [
+    "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=150&h=150&q=80",
+    "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&h=150&q=80",
+    "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=150&h=150&q=80",
+    "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=150&h=150&q=80",
+    "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=150&h=150&q=80",
+    "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?auto=format&fit=crop&w=150&h=150&q=80",
+    "https://images.unsplash.com/photo-1567532939604-b6b5b0db2604?auto=format&fit=crop&w=150&h=150&q=80",
+    "https://images.unsplash.com/photo-1554151228-14d9def656e4?auto=format&fit=crop&w=150&h=150&q=80"
+  ];
+  
+  const maleAvatars = [
+    "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&h=150&q=80",
+    "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&h=150&q=80",
+    "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=150&h=150&q=80",
+    "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&w=150&h=150&q=80",
+    "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=crop&w=150&h=150&q=80",
+    "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=150&h=150&q=80",
+    "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=150&h=150&q=80",
+    "https://images.unsplash.com/photo-1501196354995-cbb51c65aaea?auto=format&fit=crop&w=150&h=150&q=80"
+  ];
+  
+  const femaleNames = [
+    "ananya", "sneha", "kavya", "sunita", "suman", "pooja", "nisha", "priya", 
+    "riya", "deepa", "komal", "preeti", "meera", "divya", "shikha", "ishita", 
+    "swati", "kiran", "neeta", "tanya", "aditi", "jaya", "renu", "kavita", 
+    "radhika", "shreya", "aishwarya", "neha", "amrita", "arpita", "anamika", 
+    "archana", "bharti", "chaitali", "deepali", "ekta", "garima", "hema", 
+    "indu", "jyoti", "kajal", "lalita", "madhu", "monika", "namrata", "pallavi", 
+    "rashmi", "sapna", "tanvi", "uma", "veena", "yamini", "aditi", "kavya", 
+    "priya", "sneha", "tanya", "swati", "neeta", "ishita", "renu", "shikha", 
+    "meera", "suman", "nisha", "pooja", "ananya", "jaya", "ishita", "swati",
+    "kiran", "neeta", "tanya", "aditi", "jaya", "renu"
+  ];
+  
+  const isFemale = femaleNames.includes(firstName) || 
+                   (firstName.endsWith('a') && !["aditya", "krishna", "shiva", "rana", "abhimanyu", "russia"].includes(firstName)) || 
+                   firstName.endsWith('i') || 
+                   firstName.endsWith('ee') ||
+                   (firstName.endsWith('u') && !["ashutosh", "himanshu", "shantanu", "raghu", "vasu"].includes(firstName));
+  
+  let charSum = 0;
+  for (let i = 0; i < cleanName.length; i++) {
+    charSum += cleanName.charCodeAt(i);
+  }
+  
+  if (isFemale) {
+    return femaleAvatars[charSum % femaleAvatars.length];
+  } else {
+    return maleAvatars[charSum % maleAvatars.length];
+  }
+};
+
 function ProductPageContent() {
   const { slug } = useParams();
   const { 
@@ -49,6 +125,9 @@ function ProductPageContent() {
   const [isBuyingNow, setIsBuyingNow] = useState(false);
   const [selectedBundleItems, setSelectedBundleItems] = useState({});
   const [bundleInitialized, setBundleInitialized] = useState(false);
+  const [productReviews, setProductReviews] = useState([]);
+  const [reviewSummary, setReviewSummary] = useState({ averageRating: 0, count: 0 });
+  const [reviewsLoading, setReviewsLoading] = useState(false);
   const reviewTrackRef = useRef(null);
 
   // Bundle Customization Popup State
@@ -71,11 +150,7 @@ function ProductPageContent() {
     }, 10);
     
     // Initialize product states
-    const product = products.find((p) => 
-      p.slug === slug || 
-      p.shopifyHandle === slug || 
-      (p.slug && p.slug.toLowerCase().includes(slug.toLowerCase()))
-    );
+    const product = products.find((p) => productMatchesRouteSlug(p, slug));
     if (product) {
       setActiveImage(product.image);
       if (product.colors && product.colors.length > 0) {
@@ -91,11 +166,45 @@ function ProductPageContent() {
     return () => clearTimeout(timer);
   }, [slug, products]);
 
-  const product = products.find((p) => 
-    p.slug === slug || 
-    p.shopifyHandle === slug || 
-    (p.slug && p.slug.toLowerCase().includes(slug.toLowerCase()))
-  );
+  const product = products.find((p) => productMatchesRouteSlug(p, slug));
+
+  useEffect(() => {
+    if (!product?.slug) {
+      setProductReviews([]);
+      setReviewSummary({ averageRating: 0, count: 0 });
+      return;
+    }
+
+    let ignore = false;
+    setReviewsLoading(true);
+
+    async function loadProductReviews() {
+      try {
+        const response = await fetch(`/api/reviews?productSlug=${encodeURIComponent(product.slug)}`, {
+          cache: "no-store",
+        });
+        const data = await response.json();
+
+        if (!ignore && response.ok) {
+          setProductReviews(data.reviews || []);
+          setReviewSummary(data.summary || { averageRating: 0, count: 0 });
+        }
+      } catch (error) {
+        console.error("Failed to load product reviews:", error);
+        if (!ignore) {
+          setProductReviews([]);
+          setReviewSummary({ averageRating: 0, count: 0 });
+        }
+      } finally {
+        if (!ignore) setReviewsLoading(false);
+      }
+    }
+
+    loadProductReviews();
+    return () => {
+      ignore = true;
+    };
+  }, [product?.slug]);
 
   // Initialize bundle selections when product loads
   useEffect(() => {
@@ -293,6 +402,21 @@ function ProductPageContent() {
     return isNaN(num) || num === 0 ? null : num;
   };
 
+  const getCompanionDealLabel = (item) => {
+    const sale = item.salePrice || parsePrice(item.price);
+    const original = item.originalPrice || parsePrice(item.oldPrice);
+    if (sale && original && original > sale) {
+      return `${Math.round(((original - sale) / original) * 100)}% OFF`;
+    }
+    return item.badge || "Handpicked";
+  };
+
+  const getCompanionMeta = (item) => {
+    if (Array.isArray(item.highlights) && item.highlights[0]) return item.highlights[0];
+    if (item.detail) return item.detail;
+    return "Premium daily essential";
+  };
+
   const basePrice = product.salePrice || parsePrice(product.price) || 599;
   const baseOldPrice = product.originalPrice || parsePrice(product.oldPrice) || Math.round(basePrice * 1.35);
   const productHighlights = Array.isArray(product.highlights) && product.highlights.filter(Boolean).length > 0
@@ -314,27 +438,27 @@ function ProductPageContent() {
       id: 1, 
       title: 'Single', 
       badge: null,
-      subtext: getShippingSubtext(basePrice, 'Additional Prepaid Discount'), 
+      subtext: getShippingSubtext(basePrice, 'COD & Prepaid Available'), 
       price: basePrice, 
       oldPrice: baseOldPrice 
     },
     { 
       id: 2, 
       title: 'Pack of 2', 
-      badge: '10% OFF',
-      badgeLabel: `Save ₹${(baseOldPrice * 2) - Math.floor(basePrice * 2 * 0.90)}`,
-      subtext: getShippingSubtext(Math.floor(basePrice * 2 * 0.90)), 
-      price: Math.floor(basePrice * 2 * 0.90), 
+      badge: null,
+      badgeLabel: `Save ₹${(baseOldPrice * 2) - (basePrice * 2)}`,
+      subtext: getShippingSubtext(basePrice * 2), 
+      price: basePrice * 2, 
       oldPrice: baseOldPrice * 2,
       topBadge: 'MOST POPULAR'
     },
     { 
       id: 4, 
       title: 'Pack of 4', 
-      badge: '20% OFF',
-      badgeLabel: `Save ₹${(baseOldPrice * 4) - Math.floor(basePrice * 4 * 0.80)}`,
-      subtext: getShippingSubtext(Math.floor(basePrice * 4 * 0.80)), 
-      price: Math.floor(basePrice * 4 * 0.80), 
+      badge: null,
+      badgeLabel: `Save ₹${(baseOldPrice * 4) - (basePrice * 4)}`,
+      subtext: getShippingSubtext(basePrice * 4), 
+      price: basePrice * 4, 
       oldPrice: baseOldPrice * 4,
       topBadge: 'LOWEST PRICE EVER!'
     }
@@ -372,6 +496,18 @@ function ProductPageContent() {
     return selectedColorName ? `${product.name} - ${selectedColorName}` : product.name;
   }
 
+  function renderReviewStars(rating, size = 14) {
+    const rounded = Math.round(Number(rating || 0));
+    return [0, 1, 2, 3, 4].map((index) => (
+      <Star
+        key={index}
+        size={size}
+        fill={index < rounded ? "currentColor" : "none"}
+        strokeWidth={2}
+      />
+    ));
+  }
+
   const tickerMessages = [
     {
       id: "sales",
@@ -381,7 +517,7 @@ function ProductPageContent() {
             <motion.span
               key={unitsSold}
               initial={{ scale: 1.25, color: "#ef4444" }}
-              animate={{ scale: 1, color: "inherit" }}
+              animate={{ scale: 1, color: "#1f2937" }}
               style={{ display: "inline-block" }}
               transition={{ duration: 0.4, type: "spring", stiffness: 200 }}
             >
@@ -417,6 +553,12 @@ function ProductPageContent() {
     }
   ];
 
+  const displayProductRating = reviewSummary.averageRating || Number(product.rating || 5) || 5;
+  const displayProductReviewCount = reviewSummary.count || productReviews.length;
+  const lovedCustomerCount = displayProductReviewCount > 0
+    ? Math.max(1000, displayProductReviewCount * 127).toLocaleString("en-IN")
+    : "10,000";
+
   return (
     <motion.main 
       className="product-details-page"
@@ -439,7 +581,6 @@ function ProductPageContent() {
                 src={activeImage || product.image}
                 alt={product.name}
                 loading="eager"
-                fetchPriority="high"
                 decoding="async"
               />
               {displayBadge && <span className={`product-status-badge ${displayBadgeClass}`}>{displayBadge}</span>}
@@ -537,8 +678,8 @@ function ProductPageContent() {
             </div>
 
             <div className="marketing-banners">
-              <div className="banner-green">extra discount + FREE GIFT on prepaid orders!</div>
-              <div className="banner-text">🎇 SUMMER SALE- BEST PRICE GUARENTEED!</div>
+              <div className="banner-green">💳 Prepaid orders get priority dispatch + extra savings!</div>
+              <div className="banner-text">🎇 SUMMER SALE — BEST PRICE GUARANTEED!</div>
             </div>
 
             <div className="units-sold-ticker" style={{ overflow: "hidden", display: "inline-flex", alignItems: "center", width: "100%", minHeight: "42px" }}>
@@ -712,16 +853,19 @@ function ProductPageContent() {
     })()}
 
     {/* Customer Reviews Section */}
+    {(reviewsLoading || productReviews.length > 0) && (
     <section className="customer-reviews-section">
       <div className="reviews-header">
         <p className="eyebrow" style={{ textAlign: 'center', marginBottom: '8px' }}>Trusted by thousands</p>
         <div className="loved-badge">
-          <span className="heart-icon">💖</span> Loved by {product.reviews ? Number(product.reviews) * 127 : '10,000'}+ Customers
+          Loved by {lovedCustomerCount}+ Customers
         </div>
         <h2>What Our Customers Say</h2>
         <div className="reviews-meta">
-          <span className="stars-display">{'★'.repeat(Math.round(Number(product.rating || 5)))}</span>
-          <span className="rating-text">{product.rating || '5.0'} ★ ({product.reviews || '0'})</span>
+          <span className="stars-display">{renderReviewStars(displayProductRating, 15)}</span>
+          <span className="rating-text">
+            {displayProductRating.toFixed(1)} out of 5 ({displayProductReviewCount})
+          </span>
           <span className="verified-badge">
              <Check size={14} strokeWidth={3} /> Verified
           </span>
@@ -730,32 +874,24 @@ function ProductPageContent() {
       <div className="reviews-carousel">
         <button className="review-nav review-prev" onClick={() => { if (reviewTrackRef.current) reviewTrackRef.current.scrollBy({ left: -344, behavior: 'smooth' }); }}>‹</button>
         <div className="reviews-track" ref={reviewTrackRef}>
-          {(product.reviewsList || [
-            { text: "Absolutely love the quality! It fits perfectly in my bag and doesn't leak at all. Highly recommend.", name: "Kavya Reddy" },
-            { text: "Perfect for daily use. The design is so unique and I get compliments every time I use it.", name: "Vivek Gulati" },
-            { text: "The finish is premium and durable. Even after months of use, it still looks brand new.", name: "Sunita Patil" },
-            { text: "Exceeded my expectations! Shipping was fast and the packaging was very secure.", name: "Srinivas Murthy" }
-          ]).map((review, i) => (
-            <div className="review-card" key={i}>
-              <div className="review-stars">{'★'.repeat(Math.round(Number(product.rating || 5)))}</div>
+          {(reviewsLoading
+            ? [{ id: "loading", text: "Loading customer reviews...", customerName: "Pubesto", rating: 5, customerImage: "" }]
+            : productReviews
+          ).map((review, i) => (
+            <div className="review-card" key={review.id || i}>
+              <div className="review-stars">{renderReviewStars(review.rating || displayProductRating)}</div>
               <p className="review-text">"{review.text}"</p>
               <div className="reviewer-info">
                 <div className="reviewer-avatar">
-                  <img src={review.image || (
-                    review.name === "Kavya Reddy" ? "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=150&h=150&q=80" :
-                    review.name === "Vivek Gulati" ? "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&h=150&q=80" :
-                    review.name === "Sunita Patil" ? "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=150&h=150&q=80" :
-                    review.name === "Srinivas Murthy" ? "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=150&h=150&q=80" :
-                    "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&h=150&q=80"
-                  )}
-                    alt={review.name}
+                  <img src={review.customerImage || getReviewAvatar(review.customerName)}
+                    alt={review.customerName}
                     loading="lazy"
                     fetchPriority="low"
                     decoding="async"
                   />
                 </div>
                 <div className="reviewer-details">
-                  <h4>{review.name}</h4>
+                  <h4>{review.customerName}</h4>
                   <p>Verified Buyer</p>
                 </div>
                 <div className="verified-tag">
@@ -768,79 +904,99 @@ function ProductPageContent() {
         <button className="review-nav review-next" onClick={() => { if (reviewTrackRef.current) reviewTrackRef.current.scrollBy({ left: 344, behavior: 'smooth' }); }}>›</button>
       </div>
     </section>
+    )}
 
-    <motion.section 
-      className="curated-companions"
+    <motion.section
+      className="curated-companions curated-companions-premium"
         initial={{ opacity: 0 }}
         whileInView={{ opacity: 1 }}
         viewport={{ once: true }}
         transition={{ duration: 1 }}
       >
-        <div className="section-heading centered">
-          <p className="eyebrow">Discover More</p>
-          <h2>Curated Companions</h2>
-        </div>
-        <div className="companions-grid">
-          {relatedProducts.map((p, i) => {
-            const pCartQty = cartItems.find((item) => item.id === getProductId(p))?.quantity || 0;
-            return (
-              <motion.article
-                className="product-card"
-                key={p.slug}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: i * 0.1 }}
-              >
-                <div className="product-media">
-                  <Link className="product-media-link" href={`/product/${p.slug}`} aria-label={`View ${p.name}`}>
+        <div className="curated-shell">
+          <div className="curated-header">
+            <div className="section-heading">
+              <p className="eyebrow">Complete your setup</p>
+              <h2>Curated Companions</h2>
+              <p className="curated-subtitle">Smart add-ons customers usually buy with this product.</p>
+            </div>
+            <div className="curated-proof">
+              <span><Sparkles size={15} /> Staff picks</span>
+              <span><ShieldCheck size={15} /> Verified quality</span>
+            </div>
+          </div>
+          <div className="companions-grid curated-grid">
+            {relatedProducts.map((p, i) => {
+              const pCartQty = cartItems.find((item) => item.id === getProductId(p))?.quantity || 0;
+              const companionRating = p.rating || "4.8";
+              const companionReviews = p.reviews || "24";
+              return (
+                <motion.article
+                  className="curated-product-card"
+                  key={p.slug}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: i * 0.1 }}
+                >
+                  <Link className="curated-media" href={`/product/${p.slug}`} aria-label={`View ${p.name}`}>
                     <img src={p.image} alt={p.name} loading="lazy" fetchPriority="low" decoding="async" />
+                    <span className="curated-deal">{getCompanionDealLabel(p)}</span>
+                    <span className="curated-view">View details <ArrowRight size={14} /></span>
                   </Link>
-                  {p.badge ? (
-                    <span className={`badge ${p.badgeClass || ""}`}>{p.badge}</span>
-                  ) : null}
-                </div>
-                <div className="product-body">
-                  <Link href={`/product/${p.slug}`}>
-                    <h3>{p.name}</h3>
-                  </Link>
-                  <p className="price">
-                    {p.price}
-                    {p.oldPrice ? <span>{p.oldPrice}</span> : null}
-                  </p>
-                  {p.inStock === false ? (
-                    <button className="quick-add disabled" disabled>Out of Stock</button>
-                  ) : pCartQty > 0 ? (
-                    <div className="product-quantity-selector">
-                      <button 
-                        type="button" 
-                        onClick={() => updateCartQuantity(getProductId(p), pCartQty - 1)}
-                        aria-label="Decrease quantity"
-                      >
-                        <Minus size={16} />
-                      </button>
-                      <span>{pCartQty}</span>
-                      <button 
-                        type="button" 
-                        onClick={() => updateCartQuantity(getProductId(p), pCartQty + 1)}
-                        aria-label="Increase quantity"
-                      >
-                        <Plus size={16} />
-                      </button>
+                  <div className="curated-product-body">
+                    <div className="curated-rating-row">
+                      <span className="curated-stars" aria-label={`${companionRating} out of 5`}>
+                        {renderReviewStars(companionRating, 13)}
+                      </span>
+                      <span>{companionRating} ({companionReviews})</span>
                     </div>
-                  ) : (
-                    <button
-                      className="quick-add"
-                      type="button"
-                      onClick={() => addToCart(p)}
-                    >
-                      Add to Cart
-                    </button>
-                  )}
-                </div>
-              </motion.article>
-            );
-          })}
+                    <Link className="curated-title-link" href={`/product/${p.slug}`}>
+                      <h3>{p.name}</h3>
+                    </Link>
+                    <p className="curated-meta">{getCompanionMeta(p)}</p>
+                    <div className="curated-price-row">
+                      <p className="price">
+                        {p.price}
+                        {p.oldPrice ? <span>{p.oldPrice}</span> : null}
+                      </p>
+                      <span className="curated-stock">{p.inStock === false ? "Sold out" : "In stock"}</span>
+                    </div>
+                    {p.inStock === false ? (
+                      <button className="quick-add disabled" disabled>Out of Stock</button>
+                    ) : pCartQty > 0 ? (
+                      <div className="product-quantity-selector curated-quantity-selector">
+                        <button 
+                          type="button" 
+                          onClick={() => updateCartQuantity(getProductId(p), pCartQty - 1)}
+                          aria-label="Decrease quantity"
+                        >
+                          <Minus size={16} />
+                        </button>
+                        <span>{pCartQty}</span>
+                        <button 
+                          type="button" 
+                          onClick={() => updateCartQuantity(getProductId(p), pCartQty + 1)}
+                          aria-label="Increase quantity"
+                        >
+                          <Plus size={16} />
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        className="quick-add curated-quick-add"
+                        type="button"
+                        onClick={() => addToCart(p)}
+                      >
+                        <ShoppingBag size={16} />
+                        Add to Cart
+                      </button>
+                    )}
+                  </div>
+                </motion.article>
+              );
+            })}
+          </div>
         </div>
       </motion.section>
 
