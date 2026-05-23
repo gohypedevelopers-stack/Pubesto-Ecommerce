@@ -8,6 +8,9 @@ import {
 } from "../../../lib/reviews-store";
 
 export const dynamic = "force-dynamic";
+const REVIEW_TEXT_MIN_LENGTH = 20;
+const REVIEW_TEXT_MAX_LENGTH = 500;
+const REVIEW_NAME_MAX_LENGTH = 50;
 
 function isAdminRequest(request) {
   const adminPin = request.headers.get("x-admin-pin");
@@ -16,11 +19,26 @@ function isAdminRequest(request) {
 }
 
 function validateReviewPayload(body) {
-  if (!String(body.customerName || "").trim()) {
+  const customerName = String(body.customerName || "").trim();
+  const reviewText = String(body.text || "").trim();
+
+  if (!customerName) {
     return "Customer name is required.";
   }
-  if (!String(body.text || "").trim()) {
+  if (customerName.length < 2) {
+    return "Please enter a valid name.";
+  }
+  if (customerName.length > REVIEW_NAME_MAX_LENGTH) {
+    return `Name must be at most ${REVIEW_NAME_MAX_LENGTH} characters.`;
+  }
+  if (!reviewText) {
     return "Review text is required.";
+  }
+  if (reviewText.length < REVIEW_TEXT_MIN_LENGTH) {
+    return `Please write at least ${REVIEW_TEXT_MIN_LENGTH} characters.`;
+  }
+  if (reviewText.length > REVIEW_TEXT_MAX_LENGTH) {
+    return `Review text must be at most ${REVIEW_TEXT_MAX_LENGTH} characters.`;
   }
   const rating = Number(body.rating);
   if (!Number.isFinite(rating) || rating < 1 || rating > 5) {
@@ -63,12 +81,15 @@ export async function POST(request) {
     const reviews = await readReviews();
     const review = makeReview(body);
     const savedReviews = await writeReviews([...reviews, review]);
+    const productScopedSummary = summarizeReviews(
+      filterReviews(savedReviews, { productSlug: review.productSlug })
+    );
 
     return NextResponse.json(
       {
         success: true,
         review,
-        summary: summarizeReviews(savedReviews),
+        summary: productScopedSummary,
       },
       { status: 201 }
     );

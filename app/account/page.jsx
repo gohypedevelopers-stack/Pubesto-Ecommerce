@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Home, LogOut, MapPin, Plus, Save, Trash2, UserRound } from "lucide-react";
+import { Home, LogOut, MapPin, PackageX, Plus, Save, Trash2, UserRound } from "lucide-react";
 import { useStore } from "../../components/StoreContext";
 
 const EMPTY_ADDRESS = {
@@ -214,6 +214,10 @@ export default function AccountPage() {
               </div>
             </div>
             <div className="account-link-list">
+              <Link href="/orders/cancel">
+                <PackageX size={16} />
+                Cancel product order
+              </Link>
               <Link href="/returns/track">Track a return</Link>
               <Link href="/shop">Continue shopping</Link>
               <Link href="/cart">View cart</Link>

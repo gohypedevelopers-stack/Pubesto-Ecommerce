@@ -22,6 +22,11 @@ const INDIAN_CITIES = [
   "Kochi", "Indore", "Patna", "Bhopal", "Visakhapatnam", "Coimbatore"
 ];
 
+const REVIEW_NAME_MAX_LENGTH = 50;
+const REVIEW_TEXT_MIN_LENGTH = 20;
+const REVIEW_TEXT_MAX_LENGTH = 500;
+const REVIEW_RATING_COPY = ["Poor", "Fair", "Good", "Very good", "Excellent"];
+
 const getDeterministicSales = (prod) => {
   if (!prod) return 1100;
   const hash = (prod.slug || prod.name || "").split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
@@ -135,6 +140,10 @@ function ProductPageContent() {
   const [popupBundleSize, setPopupBundleSize] = useState(2);
   const [popupColors, setPopupColors] = useState([]);
   const [popupQuantity, setPopupQuantity] = useState(1);
+  const [bundleColorSelections, setBundleColorSelections] = useState({});
+  const [bundlePopupError, setBundlePopupError] = useState("");
+  const [bundlePopupNotice, setBundlePopupNotice] = useState("");
+  const [isAddingBundleToCart, setIsAddingBundleToCart] = useState(false);
 
   // Review Submission State
   const [isReviewFormOpen, setIsReviewFormOpen] = useState(false);
@@ -145,6 +154,7 @@ function ProductPageContent() {
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
   const [reviewSubmitSuccess, setReviewSubmitSuccess] = useState(false);
   const [reviewSubmitError, setReviewSubmitError] = useState("");
+  const reviewAutoCloseTimeoutRef = useRef(null);
 
   // Dynamic ticker states
   const [unitsSold, setUnitsSold] = useState(1100);
@@ -154,6 +164,65 @@ function ProductPageContent() {
   const [lastBuyer, setLastBuyer] = useState({ name: "Rahul", city: "Mumbai", qty: 2 });
 
   const [liveLovedCount, setLiveLovedCount] = useState(1000);
+  const trimmedFormName = formName.trim();
+  const trimmedFormText = formText.trim();
+  const reviewTextLength = formText.length;
+  const reviewTextRemaining = Math.max(0, REVIEW_TEXT_MAX_LENGTH - reviewTextLength);
+  const activeReviewRating = formHoverRating || formRating;
+  const reviewRatingLabel = REVIEW_RATING_COPY[(activeReviewRating || 1) - 1] || REVIEW_RATING_COPY[0];
+  const isReviewTextTooShort = trimmedFormText.length > 0 && trimmedFormText.length < REVIEW_TEXT_MIN_LENGTH;
+  const isReviewFormValid = trimmedFormName.length >= 2 && trimmedFormText.length >= REVIEW_TEXT_MIN_LENGTH;
+
+  const clearReviewAutoCloseTimer = () => {
+    if (reviewAutoCloseTimeoutRef.current) {
+      clearTimeout(reviewAutoCloseTimeoutRef.current);
+      reviewAutoCloseTimeoutRef.current = null;
+    }
+  };
+
+  const resetReviewFormFields = () => {
+    setFormRating(5);
+    setFormHoverRating(0);
+    setFormName("");
+    setFormText("");
+  };
+
+  const closeReviewForm = () => {
+    clearReviewAutoCloseTimer();
+    resetReviewFormFields();
+    setIsReviewFormOpen(false);
+    setReviewSubmitError("");
+    setReviewSubmitSuccess(false);
+  };
+
+  const toggleReviewForm = () => {
+    clearReviewAutoCloseTimer();
+    setReviewSubmitError("");
+    setReviewSubmitSuccess(false);
+    setIsReviewFormOpen((prev) => {
+      if (prev) resetReviewFormFields();
+      return !prev;
+    });
+  };
+
+  const openReviewForm = () => {
+    clearReviewAutoCloseTimer();
+    setReviewSubmitError("");
+    setReviewSubmitSuccess(false);
+    setIsReviewFormOpen(true);
+  };
+
+  const handleReviewNameChange = (event) => {
+    setReviewSubmitError("");
+    setReviewSubmitSuccess(false);
+    setFormName(event.target.value.slice(0, REVIEW_NAME_MAX_LENGTH));
+  };
+
+  const handleReviewTextChange = (event) => {
+    setReviewSubmitError("");
+    setReviewSubmitSuccess(false);
+    setFormText(event.target.value.slice(0, REVIEW_TEXT_MAX_LENGTH));
+  };
 
   useEffect(() => {
     const displayProductReviewCount = reviewSummary.count || productReviews.length;
@@ -168,6 +237,12 @@ function ProductPageContent() {
       setLiveLovedCount((prev) => prev + Math.floor(Math.random() * 2) + 1);
     }, 6000 + Math.random() * 4000);
     return () => clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      clearReviewAutoCloseTimer();
+    };
   }, []);
 
   useEffect(() => {
@@ -324,6 +399,11 @@ function ProductPageContent() {
 
   function handleAddToCart() {
     if (product.inStock === false) return;
+
+    if (productColors.length > 0 && quantity > 1) {
+      openCustomizationPopup(quantity);
+      return;
+    }
     
 
     const nextKey = Date.now();
@@ -341,6 +421,11 @@ function ProductPageContent() {
 
   async function handleBuyNow() {
     if (product.inStock === false || isBuyingNow) return;
+
+    if (productColors.length > 0 && quantity > 1) {
+      openCustomizationPopup(quantity);
+      return;
+    }
 
     const shopifyHandle = product.shopifyHandle || product.slug;
     setIsBuyingNow(true);
@@ -401,12 +486,21 @@ function ProductPageContent() {
 
   async function handleSubmitReview(e) {
     e.preventDefault();
-    if (!formName.trim() || !formText.trim()) {
+    if (!trimmedFormName || !trimmedFormText) {
       setReviewSubmitError("Please enter your name and review message.");
+      return;
+    }
+    if (trimmedFormName.length < 2) {
+      setReviewSubmitError("Please enter a valid name.");
+      return;
+    }
+    if (trimmedFormText.length < REVIEW_TEXT_MIN_LENGTH) {
+      setReviewSubmitError(`Please write at least ${REVIEW_TEXT_MIN_LENGTH} characters.`);
       return;
     }
 
     setIsSubmittingReview(true);
+    clearReviewAutoCloseTimer();
     setReviewSubmitError("");
     setReviewSubmitSuccess(false);
 
@@ -415,10 +509,10 @@ function ProductPageContent() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          customerName: formName,
-          text: formText,
+          customerName: trimmedFormName,
+          text: trimmedFormText,
           rating: formRating,
-          productSlug: slug,
+          productSlug: product?.slug || slug,
           productName: product?.name || ""
         })
       });
@@ -432,12 +526,10 @@ function ProductPageContent() {
         setReviewSummary(data.summary || reviewSummary);
 
         // Reset fields
-        setFormName("");
-        setFormText("");
-        setFormRating(5);
+        resetReviewFormFields();
 
         // Auto close after 3s
-        setTimeout(() => {
+        reviewAutoCloseTimeoutRef.current = setTimeout(() => {
           setIsReviewFormOpen(false);
           setReviewSubmitSuccess(false);
         }, 3000);
@@ -458,10 +550,12 @@ function ProductPageContent() {
       return; // Bypass popup entirely if product has no color options
     }
     const size = bundleId === 1 ? 1 : bundleId; // bundleId is 1, 2, or 4
+    const nextColors = normalizeBundleColors(bundleColorSelections[size], size);
     setPopupBundleSize(size);
-    const defaultColor = colors[0].name;
-    setPopupColors(Array(size).fill(defaultColor));
+    setPopupColors(nextColors);
     setPopupQuantity(1);
+    setBundlePopupError("");
+    setBundlePopupNotice("");
     setIsBundlePopupOpen(true);
   }
 
@@ -564,6 +658,120 @@ function ProductPageContent() {
     ? product.colors.filter((color) => color && color.name && color.hex)
     : [];
   const selectedColorName = selectedColor?.name || productColors[0]?.name || "";
+  const popupBundle = bundles.find((b) => b.id === popupBundleSize) || bundles[0];
+  const popupCurrentPrice = (popupBundle?.price || basePrice * popupBundleSize) * popupQuantity;
+  const popupOldPrice = (popupBundle?.oldPrice || baseOldPrice * popupBundleSize) * popupQuantity;
+  const popupUnitCount = popupBundleSize * popupQuantity;
+  const popupSelectedSummary = popupColors.filter(Boolean).join(" + ");
+  const isBundlePopupValid = (
+    popupColors.length === popupBundleSize &&
+    popupColors.every((colorName) => productColors.some((color) => color.name === colorName && color.available !== false))
+  );
+
+  function getDefaultBundleColors(size) {
+    const availableColors = productColors.filter((color) => color.available !== false);
+    if (availableColors.length === 0) return [];
+
+    return Array.from({ length: size }, (_, index) => availableColors[index % availableColors.length].name);
+  }
+
+  function normalizeBundleColors(colors, size) {
+    const defaults = getDefaultBundleColors(size);
+    return Array.from({ length: size }, (_, index) => {
+      const requested = Array.isArray(colors) ? colors[index] : "";
+      const requestedColor = productColors.find((color) => color.name === requested && color.available !== false);
+      return requestedColor?.name || defaults[index] || "";
+    });
+  }
+
+  function persistBundleSelection(colors = popupColors, size = popupBundleSize) {
+    const normalizedColors = normalizeBundleColors(colors, size);
+    setBundleColorSelections((current) => ({ ...current, [size]: normalizedColors }));
+    setQuantity(size);
+
+    if (size === 1) {
+      const colorObject = productColors.find((color) => color.name === normalizedColors[0]);
+      if (colorObject) handleColorSelect(colorObject);
+    }
+
+    return normalizedColors;
+  }
+
+  function updatePopupColor(index, colorName) {
+    const colorObject = productColors.find((color) => color.name === colorName && color.available !== false);
+    if (!colorObject) return;
+
+    setBundlePopupError("");
+    setBundlePopupNotice("");
+    const updated = normalizeBundleColors(popupColors, popupBundleSize);
+    updated[index] = colorObject.name;
+    setPopupColors(updated);
+    setBundleColorSelections((current) => ({ ...current, [popupBundleSize]: updated }));
+  }
+
+  function closeBundlePopup() {
+    setBundlePopupError("");
+    setBundlePopupNotice("");
+    setIsBundlePopupOpen(false);
+  }
+
+  async function handleCustomizedBundleAction(action) {
+    if (isBuyingNow || isAddingBundleToCart) return;
+
+    const selectedColors = persistBundleSelection();
+    if (!selectedColors.length || !selectedColors.every(Boolean)) {
+      setBundlePopupError("Please select a color for every item in this bundle.");
+      return;
+    }
+
+    const bundleProduct = {
+      ...product,
+      selectedColors,
+      selectedBundleSize: popupBundleSize,
+      selectedBundleTitle: popupBundle?.title || `Pack of ${popupBundleSize}`,
+    };
+
+    if (action === "cart") {
+      setIsAddingBundleToCart(true);
+      try {
+        await addToCart(bundleProduct, {
+          quantity: popupQuantity,
+          selectedColors,
+          openCart: true,
+        });
+        setBundlePopupNotice("Customized bundle added to cart.");
+        window.setTimeout(() => {
+          setIsBundlePopupOpen(false);
+          setBundlePopupNotice("");
+        }, 650);
+      } catch (error) {
+        console.error("Bundle add to cart failed:", error);
+        setBundlePopupError("Could not add this bundle to cart. Please try again.");
+      } finally {
+        setIsAddingBundleToCart(false);
+      }
+      return;
+    }
+
+    setIsBuyingNow(true);
+    try {
+      await addToCart(bundleProduct, {
+        quantity: popupQuantity,
+        selectedColors,
+        openCart: false,
+      });
+      await checkout({
+        items: [{ product: bundleProduct, quantity: popupQuantity }],
+        amount: popupCurrentPrice,
+      });
+    } catch (error) {
+      console.error("Popup checkout redirection failed:", error);
+      setBundlePopupError("Checkout could not start. Please try again.");
+    } finally {
+      setIsBuyingNow(false);
+      setIsBundlePopupOpen(false);
+    }
+  }
 
   function handleColorSelect(color) {
     if (!color || color.available === false) return;
@@ -804,6 +1012,32 @@ function ProductPageContent() {
                       {b.badgeLabel && <span className="bundle-badge">{b.badgeLabel}</span>}
                     </div>
                     <div className="bundle-subtext">{b.subtext}</div>
+                    {productColors.length > 0 && (
+                      <div className="bundle-color-summary" aria-label={`${b.title} selected colors`}>
+                        {normalizeBundleColors(bundleColorSelections[b.id], b.id).map((colorName, index) => {
+                          const color = productColors.find((item) => item.name === colorName);
+                          return (
+                            <span
+                              key={`${b.id}-${index}-${colorName}`}
+                              className="bundle-color-dot"
+                              style={{ "--swatch-color": color?.hex || "#f5f5f5" }}
+                              title={colorName}
+                            />
+                          );
+                        })}
+                        <button
+                          className="bundle-customize-link"
+                          type="button"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            setQuantity(b.id);
+                            openCustomizationPopup(b.id);
+                          }}
+                        >
+                          Customize
+                        </button>
+                      </div>
+                    )}
                   </div>
                   <div className="bundle-pricing">
                     <div className="bundle-price">Rs. {b.price}</div>
@@ -956,28 +1190,16 @@ function ProductPageContent() {
         </div>
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '32px' }}>
+      <div className="write-review-toggle-wrap">
         <button
-          onClick={() => setIsReviewFormOpen(!isReviewFormOpen)}
-          style={{
-            background: 'transparent',
-            color: 'var(--brand-color)',
-            border: '2px solid var(--brand-color)',
-            borderRadius: '100px',
-            padding: '10px 28px',
-            fontWeight: 700,
-            fontSize: '14px',
-            cursor: 'pointer',
-            transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            boxShadow: '0 4px 12px rgba(63, 100, 105, 0.05)'
-          }}
+          onClick={toggleReviewForm}
           type="button"
-          className="write-review-toggle-btn"
+          className={`write-review-toggle-btn ${isReviewFormOpen ? "is-open" : ""}`}
+          aria-expanded={isReviewFormOpen}
+          aria-controls="customer-review-form"
         >
-          ✍️ {isReviewFormOpen ? 'Close Form' : 'Write a Review'}
+          <Star size={16} />
+          <span>{isReviewFormOpen ? "Close Form" : "Write a Review"}</span>
         </button>
       </div>
 
@@ -988,53 +1210,59 @@ function ProductPageContent() {
             animate={{ height: 'auto', opacity: 1, marginBottom: 40 }}
             exit={{ height: 0, opacity: 0, marginBottom: 0 }}
             transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            style={{ overflow: 'hidden', width: '100%', maxWidth: '580px', margin: '0 auto' }}
+            className="review-form-shell"
           >
             <form
+              id="customer-review-form"
               onSubmit={handleSubmitReview}
-              style={{
-                background: 'var(--white-color)',
-                border: '1.5px solid rgba(63, 100, 105, 0.12)',
-                borderRadius: '20px',
-                padding: '28px 24px',
-                boxShadow: '0 20px 50px rgba(63, 100, 105, 0.08)',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '18px'
-              }}
+              className="review-form-card"
             >
-              <h3 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--ink)', textAlign: 'center', margin: '0 0 4px' }}>
-                Share Your Experience
-              </h3>
+              <div className="review-form-title-wrap">
+                <h3 className="review-form-title">Share Your Experience</h3>
+                <p className="review-form-subtitle">Your feedback helps other shoppers choose better.</p>
+              </div>
 
               {/* Star Selection */}
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
-                <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              <div className="review-rating-wrap">
+                <span className="review-form-label">
                   Your Rating
                 </span>
-                <div style={{ display: 'flex', gap: '6px', color: '#fbbf24', cursor: 'pointer' }}>
+                <div className="review-star-picker" role="radiogroup" aria-label="Choose your rating">
                   {[1, 2, 3, 4, 5].map((starIdx) => {
-                    const isFilled = starIdx <= (formHoverRating || formRating);
+                    const isFilled = starIdx <= activeReviewRating;
                     return (
-                      <Star
+                      <button
                         key={starIdx}
-                        size={28}
-                        fill={isFilled ? "currentColor" : "none"}
-                        strokeWidth={1.8}
+                        type="button"
+                        role="radio"
+                        aria-checked={formRating === starIdx}
+                        aria-label={`${starIdx} star${starIdx === 1 ? "" : "s"}`}
+                        className={`interactive-form-star ${isFilled ? "is-filled" : ""}`}
                         onMouseEnter={() => setFormHoverRating(starIdx)}
                         onMouseLeave={() => setFormHoverRating(0)}
-                        onClick={() => setFormRating(starIdx)}
-                        style={{ transition: 'transform 0.2s ease' }}
-                        className="interactive-form-star"
-                      />
+                        onFocus={() => setFormHoverRating(starIdx)}
+                        onBlur={() => setFormHoverRating(0)}
+                        onClick={() => {
+                          setFormRating(starIdx);
+                          setReviewSubmitError("");
+                          setReviewSubmitSuccess(false);
+                        }}
+                      >
+                        <Star
+                          size={28}
+                          fill={isFilled ? "currentColor" : "none"}
+                          strokeWidth={1.8}
+                        />
+                      </button>
                     );
                   })}
                 </div>
+                <p className="review-rating-copy">{activeReviewRating}/5 - {reviewRatingLabel}</p>
               </div>
 
               {/* Name Input */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <label htmlFor="review-form-name" style={{ fontSize: '12px', fontWeight: 700, color: 'var(--brand-color)', textTransform: 'uppercase', letterSpacing: '0.03em' }}>
+              <div className="review-form-field">
+                <label htmlFor="review-form-name" className="review-form-label">
                   Your Name
                 </label>
                 <input
@@ -1042,103 +1270,61 @@ function ProductPageContent() {
                   type="text"
                   placeholder="Enter your name (e.g. Rahul S.)"
                   value={formName}
-                  onChange={(e) => setFormName(e.target.value)}
+                  onChange={handleReviewNameChange}
+                  maxLength={REVIEW_NAME_MAX_LENGTH}
                   required
-                  style={{
-                    width: '100%',
-                    padding: '12px 16px',
-                    borderRadius: '10px',
-                    border: '1.5px solid rgba(63, 100, 105, 0.16)',
-                    outline: 'none',
-                    fontSize: '14px',
-                    background: 'var(--cream)',
-                    color: 'var(--ink)',
-                    transition: 'border-color 0.25s'
-                  }}
                   className="review-form-input"
                 />
+                <p className="review-field-meta">{formName.length}/{REVIEW_NAME_MAX_LENGTH}</p>
               </div>
 
               {/* Textarea */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <label htmlFor="review-form-text" style={{ fontSize: '12px', fontWeight: 700, color: 'var(--brand-color)', textTransform: 'uppercase', letterSpacing: '0.03em' }}>
+              <div className="review-form-field">
+                <label htmlFor="review-form-text" className="review-form-label">
                   Review Comments
                 </label>
                 <textarea
                   id="review-form-text"
                   placeholder="What did you like about this product? Tell us your experience..."
                   value={formText}
-                  onChange={(e) => setFormText(e.target.value)}
+                  onChange={handleReviewTextChange}
                   required
-                  rows={4}
-                  style={{
-                    width: '100%',
-                    padding: '12px 16px',
-                    borderRadius: '10px',
-                    border: '1.5px solid rgba(63, 100, 105, 0.16)',
-                    outline: 'none',
-                    fontSize: '14px',
-                    background: 'var(--cream)',
-                    color: 'var(--ink)',
-                    resize: 'none',
-                    lineHeight: 1.5,
-                    transition: 'border-color 0.25s'
-                  }}
+                  rows={5}
+                  maxLength={REVIEW_TEXT_MAX_LENGTH}
                   className="review-form-input"
                 />
+                <p className={`review-field-meta ${isReviewTextTooShort ? "is-warning" : ""}`}>
+                  {isReviewTextTooShort
+                    ? `Please add at least ${REVIEW_TEXT_MIN_LENGTH} characters.`
+                    : `${reviewTextRemaining} characters remaining.`}
+                </p>
               </div>
 
               {/* Submission Notice */}
               {reviewSubmitSuccess && (
-                <div style={{ color: '#059669', background: '#ecfdf5', border: '1px solid #a7f3d0', borderRadius: '10px', padding: '10px 14px', fontSize: '13px', fontWeight: 600 }}>
-                  🎉 Review submitted successfully! Thank you for sharing your feedback.
+                <div className="review-form-alert is-success" role="status">
+                  Review submitted successfully. Thank you for sharing your feedback.
                 </div>
               )}
               {reviewSubmitError && (
-                <div style={{ color: '#dc2626', background: '#fef2f2', border: '1px solid #fca5a5', borderRadius: '10px', padding: '10px 14px', fontSize: '13px', fontWeight: 600 }}>
-                  ❌ {reviewSubmitError}
+                <div className="review-form-alert is-error" role="alert">
+                  {reviewSubmitError}
                 </div>
               )}
 
               {/* Buttons */}
-              <div style={{ display: 'flex', gap: '12px', marginTop: '4px' }}>
+              <div className="review-form-actions">
                 <button
                   type="submit"
-                  disabled={isSubmittingReview || reviewSubmitSuccess}
-                  style={{
-                    flex: 1,
-                    background: 'var(--brand-color)',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '10px',
-                    padding: '14px',
-                    fontWeight: 700,
-                    fontSize: '14px',
-                    cursor: (isSubmittingReview || reviewSubmitSuccess) ? 'not-allowed' : 'pointer',
-                    opacity: (isSubmittingReview || reviewSubmitSuccess) ? 0.7 : 1,
-                    transition: 'opacity 0.25s',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '8px'
-                  }}
+                  disabled={isSubmittingReview || reviewSubmitSuccess || !isReviewFormValid}
+                  className="review-submit-btn"
                 >
                   {isSubmittingReview ? 'Submitting...' : 'Submit Review'}
                 </button>
                 <button
                   type="button"
-                  onClick={() => setIsReviewFormOpen(false)}
-                  style={{
-                    background: 'transparent',
-                    color: 'var(--muted)',
-                    border: '1.5px solid rgba(63, 100, 105, 0.2)',
-                    borderRadius: '10px',
-                    padding: '14px 20px',
-                    fontWeight: 600,
-                    fontSize: '14px',
-                    cursor: 'pointer',
-                    transition: 'all 0.25s'
-                  }}
+                  onClick={closeReviewForm}
+                  className="review-cancel-btn"
                 >
                   Cancel
                 </button>
@@ -1149,42 +1335,15 @@ function ProductPageContent() {
       </AnimatePresence>
 
       {!reviewsLoading && productReviews.length === 0 ? (
-        <div 
-          className="no-reviews-box"
-          style={{
-            background: 'var(--cream)',
-            border: '2px dashed rgba(63, 100, 105, 0.15)',
-            borderRadius: '24px',
-            padding: '48px 24px',
-            textAlign: 'center',
-            maxWidth: '580px',
-            margin: '20px auto 0',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: '16px',
-            boxShadow: '0 8px 30px rgba(63, 100, 105, 0.03)'
-          }}
-        >
-          <div style={{ fontSize: '48px' }}>✨</div>
-          <h3 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--brand-color)', margin: 0 }}>Be the First to Review!</h3>
-          <p style={{ fontSize: '15px', color: 'var(--muted)', lineHeight: 1.6, maxWidth: '420px', margin: 0 }}>
+        <div className="no-reviews-box">
+          <div className="no-reviews-icon" aria-hidden="true">+</div>
+          <h3 className="no-reviews-title">Be the First to Review</h3>
+          <p className="no-reviews-copy">
             No reviews yet for this product. Share your experience with other shoppers by leaving a detailed rating and review.
           </p>
           <button
-            onClick={() => setIsReviewFormOpen(true)}
-            style={{
-              background: 'var(--brand-color)',
-              color: 'white',
-              border: 'none',
-              borderRadius: '100px',
-              padding: '12px 32px',
-              fontWeight: 700,
-              fontSize: '14px',
-              cursor: 'pointer',
-              boxShadow: '0 4px 12px rgba(63, 100, 105, 0.15)',
-              transition: 'all 0.25s'
-            }}
+            onClick={openReviewForm}
+            className="no-reviews-cta"
             type="button"
           >
             Leave a Review
@@ -1327,7 +1486,7 @@ function ProductPageContent() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={() => setIsBundlePopupOpen(false)}
+            onClick={closeBundlePopup}
           >
             <motion.div 
               className="bundle-popup-content"
@@ -1339,7 +1498,7 @@ function ProductPageContent() {
             >
               <button 
                 className="bundle-popup-close"
-                onClick={() => setIsBundlePopupOpen(false)}
+                onClick={closeBundlePopup}
                 aria-label="Close customization popup"
               >
                 <X size={18} />
@@ -1348,39 +1507,44 @@ function ProductPageContent() {
               <div className="bundle-popup-header">
                 <h2>Customize Your Bundle</h2>
                 <p>Select your preferred color combination below</p>
+                <div className="bundle-popup-meta">
+                  <span>{popupBundle?.title || `Pack of ${popupBundleSize}`}</span>
+                  <span>{popupUnitCount} total {popupUnitCount === 1 ? "item" : "items"}</span>
+                </div>
               </div>
 
               <div className="bundle-popup-grid">
                 <div className="bundle-popup-slots">
                   {Array.from({ length: popupBundleSize }).map((_, index) => {
                     const chosenColorName = popupColors[index] || "";
-                    const chosenColorObj = productColors.find(c => c.name === chosenColorName) || productColors[0];
+                    const chosenColorObj = productColors.find(c => c.name === chosenColorName) || productColors.find(c => c.available !== false) || productColors[0];
                     const slotImg = chosenColorObj?.image || product.image;
 
                     return (
                       <div key={index} className="bundle-slot-card">
-                        <span className="slot-title">Fan #{index + 1} Color</span>
+                        <span className="slot-title">Item #{index + 1} Color</span>
                         <div className="slot-body">
                           <div className="slot-preview">
                             <img src={slotImg} alt={chosenColorName} />
                           </div>
                           <div className="slot-colors">
                             <p className="color-name-label">{chosenColorName || "Select Color"}</p>
-                            <div className="color-options-row">
+                            <div className="color-options-row" role="radiogroup" aria-label={`Choose color for item ${index + 1}`}>
                               {productColors.map((color) => {
                                 const isSelected = chosenColorName === color.name;
+                                const isUnavailable = color.available === false;
                                 return (
                                   <button
                                     key={color.name}
-                                    className={`color-chip ${isSelected ? 'active' : ''}`}
+                                    className={`color-chip ${isSelected ? 'active' : ''} ${isUnavailable ? 'is-disabled' : ''}`}
                                     style={{ "--swatch-color": color.hex }}
-                                    title={color.name}
+                                    title={isUnavailable ? `${color.name} unavailable` : color.name}
                                     type="button"
-                                    onClick={() => {
-                                      const updated = [...popupColors];
-                                      updated[index] = color.name;
-                                      setPopupColors(updated);
-                                    }}
+                                    role="radio"
+                                    aria-checked={isSelected}
+                                    aria-label={`${color.name}${isUnavailable ? " unavailable" : ""}`}
+                                    disabled={isUnavailable}
+                                    onClick={() => updatePopupColor(index, color.name)}
                                   >
                                     {isSelected && <Check size={14} strokeWidth={3} />}
                                   </button>
@@ -1395,6 +1559,25 @@ function ProductPageContent() {
                 </div>
               </div>
 
+              <div className="bundle-popup-summary">
+                <div>
+                  <span className="summary-label">Selected combination</span>
+                  <strong>{popupSelectedSummary || "Choose colors"}</strong>
+                </div>
+                <span className="summary-count">{popupQuantity} bundle{popupQuantity > 1 ? "s" : ""}</span>
+              </div>
+
+              {bundlePopupNotice && (
+                <div className="bundle-popup-alert success" role="status">
+                  {bundlePopupNotice}
+                </div>
+              )}
+              {bundlePopupError && (
+                <div className="bundle-popup-alert error" role="alert">
+                  {bundlePopupError}
+                </div>
+              )}
+
               <div className="bundle-popup-footer">
                 <div className="footer-left">
                   <div className="bundle-quantity-control">
@@ -1402,75 +1585,65 @@ function ProductPageContent() {
                     <div className="qty-selector">
                       <button 
                         type="button" 
-                        onClick={() => setPopupQuantity(q => Math.max(1, q - 1))}
+                        onClick={() => {
+                          setBundlePopupNotice("");
+                          setBundlePopupError("");
+                          setPopupQuantity(q => Math.max(1, q - 1));
+                        }}
                         aria-label="Decrease bundle quantity"
+                        disabled={popupQuantity <= 1}
                       >
                         <Minus size={14} strokeWidth={2.5} />
                       </button>
                       <span className="qty-count">{popupQuantity}</span>
                       <button 
                         type="button" 
-                        onClick={() => setPopupQuantity(q => q + 1)}
+                        onClick={() => {
+                          setBundlePopupNotice("");
+                          setBundlePopupError("");
+                          setPopupQuantity(q => Math.min(9, q + 1));
+                        }}
                         aria-label="Increase bundle quantity"
+                        disabled={popupQuantity >= 9}
                       >
                         <Plus size={14} strokeWidth={2.5} />
                       </button>
                     </div>
                   </div>
 
-                  {(() => {
-                    const bundleObj = bundles.find(b => b.id === popupBundleSize) || bundles[0];
-                    const currentPrice = bundleObj.price * popupQuantity;
-                    const oldPrice = bundleObj.oldPrice * popupQuantity;
-
-                    return (
-                      <div className="bundle-popup-price">
-                        <div className="popup-price-row">
-                          <span className="current-price">Rs. {currentPrice}</span>
-                          {oldPrice > currentPrice && (
-                            <span className="old-price">Rs. {oldPrice}</span>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })()}
+                  <div className="bundle-popup-price">
+                    <div className="popup-price-row">
+                      <span className="current-price">Rs. {popupCurrentPrice}</span>
+                      {popupOldPrice > popupCurrentPrice && (
+                        <span className="old-price">Rs. {popupOldPrice}</span>
+                      )}
+                    </div>
+                    {popupOldPrice > popupCurrentPrice && (
+                      <span className="popup-save-label">Save Rs. {popupOldPrice - popupCurrentPrice}</span>
+                    )}
+                  </div>
                 </div>
 
-                <button 
-                  className="bundle-popup-next"
-                  type="button"
-                  onClick={async () => {
-                    if (isBuyingNow) return;
-                    setIsBuyingNow(true);
-                    try {
-                      // 1. Add customized bundle to cart
-                      await addToCart(product, {
-                        quantity: popupQuantity,
-                        selectedColors: popupColors,
-                        openCart: false
-                      });
-                      // 2. Direct storefront checkout redirect
-                      await checkout({
-                        items: [{
-                          product: {
-                            ...product,
-                            selectedColors: popupColors
-                          },
-                          quantity: popupQuantity
-                        }]
-                      });
-                    } catch (error) {
-                      console.error("Popup checkout redirection failed:", error);
-                    } finally {
-                      setIsBuyingNow(false);
-                      setIsBundlePopupOpen(false);
-                    }
-                  }}
-                  disabled={isBuyingNow}
-                >
-                  <span>{isBuyingNow ? "Redirecting..." : "Next"}</span>
-                  {!isBuyingNow && <ArrowRight size={18} strokeWidth={2.2} />}
-                </button>
+                <div className="bundle-popup-actions">
+                  <button
+                    className="bundle-popup-cart"
+                    type="button"
+                    onClick={() => handleCustomizedBundleAction("cart")}
+                    disabled={!isBundlePopupValid || isBuyingNow || isAddingBundleToCart}
+                  >
+                    <ShoppingBag size={17} strokeWidth={2.2} />
+                    <span>{isAddingBundleToCart ? "Adding..." : "Add to Cart"}</span>
+                  </button>
+                  <button 
+                    className="bundle-popup-next"
+                    type="button"
+                    onClick={() => handleCustomizedBundleAction("checkout")}
+                    disabled={!isBundlePopupValid || isBuyingNow || isAddingBundleToCart}
+                  >
+                    <span>{isBuyingNow ? "Redirecting..." : "Next"}</span>
+                    {!isBuyingNow && <ArrowRight size={18} strokeWidth={2.2} />}
+                  </button>
+                </div>
               </div>
             </motion.div>
           </motion.div>

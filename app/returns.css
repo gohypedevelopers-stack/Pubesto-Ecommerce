@@ -236,7 +236,8 @@
 }
 
 .returns-input.error,
-.returns-textarea.error {
+.returns-textarea.error,
+.returns-select.error {
   border-color: #e53e3e;
   box-shadow: 0 0 0 3px rgba(229, 62, 62, 0.08);
 }
@@ -250,6 +251,36 @@
   font-size: 12px;
   color: #e53e3e;
   font-weight: 500;
+}
+
+.returns-policy-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 20px 0 4px;
+  cursor: pointer;
+}
+
+.returns-policy-check input {
+  flex-shrink: 0;
+  margin-top: 3px;
+  accent-color: var(--brand-color, #1b624b);
+}
+
+.returns-policy-check span {
+  font-size: 13px;
+  color: var(--ink, #1a1a1a);
+  line-height: 1.5;
+}
+
+.returns-inline-error {
+  margin-top: 16px;
+  padding: 12px 16px;
+  background: rgba(229, 62, 62, 0.07);
+  border: 1px solid rgba(229, 62, 62, 0.2);
+  border-radius: 10px;
+  font-size: 13px;
+  color: #c53030;
 }
 
 /* ── Reason Cards ───────────────────────────────────────────── */
