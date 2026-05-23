@@ -136,12 +136,39 @@ function ProductPageContent() {
   const [popupColors, setPopupColors] = useState([]);
   const [popupQuantity, setPopupQuantity] = useState(1);
 
+  // Review Submission State
+  const [isReviewFormOpen, setIsReviewFormOpen] = useState(false);
+  const [formRating, setFormRating] = useState(5);
+  const [formHoverRating, setFormHoverRating] = useState(0);
+  const [formName, setFormName] = useState("");
+  const [formText, setFormText] = useState("");
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+  const [reviewSubmitSuccess, setReviewSubmitSuccess] = useState(false);
+  const [reviewSubmitError, setReviewSubmitError] = useState("");
+
   // Dynamic ticker states
   const [unitsSold, setUnitsSold] = useState(1100);
   const [stockCount, setStockCount] = useState(8);
   const [activeViewers, setActiveViewers] = useState(24);
   const [tickerIndex, setTickerIndex] = useState(0);
   const [lastBuyer, setLastBuyer] = useState({ name: "Rahul", city: "Mumbai", qty: 2 });
+
+  const [liveLovedCount, setLiveLovedCount] = useState(1000);
+
+  useEffect(() => {
+    const displayProductReviewCount = reviewSummary.count || productReviews.length;
+    const initialLoved = displayProductReviewCount > 0
+      ? Math.max(1000, displayProductReviewCount * 127)
+      : 1000;
+    setLiveLovedCount(initialLoved);
+  }, [reviewSummary.count, productReviews.length]);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setLiveLovedCount((prev) => prev + Math.floor(Math.random() * 2) + 1);
+    }, 6000 + Math.random() * 4000);
+    return () => clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     // Force scroll to top with a slight delay to ensure content is ready
@@ -372,6 +399,59 @@ function ProductPageContent() {
     setQuantity(prev => Math.max(1, prev + amount));
   }
 
+  async function handleSubmitReview(e) {
+    e.preventDefault();
+    if (!formName.trim() || !formText.trim()) {
+      setReviewSubmitError("Please enter your name and review message.");
+      return;
+    }
+
+    setIsSubmittingReview(true);
+    setReviewSubmitError("");
+    setReviewSubmitSuccess(false);
+
+    try {
+      const response = await fetch("/api/reviews", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          customerName: formName,
+          text: formText,
+          rating: formRating,
+          productSlug: slug,
+          productName: product?.name || ""
+        })
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        setReviewSubmitSuccess(true);
+        // Append new review locally
+        setProductReviews((prev) => [data.review, ...prev]);
+        setReviewSummary(data.summary || reviewSummary);
+
+        // Reset fields
+        setFormName("");
+        setFormText("");
+        setFormRating(5);
+
+        // Auto close after 3s
+        setTimeout(() => {
+          setIsReviewFormOpen(false);
+          setReviewSubmitSuccess(false);
+        }, 3000);
+      } else {
+        setReviewSubmitError(data.error || "Failed to submit review.");
+      }
+    } catch (err) {
+      console.error(err);
+      setReviewSubmitError("An error occurred. Please try again.");
+    } finally {
+      setIsSubmittingReview(false);
+    }
+  }
+
   function openCustomizationPopup(bundleId) {
     const colors = Array.isArray(product.colors) ? product.colors.filter(c => c && c.name && c.hex) : [];
     if (colors.length === 0) {
@@ -423,8 +503,8 @@ function ProductPageContent() {
     ? product.highlights.filter(Boolean)
     : ["Premium Quality", "Artisanal Design", "Durability Guaranteed"];
 
-  const FREE_SHIPPING_THRESHOLD = 999;
-  const SHIPPING_FEE = 99;
+  const FREE_SHIPPING_THRESHOLD = 500;
+  const SHIPPING_FEE = 70;
 
   const getShippingSubtext = (price, label = "") => {
     const shippingText = price >= FREE_SHIPPING_THRESHOLD
@@ -438,7 +518,7 @@ function ProductPageContent() {
       id: 1, 
       title: 'Single', 
       badge: null,
-      subtext: getShippingSubtext(basePrice, 'COD & Prepaid Available'), 
+      subtext: getShippingSubtext(basePrice, 'Priority Dispatch'), 
       price: basePrice, 
       oldPrice: baseOldPrice 
     },
@@ -555,9 +635,7 @@ function ProductPageContent() {
 
   const displayProductRating = reviewSummary.averageRating || Number(product.rating || 5) || 5;
   const displayProductReviewCount = reviewSummary.count || productReviews.length;
-  const lovedCustomerCount = displayProductReviewCount > 0
-    ? Math.max(1000, displayProductReviewCount * 127).toLocaleString("en-IN")
-    : "10,000";
+  const lovedCustomerCount = liveLovedCount.toLocaleString("en-IN");
 
   return (
     <motion.main 
@@ -678,7 +756,7 @@ function ProductPageContent() {
             </div>
 
             <div className="marketing-banners">
-              <div className="banner-green">💳 Prepaid orders get priority dispatch + extra savings!</div>
+              <div className="banner-green">💳 100% Secure Payments — UPI, NetBanking & Cards!</div>
               <div className="banner-text">🎇 SUMMER SALE — BEST PRICE GUARANTEED!</div>
             </div>
 
@@ -769,16 +847,16 @@ function ProductPageContent() {
 
 
             <div className="trust-features-grid">
-              <div className="trust-feature">
-                <div className="tf-icon"><CheckSquare size={32} strokeWidth={1.2} /></div>
-                <span>COD<br/>Available</span>
+              <div className="trust-feature secure-pay">
+                <div className="tf-icon"><ShieldCheck size={28} strokeWidth={1.6} /></div>
+                <span>100% Secure<br/>Payments</span>
               </div>
-              <div className="trust-feature">
-                <div className="tf-icon"><Tag size={32} strokeWidth={1.2} /></div>
-                <span>EXTRA<br/>SAVINGS on<br/>PREPAID</span>
+              <div className="trust-feature priority-ship">
+                <div className="tf-icon"><Tag size={28} strokeWidth={1.6} /></div>
+                <span>Priority<br/>Dispatch</span>
               </div>
-              <div className="trust-feature">
-                <div className="tf-icon"><Undo2 size={32} strokeWidth={1.2} /></div>
+              <div className="trust-feature returns-policy">
+                <div className="tf-icon"><Undo2 size={28} strokeWidth={1.6} /></div>
                 <span>7-Day Worry<br/>Free Returns</span>
               </div>
             </div>
@@ -853,12 +931,18 @@ function ProductPageContent() {
     })()}
 
     {/* Customer Reviews Section */}
-    {(reviewsLoading || productReviews.length > 0) && (
     <section className="customer-reviews-section">
       <div className="reviews-header">
         <p className="eyebrow" style={{ textAlign: 'center', marginBottom: '8px' }}>Trusted by thousands</p>
         <div className="loved-badge">
-          Loved by {lovedCustomerCount}+ Customers
+          <div className="avatar-stack">
+            <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=150&h=150&q=80" alt="Customer avatar" />
+            <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&h=150&q=80" alt="Customer avatar" />
+            <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&h=150&q=80" alt="Customer avatar" />
+            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&h=150&q=80" alt="Customer avatar" />
+          </div>
+          <span className="heart-icon">❤️</span>
+          <span>Loved by {lovedCustomerCount}+ Customers</span>
         </div>
         <h2>What Our Customers Say</h2>
         <div className="reviews-meta">
@@ -871,40 +955,276 @@ function ProductPageContent() {
           </span>
         </div>
       </div>
-      <div className="reviews-carousel">
-        <button className="review-nav review-prev" onClick={() => { if (reviewTrackRef.current) reviewTrackRef.current.scrollBy({ left: -344, behavior: 'smooth' }); }}>‹</button>
-        <div className="reviews-track" ref={reviewTrackRef}>
-          {(reviewsLoading
-            ? [{ id: "loading", text: "Loading customer reviews...", customerName: "Pubesto", rating: 5, customerImage: "" }]
-            : productReviews
-          ).map((review, i) => (
-            <div className="review-card" key={review.id || i}>
-              <div className="review-stars">{renderReviewStars(review.rating || displayProductRating)}</div>
-              <p className="review-text">"{review.text}"</p>
-              <div className="reviewer-info">
-                <div className="reviewer-avatar">
-                  <img src={review.customerImage || getReviewAvatar(review.customerName)}
-                    alt={review.customerName}
-                    loading="lazy"
-                    fetchPriority="low"
-                    decoding="async"
-                  />
-                </div>
-                <div className="reviewer-details">
-                  <h4>{review.customerName}</h4>
-                  <p>Verified Buyer</p>
-                </div>
-                <div className="verified-tag">
-                  <ShieldCheck size={18} fill="rgba(27, 98, 75, 0.1)" />
+
+      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '32px' }}>
+        <button
+          onClick={() => setIsReviewFormOpen(!isReviewFormOpen)}
+          style={{
+            background: 'transparent',
+            color: 'var(--brand-color)',
+            border: '2px solid var(--brand-color)',
+            borderRadius: '100px',
+            padding: '10px 28px',
+            fontWeight: 700,
+            fontSize: '14px',
+            cursor: 'pointer',
+            transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            boxShadow: '0 4px 12px rgba(63, 100, 105, 0.05)'
+          }}
+          type="button"
+          className="write-review-toggle-btn"
+        >
+          ✍️ {isReviewFormOpen ? 'Close Form' : 'Write a Review'}
+        </button>
+      </div>
+
+      <AnimatePresence>
+        {isReviewFormOpen && (
+          <motion.div
+            initial={{ height: 0, opacity: 0, marginBottom: 0 }}
+            animate={{ height: 'auto', opacity: 1, marginBottom: 40 }}
+            exit={{ height: 0, opacity: 0, marginBottom: 0 }}
+            transition={{ type: "spring", damping: 25, stiffness: 200 }}
+            style={{ overflow: 'hidden', width: '100%', maxWidth: '580px', margin: '0 auto' }}
+          >
+            <form
+              onSubmit={handleSubmitReview}
+              style={{
+                background: 'var(--white-color)',
+                border: '1.5px solid rgba(63, 100, 105, 0.12)',
+                borderRadius: '20px',
+                padding: '28px 24px',
+                boxShadow: '0 20px 50px rgba(63, 100, 105, 0.08)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '18px'
+              }}
+            >
+              <h3 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--ink)', textAlign: 'center', margin: '0 0 4px' }}>
+                Share Your Experience
+              </h3>
+
+              {/* Star Selection */}
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
+                <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  Your Rating
+                </span>
+                <div style={{ display: 'flex', gap: '6px', color: '#fbbf24', cursor: 'pointer' }}>
+                  {[1, 2, 3, 4, 5].map((starIdx) => {
+                    const isFilled = starIdx <= (formHoverRating || formRating);
+                    return (
+                      <Star
+                        key={starIdx}
+                        size={28}
+                        fill={isFilled ? "currentColor" : "none"}
+                        strokeWidth={1.8}
+                        onMouseEnter={() => setFormHoverRating(starIdx)}
+                        onMouseLeave={() => setFormHoverRating(0)}
+                        onClick={() => setFormRating(starIdx)}
+                        style={{ transition: 'transform 0.2s ease' }}
+                        className="interactive-form-star"
+                      />
+                    );
+                  })}
                 </div>
               </div>
-            </div>
-          ))}
+
+              {/* Name Input */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <label htmlFor="review-form-name" style={{ fontSize: '12px', fontWeight: 700, color: 'var(--brand-color)', textTransform: 'uppercase', letterSpacing: '0.03em' }}>
+                  Your Name
+                </label>
+                <input
+                  id="review-form-name"
+                  type="text"
+                  placeholder="Enter your name (e.g. Rahul S.)"
+                  value={formName}
+                  onChange={(e) => setFormName(e.target.value)}
+                  required
+                  style={{
+                    width: '100%',
+                    padding: '12px 16px',
+                    borderRadius: '10px',
+                    border: '1.5px solid rgba(63, 100, 105, 0.16)',
+                    outline: 'none',
+                    fontSize: '14px',
+                    background: 'var(--cream)',
+                    color: 'var(--ink)',
+                    transition: 'border-color 0.25s'
+                  }}
+                  className="review-form-input"
+                />
+              </div>
+
+              {/* Textarea */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <label htmlFor="review-form-text" style={{ fontSize: '12px', fontWeight: 700, color: 'var(--brand-color)', textTransform: 'uppercase', letterSpacing: '0.03em' }}>
+                  Review Comments
+                </label>
+                <textarea
+                  id="review-form-text"
+                  placeholder="What did you like about this product? Tell us your experience..."
+                  value={formText}
+                  onChange={(e) => setFormText(e.target.value)}
+                  required
+                  rows={4}
+                  style={{
+                    width: '100%',
+                    padding: '12px 16px',
+                    borderRadius: '10px',
+                    border: '1.5px solid rgba(63, 100, 105, 0.16)',
+                    outline: 'none',
+                    fontSize: '14px',
+                    background: 'var(--cream)',
+                    color: 'var(--ink)',
+                    resize: 'none',
+                    lineHeight: 1.5,
+                    transition: 'border-color 0.25s'
+                  }}
+                  className="review-form-input"
+                />
+              </div>
+
+              {/* Submission Notice */}
+              {reviewSubmitSuccess && (
+                <div style={{ color: '#059669', background: '#ecfdf5', border: '1px solid #a7f3d0', borderRadius: '10px', padding: '10px 14px', fontSize: '13px', fontWeight: 600 }}>
+                  🎉 Review submitted successfully! Thank you for sharing your feedback.
+                </div>
+              )}
+              {reviewSubmitError && (
+                <div style={{ color: '#dc2626', background: '#fef2f2', border: '1px solid #fca5a5', borderRadius: '10px', padding: '10px 14px', fontSize: '13px', fontWeight: 600 }}>
+                  ❌ {reviewSubmitError}
+                </div>
+              )}
+
+              {/* Buttons */}
+              <div style={{ display: 'flex', gap: '12px', marginTop: '4px' }}>
+                <button
+                  type="submit"
+                  disabled={isSubmittingReview || reviewSubmitSuccess}
+                  style={{
+                    flex: 1,
+                    background: 'var(--brand-color)',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '10px',
+                    padding: '14px',
+                    fontWeight: 700,
+                    fontSize: '14px',
+                    cursor: (isSubmittingReview || reviewSubmitSuccess) ? 'not-allowed' : 'pointer',
+                    opacity: (isSubmittingReview || reviewSubmitSuccess) ? 0.7 : 1,
+                    transition: 'opacity 0.25s',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px'
+                  }}
+                >
+                  {isSubmittingReview ? 'Submitting...' : 'Submit Review'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsReviewFormOpen(false)}
+                  style={{
+                    background: 'transparent',
+                    color: 'var(--muted)',
+                    border: '1.5px solid rgba(63, 100, 105, 0.2)',
+                    borderRadius: '10px',
+                    padding: '14px 20px',
+                    fontWeight: 600,
+                    fontSize: '14px',
+                    cursor: 'pointer',
+                    transition: 'all 0.25s'
+                  }}
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {!reviewsLoading && productReviews.length === 0 ? (
+        <div 
+          className="no-reviews-box"
+          style={{
+            background: 'var(--cream)',
+            border: '2px dashed rgba(63, 100, 105, 0.15)',
+            borderRadius: '24px',
+            padding: '48px 24px',
+            textAlign: 'center',
+            maxWidth: '580px',
+            margin: '20px auto 0',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '16px',
+            boxShadow: '0 8px 30px rgba(63, 100, 105, 0.03)'
+          }}
+        >
+          <div style={{ fontSize: '48px' }}>✨</div>
+          <h3 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--brand-color)', margin: 0 }}>Be the First to Review!</h3>
+          <p style={{ fontSize: '15px', color: 'var(--muted)', lineHeight: 1.6, maxWidth: '420px', margin: 0 }}>
+            No reviews yet for this product. Share your experience with other shoppers by leaving a detailed rating and review.
+          </p>
+          <button
+            onClick={() => setIsReviewFormOpen(true)}
+            style={{
+              background: 'var(--brand-color)',
+              color: 'white',
+              border: 'none',
+              borderRadius: '100px',
+              padding: '12px 32px',
+              fontWeight: 700,
+              fontSize: '14px',
+              cursor: 'pointer',
+              boxShadow: '0 4px 12px rgba(63, 100, 105, 0.15)',
+              transition: 'all 0.25s'
+            }}
+            type="button"
+          >
+            Leave a Review
+          </button>
         </div>
-        <button className="review-nav review-next" onClick={() => { if (reviewTrackRef.current) reviewTrackRef.current.scrollBy({ left: 344, behavior: 'smooth' }); }}>›</button>
-      </div>
+      ) : (
+        <div className="reviews-carousel">
+          <button className="review-nav review-prev" onClick={() => { if (reviewTrackRef.current) reviewTrackRef.current.scrollBy({ left: -344, behavior: 'smooth' }); }}>‹</button>
+          <div className="reviews-track" ref={reviewTrackRef}>
+            {(reviewsLoading
+              ? [{ id: "loading", text: "Loading customer reviews...", customerName: "Pubesto", rating: 5, customerImage: "" }]
+              : productReviews
+            ).map((review, i) => (
+              <div className="review-card" key={review.id || i}>
+                <div className="review-stars">{renderReviewStars(review.rating || displayProductRating)}</div>
+                <p className="review-text">"{review.text}"</p>
+                <div className="reviewer-info">
+                  <div className="reviewer-avatar">
+                    <img src={review.customerImage || getReviewAvatar(review.customerName)}
+                      alt={review.customerName}
+                      loading="lazy"
+                      fetchPriority="low"
+                      decoding="async"
+                    />
+                  </div>
+                  <div className="reviewer-details">
+                    <h4>{review.customerName}</h4>
+                    <p>Verified Buyer</p>
+                  </div>
+                  <div className="verified-tag">
+                    <ShieldCheck size={18} fill="rgba(27, 98, 75, 0.1)" />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          <button className="review-nav review-next" onClick={() => { if (reviewTrackRef.current) reviewTrackRef.current.scrollBy({ left: 344, behavior: 'smooth' }); }}>›</button>
+        </div>
+      )}
     </section>
-    )}
 
     <motion.section
       className="curated-companions curated-companions-premium"

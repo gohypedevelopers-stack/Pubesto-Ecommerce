@@ -189,7 +189,7 @@
 
 .reviewer-status {
   font-size: var(--text-xs);
-  color: var(--muted);
+  color: var(--brand-color);
 }
 
 .verified-icon {

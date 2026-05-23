@@ -46,12 +46,12 @@ export async function POST(request) {
       return sum + (price * item.quantity);
     }, 0);
 
-    const shippingLine = totalAmount >= 999 ? {
+    const shippingLine = totalAmount >= 500 ? {
       title: "Free Priority Shipping",
       price: "0.00"
     } : {
       title: "Standard Shipping",
-      price: "99.00"
+      price: "70.00"
     };
 
     const query = `

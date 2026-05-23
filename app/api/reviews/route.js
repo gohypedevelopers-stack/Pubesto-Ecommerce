@@ -54,10 +54,6 @@ export async function GET(request) {
 
 export async function POST(request) {
   try {
-    if (!isAdminRequest(request)) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
     const body = await request.json();
     const validationError = validateReviewPayload(body);
     if (validationError) {

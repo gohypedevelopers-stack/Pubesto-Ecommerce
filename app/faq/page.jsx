@@ -31,7 +31,7 @@ const faqData = [
       },
       {
         q: "What are the shipping charges and delivery timelines?",
-        a: "We offer free standard shipping on orders above Rs. 999. For orders below Rs. 999, a flat shipping fee of Rs. 99 is charged. Deliveries generally take 3 to 7 business days, depending on your location."
+        a: "We offer free standard shipping on orders above Rs. 500. For orders below Rs. 500, a flat shipping fee of Rs. 70 is charged. Deliveries generally take 3 to 7 business days, depending on your location."
       },
       {
         q: "How can I track my package?",
@@ -47,8 +47,8 @@ const faqData = [
         a: "We accept a wide range of secure payment options, including UPI (Google Pay, PhonePe, Paytm), Net Banking, major Credit/Debit Cards, and digital wallets. Payments are processed through trusted, encrypted gateways."
       },
       {
-        q: "Is Cash on Delivery (COD) available?",
-        a: "Yes! Cash on Delivery is available across most serviceable pincodes in India. You can choose COD at checkout. Please note: Prepaid orders (paid online) receive priority processing and dispatch. If COD is not available for your pincode, you will be notified at checkout."
+        q: "Do you offer Cash on Delivery (COD)?",
+        a: "To ensure the fastest dispatch times and secure contactless delivery, we operate as a 100% prepaid store. We accept all major secure payment methods, including UPI (Google Pay, PhonePe, Paytm), Net Banking, and major Debit/Credit Cards."
       },
       {
         q: "Can I modify or cancel my order after placing it?",

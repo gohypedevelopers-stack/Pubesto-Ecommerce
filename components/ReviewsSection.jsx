@@ -65,9 +65,18 @@ export default function ReviewsSection() {
           <h2 id="reviews-title">What Our Customers Say</h2>
           <div className="reviews-summary">
             <div className="summary-stars">
-              {[0, 1, 2, 3, 4].map((index) => (
-                <Star key={index} size={18} fill="currentColor" stroke="none" />
-              ))}
+              {[0, 1, 2, 3, 4].map((index) => {
+                const isFilled = index < Math.round(Number(summary.averageRating || 5));
+                return (
+                  <Star 
+                    key={index} 
+                    size={18} 
+                    fill={isFilled ? "currentColor" : "none"} 
+                    stroke={isFilled ? "none" : "rgba(251, 191, 36, 0.4)"} 
+                    strokeWidth={2}
+                  />
+                );
+              })}
             </div>
             <div className="summary-stats">
               {displayAverage} out of 5 ({displayCount})

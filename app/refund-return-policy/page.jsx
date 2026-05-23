@@ -58,7 +58,7 @@ export default function RefundReturnPolicy() {
       <p>Eligible products may qualify for replacement instead of refund depending on product availability, the nature of the issue, and customer preference.</p>
 
       <h2>6. Cancellation Policy</h2>
-      <p>Orders may be cancelled before dispatch. Once shipped, cancellation requests may not be accepted. Refunds for prepaid cancelled orders will be processed to the original payment method within 5–10 business days. For COD orders cancelled before dispatch, no charge is applied.</p>
+      <p>Orders may be cancelled before dispatch. Once shipped, cancellation requests may not be accepted. Refunds for cancelled orders will be processed to the original payment method within 5–10 business days.</p>
 
       <h2>7. Damaged or Incorrect Orders</h2>
       <p>Customers must report damaged, defective, or incorrect products within 48 hours of delivery along with supporting photos or videos. Failure to report within the specified timeframe may affect claim eligibility.</p>

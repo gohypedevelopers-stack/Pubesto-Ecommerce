@@ -106,7 +106,7 @@ export default function Drawers() {
                 <>
                   {/* Dynamic Free Shipping Progress Bar */}
                   {(() => {
-                    const threshold = 999;
+                    const threshold = 500;
                     const percent = Math.min(100, (cartTotal / threshold) * 100);
                     const needed = threshold - cartTotal;
                     return (
@@ -237,8 +237,8 @@ export default function Drawers() {
               {cartItems.length > 0 && (
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--muted)' }}>Shipping</span>
-                  <span style={{ fontSize: '14px', fontWeight: 700, color: cartTotal >= 999 ? 'var(--brand-color)' : 'var(--ink)' }}>
-                    {cartTotal >= 999 ? 'FREE' : formatPrice(99)}
+                  <span style={{ fontSize: '14px', fontWeight: 700, color: cartTotal >= 500 ? 'var(--brand-color)' : 'var(--ink)' }}>
+                    {cartTotal >= 500 ? 'FREE' : formatPrice(70)}
                   </span>
                 </div>
               )}
@@ -247,7 +247,7 @@ export default function Drawers() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px', borderTop: '1px dashed rgba(211, 201, 189, 0.4)', paddingTop: '8px' }}>
                   <span style={{ fontSize: '15px', fontWeight: 700, color: 'var(--ink)' }}>Total</span>
                   <strong style={{ fontSize: '20px', fontWeight: 800, color: 'var(--brand-color)' }}>
-                    {formatPrice(cartTotal + (cartTotal >= 999 ? 0 : 99))}
+                    {formatPrice(cartTotal + (cartTotal >= 500 ? 0 : 70))}
                   </strong>
                 </div>
               )}
