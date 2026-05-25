@@ -26,6 +26,11 @@ const cormorant = Cormorant_Garamond({
 export const metadata = {
   title: "Pubesto | Artisanal Ecommerce",
   description: "Pubesto home decor, lunch storage, water bottles, and daily essentials.",
+  icons: {
+    icon: "/favicon.png",
+    shortcut: "/favicon.png",
+    apple: "/favicon.png",
+  },
 };
 
 import { Providers } from "./providers";

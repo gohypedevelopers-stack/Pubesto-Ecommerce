@@ -5589,6 +5589,22 @@ body,
   transform: translateY(-2px);
 }
 
+.thumb-bundle-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--brand-color);
+  color: #ffffff;
+  font-size: 9px;
+  font-weight: 700;
+  text-align: center;
+  padding: 3px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  line-height: 1;
+}
+
 
 
 .price-display-v2 {
@@ -12314,4 +12330,22 @@ body,
     padding: 32px 18px;
     border-radius: 16px;
   }
+}
+
+/* ==========================================================================
+   PRODUCT PAGE GALLERY IN-PLACE MAX BUNDLE WIDGET
+   ========================================================================== */
+.product-details-page .main-image.has-bundle-widget {
+  aspect-ratio: auto !important;
+  height: auto !important;
+  background: var(--panel) !important;
+  border: 1px solid rgba(211, 201, 189, 0.4) !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04) !important;
+  overflow: visible !important;
+  padding: 0 !important;
+}
+
+.product-details-page .main-image.has-bundle-widget .bundle-widget-wrap {
+  width: 100% !important;
+  height: 100% !important;
 }

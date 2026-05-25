@@ -121,10 +121,11 @@
 
   .hero-slide-item {
     height: auto;
-    min-height: 80vh;
-    padding-top: 40px;
-    padding-bottom: 200px; /* Space for the image below */
-    align-items: flex-start;
+    min-height: 60dvh;
+    padding-top: 60px;
+    padding-bottom: 60px;
+    align-items: center;
+    justify-content: center;
   }
 
   .hero-content-card {
@@ -134,7 +135,27 @@
     background: transparent;
     animation: none;
     align-items: center;
-    margin-top: 20px;
+    margin-top: 0;
+  }
+
+  .hero-title {
+    font-size: 2.2rem !important;
+    line-height: 1.15 !important;
+    max-width: 90%;
+    margin-inline: auto;
+  }
+
+  .hero-description {
+    font-size: 0.95rem !important;
+    max-width: 85%;
+    margin-inline: auto;
+    margin-top: 8px;
+  }
+
+  .hero-primary-cta {
+    padding: 12px 28px !important;
+    font-size: 0.95rem !important;
+    margin-top: 4px;
   }
 }
 

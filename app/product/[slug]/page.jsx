@@ -611,7 +611,8 @@ function ProductPageContent() {
     { 
       id: 1, 
       title: 'Single', 
-      badge: null,
+      badge: `${Math.round(((baseOldPrice - basePrice) / baseOldPrice) * 100)}% OFF`,
+      badgeLabel: `Save ₹${Math.round(baseOldPrice - basePrice)}`,
       subtext: getShippingSubtext(basePrice, 'Priority Dispatch'), 
       price: basePrice, 
       oldPrice: baseOldPrice 
@@ -619,20 +620,20 @@ function ProductPageContent() {
     { 
       id: 2, 
       title: 'Pack of 2', 
-      badge: null,
-      badgeLabel: `Save ₹${(baseOldPrice * 2) - (basePrice * 2)}`,
-      subtext: getShippingSubtext(basePrice * 2), 
-      price: basePrice * 2, 
+      badge: '30% OFF',
+      badgeLabel: `Save ₹${Math.round(baseOldPrice * 2 * 0.3)}`,
+      subtext: getShippingSubtext(Math.round(baseOldPrice * 2 * 0.7)), 
+      price: Math.round(baseOldPrice * 2 * 0.7), 
       oldPrice: baseOldPrice * 2,
       topBadge: 'MOST POPULAR'
     },
     { 
       id: 4, 
       title: 'Pack of 4', 
-      badge: null,
-      badgeLabel: `Save ₹${(baseOldPrice * 4) - (basePrice * 4)}`,
-      subtext: getShippingSubtext(basePrice * 4), 
-      price: basePrice * 4, 
+      badge: '40% OFF',
+      badgeLabel: `Save ₹${Math.round(baseOldPrice * 4 * 0.4)}`,
+      subtext: getShippingSubtext(Math.round(baseOldPrice * 4 * 0.6)), 
+      price: Math.round(baseOldPrice * 4 * 0.6), 
       oldPrice: baseOldPrice * 4,
       topBadge: 'LOWEST PRICE EVER!'
     }
@@ -845,6 +846,114 @@ function ProductPageContent() {
   const displayProductReviewCount = reviewSummary.count || productReviews.length;
   const lovedCustomerCount = liveLovedCount.toLocaleString("en-IN");
 
+  const renderBundleWidget = (isGallery = false) => {
+    return (
+      <div className={`bundle-widget-wrap ${isGallery ? 'in-gallery' : ''}`} style={isGallery ? { padding: '24px 16px', background: 'var(--panel)', borderRadius: '12px', width: '100%', boxSizing: 'border-box' } : {}}>
+        <div className="bundle-separator" style={isGallery ? { marginTop: 0 } : {}}>
+          <span>BUNDLE & SAVE</span>
+        </div>
+
+        <div className="bundle-options" style={isGallery ? { display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' } : {}}>
+          {bundles.map((b) => (
+            <div 
+              key={b.id} 
+              className={`bundle-option ${quantity === b.id ? 'selected' : ''}`}
+              onClick={() => {
+                setQuantity(b.id);
+                openCustomizationPopup(b.id);
+              }}
+              style={isGallery ? { padding: '10px 12px' } : {}}
+            >
+              {b.topBadge && <div className="bundle-top-badge">{b.topBadge}</div>}
+              <div className="bundle-radio">
+                <div className={`radio-outer ${quantity === b.id ? 'active' : ''}`}>
+                  {quantity === b.id && <div className="radio-inner" />}
+                </div>
+              </div>
+              <div className="bundle-details">
+                <div className="bundle-title-row">
+                  <span className="bundle-title" style={{ color: '#000000', fontSize: '14px', fontWeight: '600' }}>{b.title}</span>
+                  {b.badge && <span className="bundle-badge">{b.badge}</span>}
+                  {b.badgeLabel && <span className="bundle-badge">{b.badgeLabel}</span>}
+                </div>
+                <div className="bundle-subtext" style={{ fontSize: '11px', color: '#666' }}>{b.subtext}</div>
+                {productColors.length > 0 && (
+                  <div className="bundle-color-summary" aria-label={`${b.title} selected colors`}>
+                    {normalizeBundleColors(bundleColorSelections[b.id], b.id).map((colorName, index) => {
+                      const color = productColors.find((item) => item.name === colorName);
+                      return (
+                        <span
+                          key={`${b.id}-${index}-${colorName}`}
+                          className="bundle-color-dot"
+                          style={{ "--swatch-color": color?.hex || "#f5f5f5" }}
+                          title={colorName}
+                        />
+                      );
+                    })}
+                    <button
+                      className="bundle-customize-link"
+                      type="button"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        setQuantity(b.id);
+                        openCustomizationPopup(b.id);
+                      }}
+                    >
+                      Customize
+                    </button>
+                  </div>
+                )}
+              </div>
+              <div className="bundle-pricing">
+                <div className="bundle-price">Rs. {b.price}</div>
+                {b.id > 1 && (
+                  <span className="bundle-unit-price" style={{ fontSize: '11px', color: 'var(--muted)', display: 'block', margin: '2px 0 1px', fontWeight: '500' }}>
+                    (Rs. {Math.round(b.price / b.id)} / item)
+                  </span>
+                )}
+                <div className="bundle-old-price">Rs. {b.oldPrice}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="purchase-actions-v2 product-buy-actions" style={isGallery ? { margin: '8px 0 0', display: 'flex', flexDirection: 'column', gap: '8px' } : {}}>
+          <button 
+            className="block-btn"
+            type="button"
+            onClick={() => handleAddToCart()}
+            style={isGallery ? { width: '100%', minHeight: '44px' } : {}}
+          >
+            <ShoppingBag size={18} strokeWidth={2.2} />
+            <span>Add to cart</span>
+          </button>
+
+          <button 
+            className={`buy-now-btn ${isBuyingNow ? 'loading' : ''}`} 
+            type="button"
+            onClick={() => handleBuyNow()}
+            disabled={isBuyingNow}
+            style={isGallery ? { width: '100%', minHeight: '44px' } : {}}
+          >
+            <span className="buy-text">{isBuyingNow ? 'Redirecting...' : 'BUY NOW'}</span>
+            {!isBuyingNow && (
+              <div className="buy-icons-pill">
+                 <span className="payment-badge gpay">GPay</span>
+                 <span className="payment-badge phonepe">Pe</span>
+                 <span className="payment-badge paytm">Paytm</span>
+              </div>
+            )}
+            {isBuyingNow ? (
+              <div className="buy-now-spinner" />
+            ) : (
+              <ChevronRight size={20} />
+            )}
+          </button>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <motion.main 
       className="product-details-page"
@@ -856,20 +965,26 @@ function ProductPageContent() {
         <div className="product-gallery">
           <div className="main-image-wrapper">
             <motion.div 
-              className="main-image"
+              className={`main-image ${activeImage === product.gallery?.[2] ? 'has-bundle-widget' : ''}`}
               key={activeImage}
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
             >
               <div className="image-glow" />
-              <img
-                src={activeImage || product.image}
-                alt={product.name}
-                loading="eager"
-                decoding="async"
-              />
-              {displayBadge && <span className={`product-status-badge ${displayBadgeClass}`}>{displayBadge}</span>}
+              {activeImage === product.gallery?.[2] ? (
+                renderBundleWidget(true)
+              ) : (
+                <>
+                  <img
+                    src={activeImage || product.image}
+                    alt={product.name}
+                    loading="eager"
+                    decoding="async"
+                  />
+                  {displayBadge && <span className={`product-status-badge ${displayBadgeClass}`}>{displayBadge}</span>}
+                </>
+              )}
             </motion.div>
           </div>
           
@@ -880,8 +995,12 @@ function ProductPageContent() {
                   key={idx} 
                   className={`thumb-item ${activeImage === img ? 'active' : ''}`}
                   onClick={() => setActiveImage(img)}
+                  style={{ position: 'relative' }}
                 >
                   <img src={img} alt="thumbnail" loading="lazy" decoding="async" />
+                  {idx === 2 && (
+                    <span className="thumb-bundle-overlay">BUNDLE</span>
+                  )}
                 </div>
               ))}
             </div>
@@ -991,99 +1110,7 @@ function ProductPageContent() {
               </div>
             </div>
 
-            <div className="bundle-separator">
-              <span>BUNDLE & SAVE</span>
-            </div>
-
-            <div className="bundle-options">
-              {bundles.map((b) => (
-                <div 
-                  key={b.id} 
-                  className={`bundle-option ${quantity === b.id ? 'selected' : ''}`}
-                  onClick={() => {
-                    setQuantity(b.id);
-                    openCustomizationPopup(b.id);
-                  }}
-                >
-                  {b.topBadge && <div className="bundle-top-badge">{b.topBadge}</div>}
-                  <div className="bundle-radio">
-                    <div className={`radio-outer ${quantity === b.id ? 'active' : ''}`}>
-                      {quantity === b.id && <div className="radio-inner" />}
-                    </div>
-                  </div>
-                  <div className="bundle-details">
-                    <div className="bundle-title-row">
-                      <span className="bundle-title">{b.title}</span>
-                      {b.badge && <span className="bundle-badge">{b.badge}</span>}
-                      {b.badgeLabel && <span className="bundle-badge">{b.badgeLabel}</span>}
-                    </div>
-                    <div className="bundle-subtext">{b.subtext}</div>
-                    {productColors.length > 0 && (
-                      <div className="bundle-color-summary" aria-label={`${b.title} selected colors`}>
-                        {normalizeBundleColors(bundleColorSelections[b.id], b.id).map((colorName, index) => {
-                          const color = productColors.find((item) => item.name === colorName);
-                          return (
-                            <span
-                              key={`${b.id}-${index}-${colorName}`}
-                              className="bundle-color-dot"
-                              style={{ "--swatch-color": color?.hex || "#f5f5f5" }}
-                              title={colorName}
-                            />
-                          );
-                        })}
-                        <button
-                          className="bundle-customize-link"
-                          type="button"
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            setQuantity(b.id);
-                            openCustomizationPopup(b.id);
-                          }}
-                        >
-                          Customize
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                  <div className="bundle-pricing">
-                    <div className="bundle-price">Rs. {b.price}</div>
-                    <div className="bundle-old-price">Rs. {b.oldPrice}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="purchase-actions-v2 product-buy-actions">
-              <button 
-                className="block-btn"
-                type="button"
-                onClick={() => handleAddToCart()}
-              >
-                <ShoppingBag size={18} strokeWidth={2.2} />
-                <span>Add to cart</span>
-              </button>
-
-              <button 
-                className={`buy-now-btn ${isBuyingNow ? 'loading' : ''}`} 
-                type="button"
-                onClick={() => handleBuyNow()}
-                disabled={isBuyingNow}
-              >
-                <span className="buy-text">{isBuyingNow ? 'Redirecting...' : 'BUY NOW'}</span>
-                {!isBuyingNow && (
-                  <div className="buy-icons-pill">
-                     <span className="payment-badge gpay">GPay</span>
-                     <span className="payment-badge phonepe">Pe</span>
-                     <span className="payment-badge paytm">Paytm</span>
-                  </div>
-                )}
-                {isBuyingNow ? (
-                  <div className="buy-now-spinner" />
-                ) : (
-                  <ChevronRight size={20} />
-                )}
-              </button>
-            </div>
+            {activeImage !== product.gallery?.[2] && renderBundleWidget(false)}
 
 
             <div className="trust-features-grid">

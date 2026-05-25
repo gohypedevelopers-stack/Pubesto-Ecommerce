@@ -220,12 +220,23 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
 
   function getCartItemTotalPrice(product, quantity) {
     const basePrice = getProductBasePrice(product);
+    const baseOldPrice = getProductBaseOldPrice(product) || Math.round(basePrice * 1.35);
     
+    let totalUnits = quantity;
     if (product.selectedColors && product.selectedColors.length > 0) {
-      return basePrice * product.selectedColors.length * quantity;
+      totalUnits = product.selectedColors.length * quantity;
+    }
+    
+    let total;
+    if (totalUnits === 2) {
+      total = baseOldPrice * totalUnits * 0.7;
+    } else if (totalUnits >= 4) {
+      total = baseOldPrice * totalUnits * 0.6;
+    } else {
+      total = baseOldPrice * totalUnits * 0.8;
     }
 
-    return basePrice * quantity;
+    return Math.round(total);
   }
 
   function getCartItemTotalOldPrice(product, quantity) {
