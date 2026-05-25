@@ -318,8 +318,8 @@ function HomeContent() {
                     <div 
                       className="hero-indicator-progress" 
                       style={{ 
-                        animation: `hero-progress-fill 16s linear infinite`,
-                        animationDelay: `${i * 8}s`
+                        animation: `hero-progress-fill 6s linear infinite`,
+                        animationDelay: `${i * 3}s`
                       }} 
                     />
                   </div>
@@ -485,36 +485,42 @@ function HomeContent() {
 
         <section className="social-circle-section" aria-labelledby="social-circle-title">
           <div className="social-gallery" role="list">
-            {socialGalleryItems.map((item, index) => (
-              <motion.div
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.55, delay: index * 0.08, ease: [0.215, 0.61, 0.355, 1] }}
-                viewport={{ once: true, margin: "-80px" }}
-                key={item.title}
-                style={{ display: "flex", width: "100%" }}
-              >
-                <Link
-                  href={item.link || "/shop"}
-                  className="social-gallery-card"
-                  role="listitem"
-                  style={{ width: "100%" }}
+            {socialGalleryItems.map((item, index) => {
+              const isExternal = item.link && (item.link.startsWith("http://") || item.link.startsWith("https://"));
+
+              return (
+                <motion.div
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.55, delay: index * 0.08, ease: [0.215, 0.61, 0.355, 1] }}
+                  viewport={{ once: true, margin: "-80px" }}
+                  key={item.title}
+                  style={{ display: "flex", width: "100%" }}
                 >
-                  <div className="social-gallery-image-wrapper">
-                    <img src={item.image} alt={item.title} loading="lazy" decoding="async" />
-                  </div>
-                  <div className="social-gallery-info">
-                    <span className="social-gallery-card-num">0{index + 1}</span>
-                    <h3 className="social-gallery-card-title">{item.title}</h3>
-                    <p className="social-gallery-card-caption">{item.caption}</p>
-                    <div className="social-gallery-card-cta">
-                      <span>Explore Collection</span>
-                      <span className="arrow">→</span>
+                  <Link
+                    href={item.link || "/shop"}
+                    className="social-gallery-card"
+                    role="listitem"
+                    style={{ width: "100%" }}
+                    target={isExternal ? "_blank" : undefined}
+                    rel={isExternal ? "noopener noreferrer" : undefined}
+                  >
+                    <div className="social-gallery-image-wrapper">
+                      <img src={item.image} alt={item.title} loading="lazy" decoding="async" />
                     </div>
-                  </div>
-                </Link>
-              </motion.div>
-            ))}
+                    <div className="social-gallery-info">
+                      <span className="social-gallery-card-num">0{index + 1}</span>
+                      <h3 className="social-gallery-card-title">{item.title}</h3>
+                      <p className="social-gallery-card-caption">{item.caption}</p>
+                      <div className="social-gallery-card-cta">
+                        <span>{isExternal ? "View on Instagram" : "Explore Collection"}</span>
+                        <span className="arrow">→</span>
+                      </div>
+                    </div>
+                  </Link>
+                </motion.div>
+              );
+            })}
           </div>
         </section>
       </main>

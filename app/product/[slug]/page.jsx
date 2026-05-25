@@ -123,7 +123,7 @@ function ProductPageContent() {
   } = useStore();
   const [activeTab, setActiveTab] = useState("specs");
   const [addEffectKey, setAddEffectKey] = useState(null);
-  const [quantity, setQuantity] = useState(2);
+  const [quantity, setQuantity] = useState(1);
   const [selectedColor, setSelectedColor] = useState(null);
   const [activeImage, setActiveImage] = useState(null);
   const [videoSoundOn, setVideoSoundOn] = useState(false);
@@ -137,7 +137,7 @@ function ProductPageContent() {
 
   // Bundle Customization Popup State
   const [isBundlePopupOpen, setIsBundlePopupOpen] = useState(false);
-  const [popupBundleSize, setPopupBundleSize] = useState(2);
+  const [popupBundleSize, setPopupBundleSize] = useState(1);
   const [popupColors, setPopupColors] = useState([]);
   const [popupQuantity, setPopupQuantity] = useState(1);
   const [bundleColorSelections, setBundleColorSelections] = useState({});
@@ -964,8 +964,14 @@ function ProductPageContent() {
             </div>
 
             <div className="marketing-banners">
-              <div className="banner-green">💳 100% Secure Payments — UPI, NetBanking & Cards!</div>
-              <div className="banner-text">🎇 SUMMER SALE — BEST PRICE GUARANTEED!</div>
+              <div className="banner-green">
+                <ShieldCheck size={14} className="banner-icon-secure" strokeWidth={2.5} />
+                <span>100% Secure Payments — UPI, NetBanking & Cards!</span>
+              </div>
+              <div className="banner-text">
+                <Sparkles size={14} className="banner-icon-sparkles" strokeWidth={2.5} />
+                <span>SUMMER SALE — BEST PRICE GUARANTEED!</span>
+              </div>
             </div>
 
             <div className="units-sold-ticker" style={{ overflow: "hidden", display: "inline-flex", alignItems: "center", width: "100%", minHeight: "42px" }}>

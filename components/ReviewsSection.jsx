@@ -35,6 +35,33 @@ export default function ReviewsSection() {
     };
   }, []);
 
+  const [scrollProgress, setScrollProgress] = useState(0);
+
+  const handleScroll = () => {
+    if (scrollRef.current) {
+      const container = scrollRef.current;
+      const maxScroll = container.scrollWidth - container.clientWidth;
+      if (maxScroll > 0) {
+        const percentage = (container.scrollLeft / maxScroll) * 100;
+        setScrollProgress(percentage);
+      }
+    }
+  };
+
+  useEffect(() => {
+    const container = scrollRef.current;
+    if (container) {
+      container.addEventListener("scroll", handleScroll, { passive: true });
+      // Calculate initial progress
+      handleScroll();
+    }
+    return () => {
+      if (container) {
+        container.removeEventListener("scroll", handleScroll);
+      }
+    };
+  }, [reviews]);
+
   const scroll = (direction) => {
     if (scrollRef.current) {
       const container = scrollRef.current;
@@ -59,11 +86,16 @@ export default function ReviewsSection() {
 
   return (
     <section className="reviews-section" aria-labelledby="reviews-title">
+      <div className="reviews-bg-pattern" />
       <div className="reviews-container">
         <header className="reviews-header">
-          <span className="reviews-eyebrow">TRUSTED BY THOUSANDS</span>
-          <h2 id="reviews-title">What Our Customers Say</h2>
-          <div className="reviews-summary">
+          <div className="reviews-eyebrow-container">
+            <span className="reviews-eyebrow">TRUSTED BY THOUSANDS</span>
+          </div>
+          <h2 id="reviews-title">
+            What Our <span className="highlight-word">Customers</span> Say
+          </h2>
+          <div className="reviews-summary-card">
             <div className="summary-stars">
               {[0, 1, 2, 3, 4].map((index) => {
                 const isFilled = index < Math.round(Number(summary.averageRating || 5));
@@ -82,7 +114,7 @@ export default function ReviewsSection() {
               {displayAverage} out of 5 ({displayCount})
             </div>
             <div className="verified-badge">
-              <Check size={14} strokeWidth={3} />
+              <ShieldCheck size={14} className="verified-icon-pulse" />
               <span>VERIFIED</span>
             </div>
           </div>
@@ -134,11 +166,14 @@ export default function ReviewsSection() {
                     </div>
                     <div className="reviewer-details">
                       <span className="reviewer-name">{review.customerName}</span>
-                      <span className="reviewer-status">Verified Buyer</span>
+                      <span className="reviewer-status">
+                        <Check size={12} strokeWidth={3} />
+                        Verified Buyer
+                      </span>
                     </div>
                   </div>
                   <div className="verified-icon">
-                    <ShieldCheck size={20} />
+                    <ShieldCheck size={18} />
                   </div>
                 </footer>
               </motion.article>
@@ -153,6 +188,17 @@ export default function ReviewsSection() {
           >
             <ChevronRight size={24} />
           </button>
+        </div>
+
+        <div className="carousel-progress-container">
+          <span className="carousel-progress-label">Swipe</span>
+          <div className="carousel-progress-track">
+            <div
+              className="carousel-progress-fill"
+              style={{ width: `${scrollProgress}%` }}
+            />
+          </div>
+          <span className="carousel-progress-label">Scroll</span>
         </div>
       </div>
     </section>

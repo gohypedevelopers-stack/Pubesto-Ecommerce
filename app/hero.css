@@ -21,7 +21,7 @@
 
 .hero-flex-container.is-animating {
   width: 300%;
-  animation: hero-slide-steps 16s cubic-bezier(0.85, 0, 0.15, 1) infinite;
+  animation: hero-slide-steps 6s cubic-bezier(0.85, 0, 0.15, 1) infinite;
 }
 
 .hero-flex-container.is-static {

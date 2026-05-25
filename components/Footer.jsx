@@ -162,7 +162,7 @@ export default function Footer() {
                     whileHover={{ scale: 1.2, rotate: 8 }}
                     transition={{ delay: 0.8 + sIdx * 0.1, type: "spring", stiffness: 300 }}
                   >
-                    <Icon size={18} />
+                    <Icon size={24} />
                   </motion.a>
                 ))}
               </nav>
