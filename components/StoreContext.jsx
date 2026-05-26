@@ -313,63 +313,20 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
 
   function getCartItemTotalPrice(product, quantity) {
     const basePrice = getProductBasePrice(product);
-    const baseOldPrice = getProductBaseOldPrice(product) || Math.round(basePrice * 1.35);
-    
-    let totalUnits = quantity;
-    if (product.selectedColors && product.selectedColors.length > 0) {
-      totalUnits = product.selectedColors.length * quantity;
-    }
-    
-    let total;
-    if (totalUnits === 2) {
-      total = baseOldPrice * totalUnits * 0.7;
-    } else if (totalUnits >= 4) {
-      total = baseOldPrice * totalUnits * 0.6;
-    } else {
-      total = baseOldPrice * totalUnits * 0.8;
-    }
-
-    return Math.round(total);
+    return basePrice * quantity;
   }
 
   function getCartItemTotalOldPrice(product, quantity) {
     const basePrice = getProductBasePrice(product);
     const baseOldPrice = getProductBaseOldPrice(product) || Math.round(basePrice * 1.35);
-    
-    if (product.selectedColors && product.selectedColors.length > 0) {
-      return baseOldPrice * product.selectedColors.length * quantity;
-    }
-    
     return baseOldPrice * quantity;
   }
 
   function getCartItemDisplayName(product, quantity) {
     const original = products.find(p => p.slug === product.slug || p.sku === product.sku);
     const baseName = original ? original.name : product.name.replace(/\s*\([^)]+\)/g, "").trim();
-    
-    if (product.selectedColors && product.selectedColors.length > 0) {
-      const displayBaseName = `${baseName} - ${product.selectedColors.join(" & ")}`;
-      if (quantity === 1) return `${displayBaseName} (Pack of ${product.selectedColors.length})`;
-      return `${displayBaseName} (Pack of ${product.selectedColors.length}) x ${quantity}`;
-    }
-    
     const displayBaseName = product.selectedColor ? `${baseName} - ${product.selectedColor}` : baseName;
-    
-    if (quantity === 1) return displayBaseName;
-    if (quantity === 2) return `${displayBaseName} (Pack of 2)`;
-    if (quantity === 4) return `${displayBaseName} (Pack of 4)`;
-    
-    const num4 = Math.floor(quantity / 4);
-    const remainder = quantity % 4;
-    const num2 = Math.floor(remainder / 2);
-    const num1 = remainder % 2;
-    
-    const parts = [];
-    if (num4 > 0) parts.push(`Pack of 4${num4 > 1 ? ` x ${num4}` : ""}`);
-    if (num2 > 0) parts.push("Pack of 2");
-    if (num1 > 0) parts.push("Single");
-    
-    return `${displayBaseName} (${parts.join(" + ")})`;
+    return displayBaseName;
   }
 
   function closeUtilityPanels() {
@@ -568,77 +525,35 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
     // Try dynamic Shopify checkout creation first
     try {
       const payloadItems = [];
-      let totalQty = 0;
-      let hasBundles = false;
 
       for (const item of activeItems) {
         const qty = Math.max(1, Number(item.quantity) || 1);
-        const colors = item.product?.selectedColors || [];
-        
-        if (colors.length > 0) {
-          hasBundles = true;
-          const bundleTotal = getCartItemTotalPrice(item.product, qty);
-          const bundleUnitCount = colors.length * qty;
-          const unitPrice = bundleUnitCount > 0 ? (bundleTotal / bundleUnitCount) : 0;
-
-          for (const color of colors) {
-            let variantId = null;
-            if (item.product.variants && item.product.variants.length > 0) {
-              const matchedVariant = item.product.variants.find(v => {
-                const vColor = getVariantColorName(v);
-                return vColor && vColor.toLowerCase() === color.toLowerCase();
-              });
-              if (matchedVariant) {
-                variantId = matchedVariant.id;
-              }
-            }
-            if (!variantId) {
-              variantId = getShopifyVariantIdForColor(item.product.slug, color) || 
-                                item.product.shopifyVariantId || item.product.variantId || item.product.sku;
-            }
-            
-            const existing = payloadItems.find(e => e.variantId === variantId);
-            if (existing) {
-              existing.quantity += qty;
-            } else {
-              payloadItems.push({
-                variantId,
-                quantity: qty,
-                name: `${item.product.name} - ${color}`,
-                discountedUnitPrice: unitPrice
-              });
-            }
-            totalQty += qty;
+        const color = item.product?.selectedColor;
+        let variantId = null;
+        if (color && item.product?.variants && item.product.variants.length > 0) {
+          const matchedVariant = item.product.variants.find(v => {
+            const vColor = getVariantColorName(v);
+            return vColor && vColor.toLowerCase() === color.toLowerCase();
+          });
+          if (matchedVariant) {
+            variantId = matchedVariant.id;
           }
+        }
+        if (!variantId) {
+          variantId = getShopifyVariantIdForColor(item.product?.slug, color) ||
+                      item.product?.shopifyVariantId || item.product?.variantId || item.product?.sku || item.variantId;
+        }
+
+        const existing = payloadItems.find(e => e.variantId === variantId);
+        if (existing) {
+          existing.quantity += qty;
         } else {
-          const color = item.product?.selectedColor;
-          let variantId = null;
-          if (color && item.product?.variants && item.product.variants.length > 0) {
-            const matchedVariant = item.product.variants.find(v => {
-              const vColor = getVariantColorName(v);
-              return vColor && vColor.toLowerCase() === color.toLowerCase();
-            });
-            if (matchedVariant) {
-              variantId = matchedVariant.id;
-            }
-          }
-          if (!variantId) {
-            variantId = getShopifyVariantIdForColor(item.product?.slug, color) ||
-                        item.product?.shopifyVariantId || item.product?.variantId || item.product?.sku || item.variantId;
-          }
-
-          const existing = payloadItems.find(e => e.variantId === variantId);
-          if (existing) {
-            existing.quantity += qty;
-          } else {
-            payloadItems.push({
-              variantId,
-              quantity: qty,
-              name: getCartItemDisplayName(item.product, qty),
-              discountedUnitPrice: qty > 0 ? getCartItemTotalPrice(item.product, qty) / qty : 0
-            });
-          }
-          totalQty += qty;
+          payloadItems.push({
+            variantId,
+            quantity: qty,
+            name: getCartItemDisplayName(item.product, qty),
+            discountedUnitPrice: getProductBasePrice(item.product)
+          });
         }
       }
 
@@ -651,16 +566,7 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
       if (response.ok) {
         const data = await response.json();
         if (data.checkoutUrl) {
-          let finalUrl = data.checkoutUrl;
-          if (hasBundles) {
-            const separator = finalUrl.includes("?") ? "&" : "?";
-            if (totalQty === 2) {
-              finalUrl = `${finalUrl}${separator}discount=PACKOF2`;
-            } else if (totalQty === 4) {
-              finalUrl = `${finalUrl}${separator}discount=PACKOF4`;
-            }
-          }
-          window.location.href = finalUrl;
+          window.location.href = data.checkoutUrl;
           return;
         }
       }
