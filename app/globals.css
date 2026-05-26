@@ -3105,6 +3105,35 @@ main {
     height: 318px;
   }
 
+  .video-choice-product {
+    left: 8px;
+    right: 8px;
+    bottom: 8px;
+    padding: 6px;
+    gap: 8px;
+    border-radius: 6px;
+  }
+
+  .video-choice-thumb {
+    width: 28px;
+    height: 28px;
+    border-radius: 4px;
+    padding: 1px;
+  }
+
+  .video-choice-copy strong {
+    font-size: 10px;
+    line-height: 1.2;
+  }
+
+  .video-choice-copy span {
+    font-size: 9px;
+  }
+
+  .video-choice-copy s {
+    font-size: 8px;
+  }
+
   .why-pubesto-section {
     min-height: auto;
     margin-top: 52px;
@@ -3258,54 +3287,60 @@ main {
 
   .footer-column+.footer-column,
   .footer-offers {
-    margin-top: 20px;
-    padding-top: 20px;
+    margin-top: 12px;
+    padding-top: 12px;
     border-top: 1px solid rgba(246, 244, 242, 0.18);
   }
 
   .site-footer h2 {
-    margin-bottom: 10px;
-    font-size: 17px;
+    margin-bottom: 6px;
+    font-size: 13px;
   }
 
   .footer-column>a {
-    margin-bottom: 8px;
-    font-size: 13px;
+    margin-bottom: 4px;
+    font-size: 11px;
   }
 
   .footer-link-button {
-    margin-bottom: 8px;
-    font-size: 13px;
+    margin-bottom: 4px;
+    font-size: 11px;
+    padding: 2px 0;
   }
 
   .footer-form {
-    height: 42px;
+    height: 38px;
   }
 
   .footer-form button {
-    padding-right: 14px;
+    padding-right: 12px;
   }
 
   .footer-info-panel {
     grid-template-columns: 1fr;
-    gap: 16px;
-    margin-top: 22px;
-    padding: 18px;
+    gap: 10px;
+    margin-top: 14px;
+    padding: 12px;
+  }
+
+  .footer-contact-item {
+    font-size: 11px;
+    padding: 4px 0;
   }
 
   .footer-brand-endcap {
-    min-height: 70px;
-    margin-top: 18px;
+    min-height: 46px;
+    margin-top: 12px;
   }
 
   .footer-brand-endcap span {
-    font-size: clamp(32px, 10vw, 54px);
+    font-size: clamp(22px, 7vw, 36px);
   }
 
   .footer-copyright {
-    min-height: 32px;
-    padding: 0 14px;
-    font-size: 10px;
+    min-height: 26px;
+    padding: 0 12px;
+    font-size: 9px;
   }
 }
 
@@ -12365,4 +12400,19 @@ body,
 .product-details-page .main-image.has-bundle-widget .bundle-widget-wrap {
   width: 100% !important;
   height: 100% !important;
+}
+
+/* Mobile Product Card Title & Price Optimization */
+@media (max-width: 768px) {
+  .product-card h3 {
+    font-size: 13px !important;
+    margin-bottom: 4px !important;
+    font-weight: 700 !important;
+    line-height: 1.25 !important;
+  }
+  
+  .product-card .price {
+    font-size: 14px !important;
+    margin-bottom: 12px !important;
+  }
 }

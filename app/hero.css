@@ -40,13 +40,14 @@
 
 @media (max-width: 1024px) {
   .hero-slide-item {
-    height: clamp(450px, 65vh, 600px);
+    height: clamp(420px, 60vh, 600px);
   }
 }
 
 @media (max-width: 768px) {
   .hero-section {
-    --hero-header-offset: 76px;
+    /* Mobile header is ~60px tall */
+    --hero-header-offset: 60px;
   }
 }
 
@@ -74,11 +75,7 @@
   z-index: 2;
 }
 
-@media (max-width: 768px) {
-  .hero-slide-overlay {
-    background: rgba(0, 0, 0, 0.05);
-  }
-}
+/* overlay handled in the main mobile block below */
 
 .hero-slide-container {
   position: relative;
@@ -97,13 +94,7 @@
   width: 100%;
 }
 
-@media (max-width: 768px) {
-  .hero-slide-layout {
-    flex-direction: column;
-    justify-content: center;
-    gap: 40px;
-  }
-}
+/* hero-slide-layout mobile overrides are in the main mobile block below */
 
 .hero-content-card {
   max-width: 800px;
@@ -114,18 +105,43 @@
   gap: 24px;
 }
 
+/* ── Mobile hero ── */
 @media (max-width: 768px) {
-  .hero-media-bg {
-    object-position: 50% 30%; /* Shift image to show product better */
-  }
-
   .hero-slide-item {
-    height: auto;
-    min-height: 60dvh;
-    padding-top: 60px;
-    padding-bottom: 60px;
+    /* Fill viewport minus header */
+    height: clamp(480px, calc(100dvh - var(--hero-header-offset)), 100dvh);
+    padding-top: 0;
+    padding-bottom: 0;
     align-items: center;
     justify-content: center;
+  }
+
+  .hero-media-bg {
+    object-fit: cover;
+    object-position: 50% 20%;
+    width: 100%;
+    height: 100%;
+  }
+
+  .hero-slide-overlay {
+    background: rgba(0, 0, 0, 0.18);
+  }
+
+  .hero-slide-container {
+    padding: 0 6%;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .hero-slide-layout {
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 0;
+    width: 100%;
+    text-align: center;
   }
 
   .hero-content-card {
@@ -136,26 +152,28 @@
     animation: none;
     align-items: center;
     margin-top: 0;
+    gap: 14px;
+  }
+
+  .hero-eyebrow-tag {
+    font-size: 9px;
+    padding: 5px 10px;
   }
 
   .hero-title {
-    font-size: 2.2rem !important;
+    font-size: clamp(1.7rem, 7.5vw, 2.4rem) !important;
     line-height: 1.15 !important;
-    max-width: 90%;
+    max-width: 95%;
     margin-inline: auto;
+    text-align: center;
   }
 
-  .hero-description {
-    font-size: 0.95rem !important;
-    max-width: 85%;
-    margin-inline: auto;
-    margin-top: 8px;
-  }
-
+  /* Show CTA button on mobile */
   .hero-primary-cta {
+    display: inline-flex !important;
     padding: 12px 28px !important;
-    font-size: 0.95rem !important;
-    margin-top: 4px;
+    font-size: 0.9rem !important;
+    margin-top: 24px;
   }
 }
 

@@ -626,10 +626,10 @@ function ProductPageContent() {
     { 
       id: 1, 
       title: 'Single', 
-      badge: `${Math.round(((baseOldPrice - basePrice) / baseOldPrice) * 100)}% OFF`,
-      badgeLabel: `Save ₹${Math.round(baseOldPrice - basePrice)}`,
-      subtext: getShippingSubtext(basePrice, 'Priority Dispatch'), 
-      price: basePrice, 
+      badge: '20% OFF',
+      badgeLabel: `Save ₹${Math.round(baseOldPrice * 0.2)}`,
+      subtext: getShippingSubtext(Math.round(baseOldPrice * 0.8), 'Priority Dispatch'), 
+      price: Math.round(baseOldPrice * 0.8), 
       oldPrice: baseOldPrice 
     },
     { 
@@ -656,19 +656,8 @@ function ProductPageContent() {
 
   const selectedBundle = bundles.find(b => b.id === quantity) || bundles[0];
 
-  const displayBadge = (() => {
-    if (quantity === 1) {
-      return product.badge;
-    }
-    return selectedBundle.badge;
-  })();
-
-  const displayBadgeClass = (() => {
-    if (quantity === 1) {
-      return product.badgeClass || 'badge-discount';
-    }
-    return 'badge-discount';
-  })();
+  const displayBadge = selectedBundle.badge;
+  const displayBadgeClass = 'badge-discount';
 
   const productColors = Array.isArray(product.colors)
     ? product.colors.filter((color) => color && color.name && color.hex)

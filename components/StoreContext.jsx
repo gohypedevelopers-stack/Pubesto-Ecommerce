@@ -72,6 +72,8 @@ function mergeShopifyProductWithLocalFallback(shopifyProduct, localProducts) {
       ...shopifyProduct,
       shopifyHandle,
       slugAliases: Array.from(new Set([shopifyProduct.slug, shopifyHandle].filter(Boolean))),
+      badge: shopifyProduct.badge || "20% OFF",
+      badgeClass: shopifyProduct.badgeClass || "badge-discount",
     };
   }
 
@@ -177,8 +179,8 @@ function mergeShopifyProductWithLocalFallback(shopifyProduct, localProducts) {
     rating: shopifyProduct.rating || localProduct.rating,
     reviews: shopifyProduct.reviews || localProduct.reviews,
     reviewsList: (shopifyProduct.reviewsList && shopifyProduct.reviewsList.length > 0) ? shopifyProduct.reviewsList : localProduct.reviewsList,
-    badge: shopifyProduct.badge || localProduct.badge,
-    badgeClass: shopifyProduct.badgeClass || localProduct.badgeClass,
+    badge: shopifyProduct.badge || localProduct.badge || "20% OFF",
+    badgeClass: shopifyProduct.badgeClass || localProduct.badgeClass || "badge-discount",
     detail: shopifyProduct.detail || localProduct.detail,
     bundleProducts: shopifyProduct.bundleProducts || localProduct.bundleProducts || [],
     categories: Array.from(new Set([
