@@ -1,5 +1,6 @@
 "use client";
 
+import "../app/reviews.css";
 import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { Star, ShieldCheck, ChevronLeft, ChevronRight, Check } from "lucide-react";

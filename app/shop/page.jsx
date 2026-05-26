@@ -1,5 +1,6 @@
 "use client";
 
+import "../shop.css";
 import { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, Minus, Filter, X as CloseIcon, ShoppingBag, Search } from "lucide-react";

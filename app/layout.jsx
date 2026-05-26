@@ -1,11 +1,4 @@
 import "./globals.css";
-import "./hero.css";
-import "./why-pubesto.css";
-import "./reviews.css";
-import "./shop.css";
-import "./contact.css";
-import "./returns.css";
-import "./auth.css";
 import { Inter, Cormorant_Garamond } from "next/font/google";
 
 const inter = Inter({

@@ -1,5 +1,6 @@
 "use client";
 
+import "../contact.css";
 import React, { useState } from 'react';
 import { Mail, Clock, ShieldCheck, Send, PhoneCall, MapPin, Loader2 } from 'lucide-react';
 

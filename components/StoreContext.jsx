@@ -29,8 +29,38 @@ function findLocalProductFallback(shopifyProduct, localProducts) {
 
   return localProducts.find((localProduct) => (
     normalizeProductText(localProduct.slug) === shopifySlug ||
-    normalizeProductText(localProduct.name) === shopifyName
+    normalizeProductText(localProduct.name) === shopifyName ||
+    (Array.isArray(localProduct.slugAliases) && localProduct.slugAliases.map(normalizeProductText).includes(shopifySlug))
   ));
+}
+
+const COLOR_HEX_MAP = {
+  "green": "#2E5A44",
+  "forest green": "#2D4B3F",
+  "white": "#F5F5F5",
+  "arctic white": "#F5F5F5",
+  "black": "#1A1A1A",
+  "blue": "#3A6073",
+  "pink": "#E8C2C2",
+  "blush pink": "#E8C2C2",
+  "orange": "#E67E22",
+  "yellow": "#F1C40F",
+  "silver": "#BDC3C7",
+  "off-green": "#4D7C59",
+};
+
+function getVariantColorName(variant) {
+  const colorOpt = variant?.selectedOptions?.find(
+    (opt) => opt.name.toLowerCase() === "color" || opt.name.toLowerCase() === "colour"
+  );
+  if (colorOpt) return colorOpt.value;
+  const title = variant?.title || "";
+  if (title.includes("/")) {
+    const parts = title.split("/");
+    return parts[parts.length - 1].trim();
+  }
+  if (title.toLowerCase() !== "default title") return title;
+  return null;
 }
 
 function mergeShopifyProductWithLocalFallback(shopifyProduct, localProducts) {
@@ -45,34 +75,89 @@ function mergeShopifyProductWithLocalFallback(shopifyProduct, localProducts) {
     };
   }
 
-  const mergedColors = localProduct.colors ? localProduct.colors.map(color => {
-    if (color.image) return color;
-    const gallery = shopifyProduct.gallery || [];
-    const colorName = color.name.toLowerCase();
-    let matchedImg = null;
+  let mergedColors = undefined;
+  if (shopifyProduct.variants && shopifyProduct.variants.length > 0) {
+    const hasRealVariants = shopifyProduct.variants.length > 1 || 
+      (shopifyProduct.variants[0] && shopifyProduct.variants[0].title !== 'Default Title');
     
-    // 1. Keyword match
-    if (colorName.includes("pink") || colorName.includes("blush")) {
-      matchedImg = gallery.find(url => url.toLowerCase().includes("pink") || url.includes("_21_17_"));
-    } else if (colorName.includes("green") || colorName.includes("forest") || colorName.includes("black")) {
-      matchedImg = gallery.find(url => url.toLowerCase().includes("green") || url.toLowerCase().includes("black") || url.includes("_21_49_"));
-    } else if (colorName.includes("white") || colorName.includes("arctic")) {
-      matchedImg = gallery.find(url => url.toLowerCase().includes("white") || url.toLowerCase().includes("arctic") || url.includes("_24_59_"));
-    }
-    
-    // 2. Fallback index match specifically for the neck fan
-    if (!matchedImg && (localProduct.slug === "adjustable-bladeless-neck-fan" || shopifyHandle === "adjustable-bladeless-neck-fan")) {
-      if ((colorName.includes("pink") || colorName.includes("blush")) && gallery[5]) {
-        matchedImg = gallery[5];
-      } else if ((colorName.includes("green") || colorName.includes("forest") || colorName.includes("black")) && gallery[6]) {
-        matchedImg = gallery[6];
-      } else if ((colorName.includes("white") || colorName.includes("arctic")) && gallery[7]) {
-        matchedImg = gallery[7];
+    if (hasRealVariants) {
+      const colorMap = new Map();
+      
+      for (const variant of shopifyProduct.variants) {
+        const colorName = getVariantColorName(variant);
+        if (!colorName) continue;
+        
+        const normalized = colorName.toLowerCase();
+        if (colorMap.has(normalized)) continue;
+        
+        let hex = COLOR_HEX_MAP[normalized] || "#F5F5F5";
+        
+        // If we have a local fallback color with the same name, use its hex
+        if (localProduct && localProduct.colors) {
+          const match = localProduct.colors.find(c => {
+            const cName = c.name.toLowerCase();
+            return cName === normalized || normalized.includes(cName) || cName.includes(normalized);
+          });
+          if (match) {
+            hex = match.hex;
+          }
+        }
+        
+        let image = variant.image;
+        if (image === shopifyProduct.image) {
+          image = null;
+        }
+        if (!image && localProduct && localProduct.colors) {
+          const match = localProduct.colors.find(c => c.name.toLowerCase() === normalized);
+          if (match && match.image) {
+            image = match.image;
+          }
+        }
+        
+        // Keyword & Fallback gallery match
+        if (!image) {
+          const gallery = shopifyProduct.gallery || [];
+          let matchedImg = null;
+          
+          if (normalized.includes("pink") || normalized.includes("blush")) {
+            matchedImg = gallery.find(url => url.toLowerCase().includes("pink") || url.includes("_21_17_"));
+          } else if (normalized.includes("green") || normalized.includes("forest") || normalized.includes("black")) {
+            matchedImg = gallery.find(url => url.toLowerCase().includes("green") || url.toLowerCase().includes("black") || url.includes("_21_49_"));
+          } else if (normalized.includes("white") || normalized.includes("arctic") || normalized.includes("blue")) {
+            matchedImg = gallery.find(url => url.toLowerCase().includes("white") || url.toLowerCase().includes("arctic") || url.toLowerCase().includes("blue") || url.includes("_24_59_"));
+          }
+          
+          // Neck Fan specific index fallback
+          if (!matchedImg && (localProduct.slug === "adjustable-bladeless-neck-fan" || shopifyHandle === "adjustable-bladeless-neck-fan")) {
+            if ((normalized.includes("pink") || normalized.includes("blush")) && gallery[5]) {
+              matchedImg = gallery[5];
+            } else if ((normalized.includes("green") || normalized.includes("forest") || normalized.includes("black")) && gallery[6]) {
+              matchedImg = gallery[6];
+            } else if ((normalized.includes("white") || normalized.includes("arctic") || normalized.includes("blue")) && gallery[7]) {
+              matchedImg = gallery[7];
+            }
+          }
+          
+          image = matchedImg;
+        }
+        
+        colorMap.set(normalized, {
+          name: colorName,
+          hex,
+          image: image || shopifyProduct.image,
+          available: variant.available
+        });
+      }
+      
+      if (colorMap.size > 0) {
+        mergedColors = Array.from(colorMap.values());
       }
     }
-    
-    return matchedImg ? { ...color, image: matchedImg } : color;
-  }) : undefined;
+  }
+
+  if (!mergedColors && localProduct.colors) {
+    mergedColors = localProduct.colors;
+  }
 
   return {
     ...localProduct,
@@ -100,7 +185,7 @@ function mergeShopifyProductWithLocalFallback(shopifyProduct, localProducts) {
       ...(localProduct.categories || []),
       ...(shopifyProduct.categories || [])
     ])),
-    colors: mergedColors || localProduct.colors
+    colors: mergedColors
   };
 }
 
@@ -199,6 +284,9 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
   }
 
   function getProductBasePrice(product) {
+    if (typeof product.salePrice === "number") {
+      return product.salePrice;
+    }
     const original = products.find(p => p.slug === product.slug || p.sku === product.sku);
     const target = original || product;
     if (typeof target.salePrice === "number") {
@@ -209,6 +297,9 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
   }
 
   function getProductBaseOldPrice(product) {
+    if (typeof product.originalPrice === "number") {
+      return product.originalPrice;
+    }
     const original = products.find(p => p.slug === product.slug || p.sku === product.sku);
     const target = original || product;
     if (typeof target.originalPrice === "number") {
@@ -398,7 +489,21 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
     
     // Shopify Sync
     if (!selectedColors || selectedColors.length === 0) {
-      const shopifyVariantId = cartProduct.shopifyVariantId || cartProduct.variantId || cartProduct.sku;
+      let shopifyVariantId = null;
+      if (selectedColor && cartProduct.variants && cartProduct.variants.length > 0) {
+        const matchedVariant = cartProduct.variants.find(v => {
+          const vColor = getVariantColorName(v);
+          return vColor && vColor.toLowerCase() === selectedColor.toLowerCase();
+        });
+        if (matchedVariant) {
+          shopifyVariantId = matchedVariant.id;
+        }
+      }
+      if (!shopifyVariantId) {
+        shopifyVariantId = getShopifyVariantIdForColor(cartProduct.slug, selectedColor) || 
+                           cartProduct.shopifyVariantId || cartProduct.variantId || cartProduct.sku;
+      }
+
       if (process.env.NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN && shopifyVariantId?.includes('gid://shopify/')) {
         handleShopifyAddToCart({ ...cartProduct, sku: shopifyVariantId }, addQuantity);
       }
@@ -475,8 +580,20 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
           const unitPrice = bundleUnitCount > 0 ? (bundleTotal / bundleUnitCount) : 0;
 
           for (const color of colors) {
-            const variantId = getShopifyVariantIdForColor(item.product.slug, color) || 
-                              item.product.shopifyVariantId || item.product.variantId || item.product.sku;
+            let variantId = null;
+            if (item.product.variants && item.product.variants.length > 0) {
+              const matchedVariant = item.product.variants.find(v => {
+                const vColor = getVariantColorName(v);
+                return vColor && vColor.toLowerCase() === color.toLowerCase();
+              });
+              if (matchedVariant) {
+                variantId = matchedVariant.id;
+              }
+            }
+            if (!variantId) {
+              variantId = getShopifyVariantIdForColor(item.product.slug, color) || 
+                                item.product.shopifyVariantId || item.product.variantId || item.product.sku;
+            }
             
             const existing = payloadItems.find(e => e.variantId === variantId);
             if (existing) {
@@ -492,7 +609,22 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
             totalQty += qty;
           }
         } else {
-          const variantId = item.product?.shopifyVariantId || item.product?.variantId || item.product?.sku || item.variantId;
+          const color = item.product?.selectedColor;
+          let variantId = null;
+          if (color && item.product?.variants && item.product.variants.length > 0) {
+            const matchedVariant = item.product.variants.find(v => {
+              const vColor = getVariantColorName(v);
+              return vColor && vColor.toLowerCase() === color.toLowerCase();
+            });
+            if (matchedVariant) {
+              variantId = matchedVariant.id;
+            }
+          }
+          if (!variantId) {
+            variantId = getShopifyVariantIdForColor(item.product?.slug, color) ||
+                        item.product?.shopifyVariantId || item.product?.variantId || item.product?.sku || item.variantId;
+          }
+
           const existing = payloadItems.find(e => e.variantId === variantId);
           if (existing) {
             existing.quantity += qty;

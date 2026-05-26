@@ -1,5 +1,6 @@
 "use client";
 
+import "./hero.css";
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
@@ -271,7 +272,6 @@ function HomeContent() {
                         >
                           <span className="hero-eyebrow-tag">{slide.eyebrow}</span>
                           <h2 className="hero-title">{slide.title}</h2>
-                          <p className="hero-description">{slide.copy}</p>
                           <Link href={slide.link} className="hero-primary-cta">
                             {slide.cta}
                           </Link>

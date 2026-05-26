@@ -254,14 +254,29 @@ function ProductPageContent() {
     // Initialize product states
     const product = products.find((p) => productMatchesRouteSlug(p, slug));
     if (product) {
-      setActiveImage(product.image);
       if (product.colors && product.colors.length > 0) {
-        setSelectedColor(product.colors[0]);
-        if (product.colors[0].image) {
-          setActiveImage(product.colors[0].image);
+        // If current selectedColor is not in new product.colors, reset to first color
+        const isCurrentColorValid = selectedColor && product.colors.some(
+          (c) => c.name.toLowerCase() === selectedColor.name.toLowerCase()
+        );
+        
+        if (!isCurrentColorValid) {
+          setSelectedColor(product.colors[0]);
+          if (product.colors[0].image) {
+            setActiveImage(product.colors[0].image);
+          } else {
+            setActiveImage(product.image);
+          }
+        } else {
+          // Keep existing color but update its reference from the new list
+          const matched = product.colors.find(
+            (c) => c.name.toLowerCase() === selectedColor.name.toLowerCase()
+          );
+          setSelectedColor(matched);
         }
       } else {
         setSelectedColor(null);
+        setActiveImage(product.image);
       }
     }
     
@@ -781,6 +796,16 @@ function ProductPageContent() {
     setActiveImage(color.image || product.image);
   }
 
+  function handleThumbnailClick(img) {
+    setActiveImage(img);
+    if (productColors && productColors.length > 0) {
+      const matchedColor = productColors.find(c => c.image === img);
+      if (matchedColor) {
+        setSelectedColor(matchedColor);
+      }
+    }
+  }
+
   function getSelectedProductName() {
     return selectedColorName ? `${product.name} - ${selectedColorName}` : product.name;
   }
@@ -994,7 +1019,7 @@ function ProductPageContent() {
                 <div 
                   key={idx} 
                   className={`thumb-item ${activeImage === img ? 'active' : ''}`}
-                  onClick={() => setActiveImage(img)}
+                  onClick={() => handleThumbnailClick(img)}
                   style={{ position: 'relative' }}
                 >
                   <img src={img} alt="thumbnail" loading="lazy" decoding="async" />
