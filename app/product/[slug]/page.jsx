@@ -3,7 +3,7 @@
 import { useParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { ShoppingBag, ChevronDown, Check, Plus, Minus, ArrowRight, ShieldCheck, Sparkles, ChevronRight, CheckSquare, Tag, Undo2, Volume2, VolumeX, X, Star } from "lucide-react";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useStore } from "../../../components/StoreContext";
 import { peopleChoiceVideos } from "../../../lib/data";
@@ -21,11 +21,6 @@ const INDIAN_CITIES = [
   "Ahmedabad", "Gurgaon", "Noida", "Jaipur", "Lucknow", "Chandigarh", "Surat", 
   "Kochi", "Indore", "Patna", "Bhopal", "Visakhapatnam", "Coimbatore"
 ];
-
-const REVIEW_NAME_MAX_LENGTH = 50;
-const REVIEW_TEXT_MIN_LENGTH = 20;
-const REVIEW_TEXT_MAX_LENGTH = 500;
-const REVIEW_RATING_COPY = ["Poor", "Fair", "Good", "Very good", "Excellent"];
 
 const getDeterministicSales = (prod) => {
   if (!prod) return 1100;
@@ -56,66 +51,6 @@ function productMatchesRouteSlug(product, routeSlug) {
   return candidates.includes(target) || candidates.some((candidate) => candidate.includes(target));
 }
 
-const getReviewAvatar = (name) => {
-  if (!name) return "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&h=150&q=80";
-  
-  const cleanName = name.trim();
-  const firstName = cleanName.split(/\s+/)[0].toLowerCase();
-  
-  // High quality Unsplash profile pictures
-  const femaleAvatars = [
-    "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=150&h=150&q=80",
-    "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&h=150&q=80",
-    "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=150&h=150&q=80",
-    "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=150&h=150&q=80",
-    "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=150&h=150&q=80",
-    "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?auto=format&fit=crop&w=150&h=150&q=80",
-    "https://images.unsplash.com/photo-1567532939604-b6b5b0db2604?auto=format&fit=crop&w=150&h=150&q=80",
-    "https://images.unsplash.com/photo-1554151228-14d9def656e4?auto=format&fit=crop&w=150&h=150&q=80"
-  ];
-  
-  const maleAvatars = [
-    "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&h=150&q=80",
-    "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&h=150&q=80",
-    "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=150&h=150&q=80",
-    "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&w=150&h=150&q=80",
-    "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=crop&w=150&h=150&q=80",
-    "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=150&h=150&q=80",
-    "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=150&h=150&q=80",
-    "https://images.unsplash.com/photo-1501196354995-cbb51c65aaea?auto=format&fit=crop&w=150&h=150&q=80"
-  ];
-  
-  const femaleNames = [
-    "ananya", "sneha", "kavya", "sunita", "suman", "pooja", "nisha", "priya", 
-    "riya", "deepa", "komal", "preeti", "meera", "divya", "shikha", "ishita", 
-    "swati", "kiran", "neeta", "tanya", "aditi", "jaya", "renu", "kavita", 
-    "radhika", "shreya", "aishwarya", "neha", "amrita", "arpita", "anamika", 
-    "archana", "bharti", "chaitali", "deepali", "ekta", "garima", "hema", 
-    "indu", "jyoti", "kajal", "lalita", "madhu", "monika", "namrata", "pallavi", 
-    "rashmi", "sapna", "tanvi", "uma", "veena", "yamini", "aditi", "kavya", 
-    "priya", "sneha", "tanya", "swati", "neeta", "ishita", "renu", "shikha", 
-    "meera", "suman", "nisha", "pooja", "ananya", "jaya", "ishita", "swati",
-    "kiran", "neeta", "tanya", "aditi", "jaya", "renu"
-  ];
-  
-  const isFemale = femaleNames.includes(firstName) || 
-                   (firstName.endsWith('a') && !["aditya", "krishna", "shiva", "rana", "abhimanyu", "russia"].includes(firstName)) || 
-                   firstName.endsWith('i') || 
-                   firstName.endsWith('ee') ||
-                   (firstName.endsWith('u') && !["ashutosh", "himanshu", "shantanu", "raghu", "vasu"].includes(firstName));
-  
-  let charSum = 0;
-  for (let i = 0; i < cleanName.length; i++) {
-    charSum += cleanName.charCodeAt(i);
-  }
-  
-  if (isFemale) {
-    return femaleAvatars[charSum % femaleAvatars.length];
-  } else {
-    return maleAvatars[charSum % maleAvatars.length];
-  }
-};
-
 function ProductPageContent() {
   const { slug } = useParams();
   const { 
@@ -128,21 +63,6 @@ function ProductPageContent() {
   const [activeImage, setActiveImage] = useState(null);
   const [videoSoundOn, setVideoSoundOn] = useState(false);
   const [isBuyingNow, setIsBuyingNow] = useState(false);
-  const [productReviews, setProductReviews] = useState([]);
-  const [reviewSummary, setReviewSummary] = useState({ averageRating: 0, count: 0 });
-  const [reviewsLoading, setReviewsLoading] = useState(false);
-  const reviewTrackRef = useRef(null);
-
-  // Review Submission State
-  const [isReviewFormOpen, setIsReviewFormOpen] = useState(false);
-  const [formRating, setFormRating] = useState(5);
-  const [formHoverRating, setFormHoverRating] = useState(0);
-  const [formName, setFormName] = useState("");
-  const [formText, setFormText] = useState("");
-  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
-  const [reviewSubmitSuccess, setReviewSubmitSuccess] = useState(false);
-  const [reviewSubmitError, setReviewSubmitError] = useState("");
-  const reviewAutoCloseTimeoutRef = useRef(null);
 
   // Dynamic ticker states
   const [unitsSold, setUnitsSold] = useState(1100);
@@ -150,88 +70,6 @@ function ProductPageContent() {
   const [activeViewers, setActiveViewers] = useState(24);
   const [tickerIndex, setTickerIndex] = useState(0);
   const [lastBuyer, setLastBuyer] = useState({ name: "Rahul", city: "Mumbai", qty: 2 });
-
-  const [liveLovedCount, setLiveLovedCount] = useState(1000);
-  const trimmedFormName = formName.trim();
-  const trimmedFormText = formText.trim();
-  const reviewTextLength = formText.length;
-  const reviewTextRemaining = Math.max(0, REVIEW_TEXT_MAX_LENGTH - reviewTextLength);
-  const activeReviewRating = formHoverRating || formRating;
-  const reviewRatingLabel = REVIEW_RATING_COPY[(activeReviewRating || 1) - 1] || REVIEW_RATING_COPY[0];
-  const isReviewTextTooShort = trimmedFormText.length > 0 && trimmedFormText.length < REVIEW_TEXT_MIN_LENGTH;
-  const isReviewFormValid = trimmedFormName.length >= 2 && trimmedFormText.length >= REVIEW_TEXT_MIN_LENGTH;
-
-  const clearReviewAutoCloseTimer = () => {
-    if (reviewAutoCloseTimeoutRef.current) {
-      clearTimeout(reviewAutoCloseTimeoutRef.current);
-      reviewAutoCloseTimeoutRef.current = null;
-    }
-  };
-
-  const resetReviewFormFields = () => {
-    setFormRating(5);
-    setFormHoverRating(0);
-    setFormName("");
-    setFormText("");
-  };
-
-  const closeReviewForm = () => {
-    clearReviewAutoCloseTimer();
-    resetReviewFormFields();
-    setIsReviewFormOpen(false);
-    setReviewSubmitError("");
-    setReviewSubmitSuccess(false);
-  };
-
-  const toggleReviewForm = () => {
-    clearReviewAutoCloseTimer();
-    setReviewSubmitError("");
-    setReviewSubmitSuccess(false);
-    setIsReviewFormOpen((prev) => {
-      if (prev) resetReviewFormFields();
-      return !prev;
-    });
-  };
-
-  const openReviewForm = () => {
-    clearReviewAutoCloseTimer();
-    setReviewSubmitError("");
-    setReviewSubmitSuccess(false);
-    setIsReviewFormOpen(true);
-  };
-
-  const handleReviewNameChange = (event) => {
-    setReviewSubmitError("");
-    setReviewSubmitSuccess(false);
-    setFormName(event.target.value.slice(0, REVIEW_NAME_MAX_LENGTH));
-  };
-
-  const handleReviewTextChange = (event) => {
-    setReviewSubmitError("");
-    setReviewSubmitSuccess(false);
-    setFormText(event.target.value.slice(0, REVIEW_TEXT_MAX_LENGTH));
-  };
-
-  useEffect(() => {
-    const displayProductReviewCount = reviewSummary.count || productReviews.length;
-    const initialLoved = displayProductReviewCount > 0
-      ? Math.max(1000, displayProductReviewCount * 127)
-      : 1000;
-    setLiveLovedCount(initialLoved);
-  }, [reviewSummary.count, productReviews.length]);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setLiveLovedCount((prev) => prev + Math.floor(Math.random() * 2) + 1);
-    }, 6000 + Math.random() * 4000);
-    return () => clearInterval(timer);
-  }, []);
-
-  useEffect(() => {
-    return () => {
-      clearReviewAutoCloseTimer();
-    };
-  }, []);
 
   useEffect(() => {
     // Force scroll to top with a slight delay to ensure content is ready
@@ -272,46 +110,6 @@ function ProductPageContent() {
   }, [slug, products]);
 
   const product = products.find((p) => productMatchesRouteSlug(p, slug));
-
-  useEffect(() => {
-    if (!product?.slug) {
-      setProductReviews([]);
-      setReviewSummary({ averageRating: 0, count: 0 });
-      return;
-    }
-
-    let ignore = false;
-    setReviewsLoading(true);
-
-    async function loadProductReviews() {
-      try {
-        const response = await fetch(`/api/reviews?productSlug=${encodeURIComponent(product.slug)}`, {
-          cache: "no-store",
-        });
-        const data = await response.json();
-
-        if (!ignore && response.ok) {
-          setProductReviews(data.reviews || []);
-          setReviewSummary(data.summary || { averageRating: 0, count: 0 });
-        }
-      } catch (error) {
-        console.error("Failed to load product reviews:", error);
-        if (!ignore) {
-          setProductReviews([]);
-          setReviewSummary({ averageRating: 0, count: 0 });
-        }
-      } finally {
-        if (!ignore) setReviewsLoading(false);
-      }
-    }
-
-    loadProductReviews();
-    return () => {
-      ignore = true;
-    };
-  }, [product?.slug]);
-
-
 
   // Initialize and update ticker data based on product
   useEffect(() => {
@@ -464,66 +262,6 @@ function ProductPageContent() {
     setQuantity(prev => Math.max(1, prev + amount));
   }
 
-  async function handleSubmitReview(e) {
-    e.preventDefault();
-    if (!trimmedFormName || !trimmedFormText) {
-      setReviewSubmitError("Please enter your name and review message.");
-      return;
-    }
-    if (trimmedFormName.length < 2) {
-      setReviewSubmitError("Please enter a valid name.");
-      return;
-    }
-    if (trimmedFormText.length < REVIEW_TEXT_MIN_LENGTH) {
-      setReviewSubmitError(`Please write at least ${REVIEW_TEXT_MIN_LENGTH} characters.`);
-      return;
-    }
-
-    setIsSubmittingReview(true);
-    clearReviewAutoCloseTimer();
-    setReviewSubmitError("");
-    setReviewSubmitSuccess(false);
-
-    try {
-      const response = await fetch("/api/reviews", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          customerName: trimmedFormName,
-          text: trimmedFormText,
-          rating: formRating,
-          productSlug: product?.slug || slug,
-          productName: product?.name || ""
-        })
-      });
-
-      const data = await response.json();
-
-      if (response.ok && data.success) {
-        setReviewSubmitSuccess(true);
-        // Append new review locally
-        setProductReviews((prev) => [data.review, ...prev]);
-        setReviewSummary(data.summary || reviewSummary);
-
-        // Reset fields
-        resetReviewFormFields();
-
-        // Auto close after 3s
-        reviewAutoCloseTimeoutRef.current = setTimeout(() => {
-          setIsReviewFormOpen(false);
-          setReviewSubmitSuccess(false);
-        }, 3000);
-      } else {
-        setReviewSubmitError(data.error || "Failed to submit review.");
-      }
-    } catch (err) {
-      console.error(err);
-      setReviewSubmitError("An error occurred. Please try again.");
-    } finally {
-      setIsSubmittingReview(false);
-    }
-  }
-
   function openCustomizationPopup(bundleId) {
     const colors = Array.isArray(product.colors) ? product.colors.filter(c => c && c.name && c.hex) : [];
     if (colors.length === 0) {
@@ -672,12 +410,6 @@ function ProductPageContent() {
       )
     }
   ];
-
-  const displayProductRating = reviewSummary.averageRating || Number(product.rating || 5) || 5;
-  const displayProductReviewCount = reviewSummary.count || productReviews.length;
-  const lovedCustomerCount = liveLovedCount.toLocaleString("en-IN");
-
-
 
   return (
     <motion.main 
@@ -968,227 +700,6 @@ function ProductPageContent() {
         </section>
       );
     })()}
-
-    {/* Customer Reviews Section */}
-    <section className="customer-reviews-section">
-      <div className="reviews-header">
-        <p className="eyebrow" style={{ textAlign: 'center', marginBottom: '8px' }}>Trusted by thousands</p>
-        <div className="loved-badge">
-          <div className="avatar-stack">
-            <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=150&h=150&q=80" alt="Customer avatar" />
-            <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&h=150&q=80" alt="Customer avatar" />
-            <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&h=150&q=80" alt="Customer avatar" />
-            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&h=150&q=80" alt="Customer avatar" />
-          </div>
-          <span className="heart-icon">❤️</span>
-          <span>Loved by {lovedCustomerCount}+ Customers</span>
-        </div>
-        <h2>What Our Customers Say</h2>
-        <div className="reviews-meta">
-          <span className="stars-display">{renderReviewStars(displayProductRating, 15)}</span>
-          <span className="rating-text">
-            {displayProductRating.toFixed(1)} out of 5 ({displayProductReviewCount})
-          </span>
-          <span className="verified-badge">
-             <Check size={14} strokeWidth={3} /> Verified
-          </span>
-        </div>
-      </div>
-
-      <div className="write-review-toggle-wrap">
-        <button
-          onClick={toggleReviewForm}
-          type="button"
-          className={`write-review-toggle-btn ${isReviewFormOpen ? "is-open" : ""}`}
-          aria-expanded={isReviewFormOpen}
-          aria-controls="customer-review-form"
-        >
-          <Star size={16} />
-          <span>{isReviewFormOpen ? "Close Form" : "Write a Review"}</span>
-        </button>
-      </div>
-
-      <AnimatePresence>
-        {isReviewFormOpen && (
-          <motion.div
-            initial={{ height: 0, opacity: 0, marginBottom: 0 }}
-            animate={{ height: 'auto', opacity: 1, marginBottom: 40 }}
-            exit={{ height: 0, opacity: 0, marginBottom: 0 }}
-            transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className="review-form-shell"
-          >
-            <form
-              id="customer-review-form"
-              onSubmit={handleSubmitReview}
-              className="review-form-card"
-            >
-              <div className="review-form-title-wrap">
-                <h3 className="review-form-title">Share Your Experience</h3>
-                <p className="review-form-subtitle">Your feedback helps other shoppers choose better.</p>
-              </div>
-
-              {/* Star Selection */}
-              <div className="review-rating-wrap">
-                <span className="review-form-label">
-                  Your Rating
-                </span>
-                <div className="review-star-picker" role="radiogroup" aria-label="Choose your rating">
-                  {[1, 2, 3, 4, 5].map((starIdx) => {
-                    const isFilled = starIdx <= activeReviewRating;
-                    return (
-                      <button
-                        key={starIdx}
-                        type="button"
-                        role="radio"
-                        aria-checked={formRating === starIdx}
-                        aria-label={`${starIdx} star${starIdx === 1 ? "" : "s"}`}
-                        className={`interactive-form-star ${isFilled ? "is-filled" : ""}`}
-                        onMouseEnter={() => setFormHoverRating(starIdx)}
-                        onMouseLeave={() => setFormHoverRating(0)}
-                        onFocus={() => setFormHoverRating(starIdx)}
-                        onBlur={() => setFormHoverRating(0)}
-                        onClick={() => {
-                          setFormRating(starIdx);
-                          setReviewSubmitError("");
-                          setReviewSubmitSuccess(false);
-                        }}
-                      >
-                        <Star
-                          size={28}
-                          fill={isFilled ? "currentColor" : "none"}
-                          strokeWidth={1.8}
-                        />
-                      </button>
-                    );
-                  })}
-                </div>
-                <p className="review-rating-copy">{activeReviewRating}/5 - {reviewRatingLabel}</p>
-              </div>
-
-              {/* Name Input */}
-              <div className="review-form-field">
-                <label htmlFor="review-form-name" className="review-form-label">
-                  Your Name
-                </label>
-                <input
-                  id="review-form-name"
-                  type="text"
-                  placeholder="Enter your name (e.g. Rahul S.)"
-                  value={formName}
-                  onChange={handleReviewNameChange}
-                  maxLength={REVIEW_NAME_MAX_LENGTH}
-                  required
-                  className="review-form-input"
-                />
-                <p className="review-field-meta">{formName.length}/{REVIEW_NAME_MAX_LENGTH}</p>
-              </div>
-
-              {/* Textarea */}
-              <div className="review-form-field">
-                <label htmlFor="review-form-text" className="review-form-label">
-                  Review Comments
-                </label>
-                <textarea
-                  id="review-form-text"
-                  placeholder="What did you like about this product? Tell us your experience..."
-                  value={formText}
-                  onChange={handleReviewTextChange}
-                  required
-                  rows={5}
-                  maxLength={REVIEW_TEXT_MAX_LENGTH}
-                  className="review-form-input"
-                />
-                <p className={`review-field-meta ${isReviewTextTooShort ? "is-warning" : ""}`}>
-                  {isReviewTextTooShort
-                    ? `Please add at least ${REVIEW_TEXT_MIN_LENGTH} characters.`
-                    : `${reviewTextRemaining} characters remaining.`}
-                </p>
-              </div>
-
-              {/* Submission Notice */}
-              {reviewSubmitSuccess && (
-                <div className="review-form-alert is-success" role="status">
-                  Review submitted successfully. Thank you for sharing your feedback.
-                </div>
-              )}
-              {reviewSubmitError && (
-                <div className="review-form-alert is-error" role="alert">
-                  {reviewSubmitError}
-                </div>
-              )}
-
-              {/* Buttons */}
-              <div className="review-form-actions">
-                <button
-                  type="submit"
-                  disabled={isSubmittingReview || reviewSubmitSuccess || !isReviewFormValid}
-                  className="review-submit-btn"
-                >
-                  {isSubmittingReview ? 'Submitting...' : 'Submit Review'}
-                </button>
-                <button
-                  type="button"
-                  onClick={closeReviewForm}
-                  className="review-cancel-btn"
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {!reviewsLoading && productReviews.length === 0 ? (
-        <div className="no-reviews-box">
-          <div className="no-reviews-icon" aria-hidden="true">+</div>
-          <h3 className="no-reviews-title">Be the First to Review</h3>
-          <p className="no-reviews-copy">
-            No reviews yet for this product. Share your experience with other shoppers by leaving a detailed rating and review.
-          </p>
-          <button
-            onClick={openReviewForm}
-            className="no-reviews-cta"
-            type="button"
-          >
-            Leave a Review
-          </button>
-        </div>
-      ) : (
-        <div className="reviews-carousel">
-          <button className="review-nav review-prev" onClick={() => { if (reviewTrackRef.current) reviewTrackRef.current.scrollBy({ left: -344, behavior: 'smooth' }); }}>‹</button>
-          <div className="reviews-track" ref={reviewTrackRef}>
-            {(reviewsLoading
-              ? [{ id: "loading", text: "Loading customer reviews...", customerName: "Pubesto", rating: 5, customerImage: "" }]
-              : productReviews
-            ).map((review, i) => (
-              <div className="review-card" key={review.id || i}>
-                <div className="review-stars">{renderReviewStars(review.rating || displayProductRating)}</div>
-                <p className="review-text">"{review.text}"</p>
-                <div className="reviewer-info">
-                  <div className="reviewer-avatar">
-                    <img src={review.customerImage || getReviewAvatar(review.customerName)}
-                      alt={review.customerName}
-                      loading="lazy"
-                      fetchPriority="low"
-                      decoding="async"
-                    />
-                  </div>
-                  <div className="reviewer-details">
-                    <h4>{review.customerName}</h4>
-                    <p>Verified Buyer</p>
-                  </div>
-                  <div className="verified-tag">
-                    <ShieldCheck size={18} fill="rgba(27, 98, 75, 0.1)" />
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-          <button className="review-nav review-next" onClick={() => { if (reviewTrackRef.current) reviewTrackRef.current.scrollBy({ left: 344, behavior: 'smooth' }); }}>›</button>
-        </div>
-      )}
-    </section>
 
     <motion.section
       className="curated-companions curated-companions-premium"

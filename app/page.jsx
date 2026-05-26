@@ -20,7 +20,6 @@ import {
   socialGalleryItems
 } from "../lib/data";
 import { formatPrice } from "../lib/utils";
-import ReviewsSection from "../components/ReviewsSection";
 
 
 function ProductCard({ product, index = 0 }) {
@@ -467,24 +466,22 @@ function HomeContent() {
           </div>
         </section>
 
-        <ReviewsSection />
+        <section className="social-home-section" aria-labelledby="social-circle-title">
+          <motion.div
+            className="section-heading centered social-circle-heading"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+            viewport={{ once: true, margin: "-100px" }}
+          >
+            <div>
+              <p className="eyebrow">Follow Us</p>
+              <h2 id="social-circle-title">Join the Pubesto Home Circle</h2>
+            </div>
+          </motion.div>
 
-        <motion.div
-          className="section-heading centered"
-          style={{ marginTop: "100px" }}
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: "easeOut" }}
-          viewport={{ once: true, margin: "-100px" }}
-        >
-          <div>
-            <p className="eyebrow">Follow Us</p>
-            <h2 id="social-circle-title">Join the Pubesto Home Circle</h2>
-          </div>
-        </motion.div>
-
-        <section className="social-circle-section" aria-labelledby="social-circle-title">
-          <div className="social-gallery" role="list">
+          <div className="social-circle-section">
+            <div className="social-gallery" role="list">
             {socialGalleryItems.map((item, index) => {
               const isExternal = item.link && (item.link.startsWith("http://") || item.link.startsWith("https://"));
 
@@ -521,6 +518,7 @@ function HomeContent() {
                 </motion.div>
               );
             })}
+            </div>
           </div>
         </section>
       </main>
