@@ -9250,7 +9250,7 @@ body,
 /* Premium Policy Page Styles */
 /* ===== POLICY PAGES — PREMIUM REDESIGN ===== */
 .policy-page {
-  padding: 120px 24px 80px;
+  padding: 40px 24px 80px;
   min-height: 100vh;
   position: relative;
   overflow: hidden;

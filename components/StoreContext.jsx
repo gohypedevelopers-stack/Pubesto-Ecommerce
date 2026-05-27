@@ -54,12 +54,8 @@ function getVariantColorName(variant) {
     (opt) => opt.name.toLowerCase() === "color" || opt.name.toLowerCase() === "colour"
   );
   if (colorOpt) return colorOpt.value;
-  const title = variant?.title || "";
-  if (title.includes("/")) {
-    const parts = title.split("/");
-    return parts[parts.length - 1].trim();
-  }
-  if (title.toLowerCase() !== "default title") return title;
+  // Do NOT fall back to variant title — non-color variant options (sizes, features, etc.)
+  // would incorrectly appear as color swatches in the UI.
   return null;
 }
 
