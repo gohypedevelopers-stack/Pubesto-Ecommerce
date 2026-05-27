@@ -277,21 +277,35 @@ function ProductPageContent() {
     setIsBundlePopupOpen(true);
   }
 
-  // Related products (Curated Companions) - prioritizing same category
-  const relatedProducts = products
-    .filter((p) => p.slug !== product.slug && p.image)
-    .sort((a, b) => {
-      const aSameCat = a.categories?.some(cat => product.categories?.includes(cat));
-      const bSameCat = b.categories?.some(cat => product.categories?.includes(cat));
-      if (aSameCat && !bSameCat) return -1;
-      if (!aSameCat && bSameCat) return 1;
-      return 0;
-    })
+  // Related products (Curated Companions) - prioritizing the 4 curated companions in image 2
+  const preferredSlugs = [
+    "b-65-do-your-best-notebook-bottle",
+    "arctic-air-ultra-cooler",
+    "mini-portable-wall-mounted-ac",
+    "mist-double-headed-led-fan",
+    "adjustable-bladeless-neck-fan",
+    "mini-mist-cooling-fan"
+  ];
+
+  let relatedProducts = preferredSlugs
+    .filter((slug) => slug !== product.slug)
+    .map((slug) => products.find((p) => p.slug === slug || (p.slugAliases && p.slugAliases.includes(slug))))
+    .filter(Boolean)
     .slice(0, 4);
+
+  if (relatedProducts.length < 4) {
+    const remaining = products.filter((p) => p.slug !== product.slug && !relatedProducts.some((rp) => rp.slug === p.slug));
+    relatedProducts = [...relatedProducts, ...remaining].slice(0, 4);
+  }
 
   const parsePrice = (priceStr) => {
     const num = Number((priceStr || '').replace(/[^\d.]/g, ''));
     return isNaN(num) || num === 0 ? null : num;
+  };
+
+  const formatRupeePrice = (priceStr) => {
+    if (!priceStr) return "";
+    return priceStr.replace(/(Rs\.|Rs|RS|INR)\s*/gi, "₹");
   };
 
   const getCompanionDealLabel = (item) => {
@@ -600,13 +614,6 @@ function ProductPageContent() {
                   disabled={isBuyingNow}
                 >
                   <span className="buy-text">{isBuyingNow ? 'Redirecting...' : 'BUY NOW'}</span>
-                  {!isBuyingNow && (
-                    <div className="buy-icons-pill">
-                       <span className="payment-badge gpay">GPay</span>
-                       <span className="payment-badge phonepe">Pe</span>
-                       <span className="payment-badge paytm">Paytm</span>
-                    </div>
-                  )}
                   {isBuyingNow ? (
                     <div className="buy-now-spinner" />
                   ) : (
@@ -711,20 +718,13 @@ function ProductPageContent() {
         <div className="curated-shell">
           <div className="curated-header">
             <div className="section-heading">
-              <p className="eyebrow">Complete your setup</p>
+              <p className="eyebrow">DISCOVER MORE</p>
               <h2>Curated Companions</h2>
-              <p className="curated-subtitle">Smart add-ons customers usually buy with this product.</p>
-            </div>
-            <div className="curated-proof">
-              <span><Sparkles size={15} /> Staff picks</span>
-              <span><ShieldCheck size={15} /> Verified quality</span>
             </div>
           </div>
           <div className="companions-grid curated-grid">
             {relatedProducts.map((p, i) => {
               const pCartQty = cartItems.find((item) => item.id === getProductId(p))?.quantity || 0;
-              const companionRating = p.rating || "4.8";
-              const companionReviews = p.reviews || "24";
               return (
                 <motion.article
                   className="curated-product-card"
@@ -737,25 +737,16 @@ function ProductPageContent() {
                   <Link className="curated-media" href={`/product/${p.slug}`} aria-label={`View ${p.name}`}>
                     <img src={p.image} alt={p.name} loading="lazy" fetchPriority="low" decoding="async" />
                     <span className="curated-deal">{getCompanionDealLabel(p)}</span>
-                    <span className="curated-view">View details <ArrowRight size={14} /></span>
                   </Link>
                   <div className="curated-product-body">
-                    <div className="curated-rating-row">
-                      <span className="curated-stars" aria-label={`${companionRating} out of 5`}>
-                        {renderReviewStars(companionRating, 13)}
-                      </span>
-                      <span>{companionRating} ({companionReviews})</span>
-                    </div>
                     <Link className="curated-title-link" href={`/product/${p.slug}`}>
                       <h3>{p.name}</h3>
                     </Link>
-                    <p className="curated-meta">{getCompanionMeta(p)}</p>
                     <div className="curated-price-row">
                       <p className="price">
-                        {p.price}
-                        {p.oldPrice ? <span>{p.oldPrice}</span> : null}
+                        {formatRupeePrice(p.price)}
+                        {p.oldPrice ? <span>{formatRupeePrice(p.oldPrice)}</span> : null}
                       </p>
-                      <span className="curated-stock">{p.inStock === false ? "Sold out" : "In stock"}</span>
                     </div>
                     {p.inStock === false ? (
                       <button className="quick-add disabled" disabled>Out of Stock</button>
@@ -783,7 +774,6 @@ function ProductPageContent() {
                         type="button"
                         onClick={() => addToCart(p)}
                       >
-                        <ShoppingBag size={16} />
                         Add to Cart
                       </button>
                     )}

@@ -181,7 +181,18 @@ function ShopContent() {
                     layout
                   >
                     <div className="card-visual">
-                      {product.badge && <span className="card-badge">{product.badge}</span>}
+                      {(() => {
+                        const parsePrice = (priceStr) => {
+                          const num = Number((priceStr || '').replace(/[^\d.]/g, ''));
+                          return isNaN(num) || num === 0 ? null : num;
+                        };
+                        const sale = product.salePrice || parsePrice(product.price);
+                        const original = product.originalPrice || parsePrice(product.oldPrice);
+                        const dynBadge = (sale && original && original > sale) 
+                          ? `${Math.round(((original - sale) / original) * 100)}% OFF` 
+                          : product.badge;
+                        return dynBadge ? <span className="card-badge">{dynBadge}</span> : null;
+                      })()}
                       <Link href={`/product/${product.slug}`} className="image-wrapper">
                         <img src={product.image} alt={product.name} loading="lazy" decoding="async" />
                         <div className="image-overlay" />

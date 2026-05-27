@@ -51,6 +51,22 @@ function ProductCard({ product, index = 0 }) {
     removeFromCart(getProductId(product));
   }
 
+  const parsePrice = (priceStr) => {
+    const num = Number((priceStr || '').replace(/[^\d.]/g, ''));
+    return isNaN(num) || num === 0 ? null : num;
+  };
+
+  const getDynamicBadge = () => {
+    const sale = product.salePrice || parsePrice(product.price);
+    const original = product.originalPrice || parsePrice(product.oldPrice);
+    if (sale && original && original > sale) {
+      return `${Math.round(((original - sale) / original) * 100)}% OFF`;
+    }
+    return product.badge;
+  };
+
+  const activeBadge = getDynamicBadge();
+
   return (
     <motion.article
       className="product-card"
@@ -63,8 +79,8 @@ function ProductCard({ product, index = 0 }) {
         <Link className="product-media-link" href={`/product/${product.slug}`} aria-label={`View ${product.name}`}>
           <img src={product.image} alt={product.name} loading="lazy" decoding="async" />
         </Link>
-        {product.badge ? (
-          <span className={`badge ${product.badgeClass || ""}`}>{product.badge}</span>
+        {activeBadge ? (
+          <span className={`badge ${product.badgeClass || "badge-discount"}`}>{activeBadge}</span>
         ) : null}
         {product.inStock !== false && (
           <button
