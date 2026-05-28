@@ -387,8 +387,8 @@ export default function AboutPage() {
         /* About page showcase styles are promoted to globals.css to ensure correct scoping through custom Framer Motion components */
 
         .about-trust {
-          background: #3f6469;
-          color: white;
+          background: #f5f5f5; /* Clean soft off-white color */
+          color: #3f6469;
           padding: 100px 24px;
         }
 
@@ -405,12 +405,13 @@ export default function AboutPage() {
         .trust-header h2 {
           font-size: 56px;
           margin-bottom: 20px;
+          color: #3f6469;
         }
 
         .line-accent {
           width: 80px;
           height: 3px;
-          background: #e5dada;
+          background: #3f6469;
           margin: 0 auto;
         }
 
@@ -428,23 +429,25 @@ export default function AboutPage() {
           width: 48px;
           height: 48px;
           margin-bottom: 24px;
-          opacity: 0.8;
+          color: #3f6469;
+          opacity: 0.95;
         }
 
         .pillar-item h3 {
           font-size: 22px;
           margin-bottom: 15px;
+          color: #3f6469;
         }
 
         .pillar-item p {
-          opacity: 0.7;
+          color: #555555;
           line-height: 1.6;
         }
 
         .about-process-v2 {
           padding: 100px 24px;
-          max-width: 1400px;
-          margin: 0 auto;
+          background: #3f6469; /* Brand Teal slate color from 2nd image */
+          color: #ffffff;
         }
 
         .process-split {
@@ -452,6 +455,8 @@ export default function AboutPage() {
           grid-template-columns: 1.2fr 1fr;
           gap: 100px;
           align-items: center;
+          max-width: 1400px;
+          margin: 0 auto;
         }
 
         .process-visual {
@@ -461,28 +466,30 @@ export default function AboutPage() {
         .main-process-img {
           width: 100%;
           border-radius: 40px;
-          box-shadow: 0 30px 60px rgba(0,0,0,0.1);
+          box-shadow: 0 30px 60px rgba(0,0,0,0.15);
         }
 
         .experience-box {
           position: absolute;
           top: 40px;
           left: -40px;
-          background: #3f6469;
-          color: white;
+          background: #ffffff;
+          color: #3f6469;
           padding: 30px;
           border-radius: 24px;
           display: flex;
           flex-direction: column;
+          box-shadow: 0 20px 40px rgba(0,0,0,0.12);
         }
 
         .experience-box strong {
           font-size: 36px;
+          color: #3f6469;
         }
 
         .process-content h2 {
           font-size: 48px;
-          color: #3f6469;
+          color: #ffffff;
           margin-bottom: 50px;
         }
 
@@ -500,18 +507,18 @@ export default function AboutPage() {
         .step-num {
           font-size: 32px;
           font-weight: 700;
-          color: #3f6469;
-          opacity: 0.2;
+          color: #ffffff;
+          opacity: 0.45;
         }
 
         .step-text h4 {
           font-size: 20px;
-          color: #3f6469;
+          color: #ffffff;
           margin-bottom: 5px;
         }
 
         .step-text p {
-          color: #777;
+          color: rgba(255, 255, 255, 0.8);
         }
 
         .why-pubesto-v2 {
