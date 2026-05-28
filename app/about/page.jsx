@@ -1,16 +1,39 @@
 "use client";
 
-import React, { useRef } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { ArrowRight, Star, ShieldCheck, Zap, Heart } from "lucide-react";
 import { motion, useScroll, useTransform } from "framer-motion";
+import Link from "next/link";
 import { pubestoTrustFeatures } from "../../lib/data";
+import { useStore } from "../../components/StoreContext";
 
 export default function AboutPage() {
   const containerRef = useRef(null);
+  const { products } = useStore();
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ["start start", "end end"],
   });
+
+  const [happyHomesCount, setHappyHomesCount] = useState(0);
+
+  useEffect(() => {
+    let startTimestamp = null;
+    const duration = 2000;
+    const endValue = 50;
+    const step = (timestamp) => {
+      if (!startTimestamp) startTimestamp = timestamp;
+      const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+      setHappyHomesCount(Math.floor(progress * endValue));
+      if (progress < 1) {
+        window.requestAnimationFrame(step);
+      }
+    };
+    window.requestAnimationFrame(step);
+  }, []);
+
+  const featuredProduct = products?.find(p => p.slug === 'adjustable-bladeless-neck-fan') || products?.[0];
+  const neckFanImg = featuredProduct?.image || "/images/products/neck-fan-arctic-white.png";
 
   const fadeIn = {
     initial: { opacity: 0, y: 30 },
@@ -49,28 +72,40 @@ export default function AboutPage() {
                 We skip the clutter and focus on dependable quality that fits 
                 naturally into your daily routine.
               </p>
+              <div className="hero-actions">
+                <Link href="/shop" className="btn-about-cta">
+                  Explore Collection <ArrowRight size={16} />
+                </Link>
+              </div>
               <div className="hero-stats">
                 <div className="stat-item">
-                  <strong>50k+</strong>
+                  <strong>{happyHomesCount}k+</strong>
                   <span>Happy Homes</span>
                 </div>
                 <div className="stat-item">
-                  <strong>QC</strong>
+                  <strong style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}>
+                    <ShieldCheck size={36} style={{ color: "#3f6469" }} strokeWidth={1.5} /> 100%
+                  </strong>
                   <span>Strict Quality</span>
                 </div>
               </div>
             </motion.div>
 
             <div className="hero-visual-stack">
-              <motion.div 
-                className="visual-main"
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 1.2, delay: 0.2 }}
-              >
-                <img src="/images/products/neck-fan.png" alt="Featured Product" />
-                <div className="floating-badge">Best Seller</div>
-              </motion.div>
+              <div className="visual-backdrop" />
+              <Link href="/product/adjustable-bladeless-neck-fan" style={{ display: "block", width: "100%", height: "100%", textDecoration: "none", zIndex: 1, position: "relative" }}>
+                <motion.div 
+                  className="visual-main"
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 1.2, delay: 0.2 }}
+                  whileHover={{ y: -5, boxShadow: "0 25px 50px rgba(0,0,0,0.08)" }}
+                  style={{ width: "100%", height: "100%", cursor: "pointer" }}
+                >
+                  <img src={neckFanImg} alt="Featured Product" style={{ width: "100%", height: "100%", objectFit: "contain", padding: "40px" }} />
+                  <div className="floating-badge">Best Seller</div>
+                </motion.div>
+              </Link>
             </div>
           </div>
         </section>
@@ -78,6 +113,7 @@ export default function AboutPage() {
         {/* Section 2: Core Categories - Using Real Product Images */}
         <section className="about-showcase">
           <motion.div className="section-title-area" {...fadeIn}>
+            <p className="eyebrow">Practical Picks</p>
             <h2>Practical Picks, Not Clutter.</h2>
             <p>Every Pubesto product is selected for a clear purpose: better storage, cleaner carry, or simple comfort.</p>
           </motion.div>
@@ -103,23 +139,27 @@ export default function AboutPage() {
                 tag: "Essentials"
               }
             ].map((item, i) => (
-              <motion.div 
-                key={i}
-                className="showcase-card"
-                initial={{ opacity: 0, y: 40 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.1 }}
-                viewport={{ once: true }}
-              >
-                <div className="card-image">
-                  <img src={item.img} alt={item.title} />
-                  <span className="card-tag">{item.tag}</span>
-                </div>
-                <div className="card-info">
-                  <h3>{item.title}</h3>
-                  <p>{item.desc}</p>
-                </div>
-              </motion.div>
+              <Link href="/shop" key={i} style={{ textDecoration: "none", color: "inherit", display: "block" }}>
+                <motion.div 
+                  className="showcase-card"
+                  initial={{ opacity: 0, y: 40 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.1 }}
+                  viewport={{ once: true }}
+                >
+                  <div className="card-image">
+                    <img src={item.img} alt={item.title} />
+                    <span className="card-tag">{item.tag}</span>
+                  </div>
+                  <div className="card-info">
+                    <h3>{item.title}</h3>
+                    <p>{item.desc}</p>
+                    <div className="card-explore">
+                      SHOP NOW
+                    </div>
+                  </div>
+                </motion.div>
+              </Link>
             ))}
           </div>
         </section>
@@ -208,7 +248,7 @@ export default function AboutPage() {
         </section>
 
         {/* Section 6: Business Ownership */}
-        <section className="about-ownership" style={{ padding: "80px 24px", textAlign: "center", backgroundColor: "#f6f4f2" }}>
+        <section className="about-ownership" style={{ padding: "100px 24px", textAlign: "center", backgroundColor: "#f6f4f2" }}>
           <h2 style={{ fontSize: "32px", color: "#3f6469", marginBottom: "16px", fontFamily: "var(--font-display)", fontStyle: "italic" }}>Business Ownership</h2>
           <p style={{ color: "#666", fontSize: "18px" }}>Pubesto is owned and operated by <strong>GO HYPE MEDIA</strong>.</p>
         </section>
@@ -223,7 +263,7 @@ export default function AboutPage() {
         }
 
         .about-hero-v2 {
-          padding: 140px 24px 80px;
+          padding: 140px 24px 20px;
           max-width: 1400px;
           margin: 0 auto;
         }
@@ -233,6 +273,29 @@ export default function AboutPage() {
           grid-template-columns: 1fr 1fr;
           gap: 60px;
           align-items: center;
+        }
+
+        .btn-about-cta {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          background: #3f6469;
+          color: white;
+          padding: 14px 28px;
+          border-radius: 999px;
+          font-size: 14px;
+          font-weight: 700;
+          text-decoration: none;
+          text-transform: uppercase;
+          letter-spacing: 1px;
+          box-shadow: 0 10px 25px rgba(63, 100, 105, 0.15);
+          transition: all 0.3s ease;
+        }
+
+        .btn-about-cta:hover {
+          background: #2a4347;
+          transform: translateY(-2px);
+          box-shadow: 0 15px 30px rgba(63, 100, 105, 0.25);
         }
 
         .eyebrow-accent {
@@ -321,86 +384,7 @@ export default function AboutPage() {
         }
 
 
-        .about-showcase {
-          padding: 100px 24px;
-          max-width: 1400px;
-          margin: 0 auto;
-        }
-
-        .section-title-area {
-          text-align: center;
-          margin-bottom: 60px;
-        }
-
-        .section-title-area h2 {
-          font-size: 48px;
-          color: #3f6469;
-          margin-bottom: 15px;
-        }
-
-        .section-title-area p {
-          color: #666;
-          font-size: 18px;
-        }
-
-        .showcase-grid {
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 30px;
-        }
-
-        .showcase-card {
-          background: white;
-          border-radius: 24px;
-          overflow: hidden;
-          box-shadow: 0 10px 20px rgba(0,0,0,0.03);
-          transition: transform 0.3s ease;
-        }
-
-        .showcase-card:hover {
-          transform: translateY(-10px);
-        }
-
-        .card-image {
-          height: 350px;
-          background: #f9f9f9;
-          position: relative;
-        }
-
-        .card-image img {
-          width: 100%;
-          height: 100%;
-          object-fit: contain;
-          padding: 30px;
-        }
-
-        .card-tag {
-          position: absolute;
-          bottom: 20px;
-          left: 20px;
-          background: white;
-          padding: 6px 14px;
-          border-radius: 20px;
-          font-size: 11px;
-          font-weight: 700;
-          text-transform: uppercase;
-          color: #3f6469;
-        }
-
-        .card-info {
-          padding: 30px;
-        }
-
-        .card-info h3 {
-          font-size: 24px;
-          color: #3f6469;
-          margin-bottom: 10px;
-        }
-
-        .card-info p {
-          color: #777;
-          line-height: 1.5;
-        }
+        /* About page showcase styles are promoted to globals.css to ensure correct scoping through custom Framer Motion components */
 
         .about-trust {
           background: #3f6469;
@@ -458,7 +442,7 @@ export default function AboutPage() {
         }
 
         .about-process-v2 {
-          padding: 120px 24px;
+          padding: 100px 24px;
           max-width: 1400px;
           margin: 0 auto;
         }

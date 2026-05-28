@@ -10,14 +10,16 @@ import {
   Minus,
   Check,
   Volume2,
-  VolumeX
+  VolumeX,
+  Building2
 } from "lucide-react";
 import Link from "next/link";
 import { useStore } from "../components/StoreContext";
 import {
   heroSlides,
   peopleChoiceVideos,
-  socialGalleryItems
+  socialGalleryItems,
+  storeConfig
 } from "../lib/data";
 import { formatPrice } from "../lib/utils";
 
@@ -535,6 +537,76 @@ function HomeContent() {
               );
             })}
             </div>
+          </div>
+        </section>
+
+        {/* Business Ownership section */}
+        <section className="business-ownership-section">
+          <div className="bo-bg-layer" aria-hidden="true" />
+          <div className="business-ownership-inner">
+
+            {/* Icon badge */}
+            <motion.div 
+              className="bo-icon-wrap"
+              initial={{ scale: 0.8, opacity: 0 }}
+              whileInView={{ scale: 1, opacity: 1 }}
+              whileHover={{ scale: 1.1, rotate: 5, boxShadow: "0 8px 25px rgba(63, 100, 105, 0.08)" }}
+              whileTap={{ scale: 0.95 }}
+              transition={{ duration: 0.5, ease: "easeOut" }}
+              viewport={{ once: true }}
+            >
+              <Building2 size={22} strokeWidth={1.6} />
+            </motion.div>
+
+            {/* Eyebrow */}
+            <motion.p 
+              className="eyebrow bo-eyebrow"
+              initial={{ letterSpacing: "0.05em", opacity: 0 }}
+              whileInView={{ letterSpacing: "0.15em", opacity: 1 }}
+              transition={{ duration: 0.6, delay: 0.1 }}
+              viewport={{ once: true }}
+            >
+              Legal Notice
+            </motion.p>
+
+            {/* Heading with decorative accent */}
+            <motion.div 
+              className="bo-heading-wrap"
+              initial={{ y: 20, opacity: 0 }}
+              whileInView={{ y: 0, opacity: 1 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              viewport={{ once: true }}
+            >
+              <span className="bo-accent-line" />
+              <h2 className="bo-heading"><em>Business Ownership</em></h2>
+              <span className="bo-accent-line" />
+            </motion.div>
+
+            {/* Company card */}
+            <motion.div 
+              className="bo-card"
+              initial={{ y: 30, opacity: 0 }}
+              whileInView={{ y: 0, opacity: 1 }}
+              transition={{ duration: 0.7, delay: 0.3 }}
+              viewport={{ once: true }}
+              whileHover={{ y: -5, boxShadow: "0 20px 40px rgba(63, 100, 105, 0.08)", borderColor: "rgba(63, 100, 105, 0.12)" }}
+            >
+              <p className="bo-card-text">
+                {storeConfig.name} is owned and operated by
+              </p>
+              <motion.div 
+                className="bo-company-badge"
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <Building2 size={14} strokeWidth={2} />
+                <span>{storeConfig.owner}</span>
+              </motion.div>
+              <p className="bo-card-sub">
+                {storeConfig.legalNotice}
+              </p>
+            </motion.div>
+
           </div>
         </section>
       </main>
