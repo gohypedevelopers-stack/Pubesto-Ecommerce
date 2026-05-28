@@ -49,15 +49,31 @@ const COLOR_HEX_MAP = {
   "off-green": "#4D7C59",
 };
 
-function getVariantColorName(variant) {
+function getVariantColorName(variant, productSlug = "") {
   const colorOpt = variant?.selectedOptions?.find(
     (opt) => opt.name.toLowerCase() === "color" || opt.name.toLowerCase() === "colour"
   );
-  if (colorOpt) return colorOpt.value;
+  if (colorOpt) {
+    let val = colorOpt.value;
+    const slugLower = String(productSlug || "").toLowerCase();
+    const variantId = String(variant?.id || "");
+    const isNeckFan = slugLower.includes("neck-fan") || 
+                      variantId.includes("516883083") || 
+                      variantId.includes("516994722") || 
+                      variantId.includes("517325554");
+    
+    if (isNeckFan) {
+      if (val.toLowerCase() === "blue" || val.toLowerCase() === "silver") return "Arctic White";
+      if (val.toLowerCase() === "black") return "Black";
+      if (val.toLowerCase() === "pink") return "Blush Pink";
+    }
+    return val;
+  }
   // Do NOT fall back to variant title — non-color variant options (sizes, features, etc.)
   // would incorrectly appear as color swatches in the UI.
   return null;
 }
+
 
 function mergeShopifyProductWithLocalFallback(shopifyProduct, localProducts) {
   if (!shopifyProduct) return null;
@@ -82,7 +98,7 @@ function mergeShopifyProductWithLocalFallback(shopifyProduct, localProducts) {
       const colorMap = new Map();
       
       for (const variant of shopifyProduct.variants) {
-        const colorName = getVariantColorName(variant);
+        const colorName = getVariantColorName(variant, shopifyHandle || shopifyProduct.slug);
         if (!colorName) continue;
         
         const normalized = colorName.toLowerCase();
@@ -143,7 +159,7 @@ function mergeShopifyProductWithLocalFallback(shopifyProduct, localProducts) {
           name: colorName,
           hex,
           image: image || shopifyProduct.image,
-          available: variant.available
+          available: localProduct.inStock !== false ? true : variant.available
         });
       }
       
@@ -447,7 +463,7 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
       let shopifyVariantId = null;
       if (selectedColor && cartProduct.variants && cartProduct.variants.length > 0) {
         const matchedVariant = cartProduct.variants.find(v => {
-          const vColor = getVariantColorName(v);
+          const vColor = getVariantColorName(v, cartProduct.slug || cartProduct.shopifyHandle);
           return vColor && vColor.toLowerCase() === selectedColor.toLowerCase();
         });
         if (matchedVariant) {
@@ -528,7 +544,7 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
         let variantId = null;
         if (color && item.product?.variants && item.product.variants.length > 0) {
           const matchedVariant = item.product.variants.find(v => {
-            const vColor = getVariantColorName(v);
+            const vColor = getVariantColorName(v, item.product.slug || item.product.shopifyHandle);
             return vColor && vColor.toLowerCase() === color.toLowerCase();
           });
           if (matchedVariant) {
