@@ -366,8 +366,8 @@ export default function Header() {
                 </div>
 
                 <div className="search-popup-body" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                  <div className="search-drawer-input-container" style={{ display: 'flex', alignItems: 'center', gap: '10px', border: '1px solid rgba(211, 201, 189, 0.8)', borderRadius: '8px', padding: '8px 12px', background: '#fff' }}>
-                    <Search size={16} style={{ color: 'var(--muted)' }} />
+                  <div className="search-drawer-input-container">
+                    <Search size={16} style={{ color: '#1b624b' }} />
                     <input
                       ref={searchInputRef}
                       type="search"
@@ -379,7 +379,6 @@ export default function Header() {
                           handleSearchSubmit();
                         }
                       }}
-                      style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: '14px', width: '100%', fontFamily: 'inherit' }}
                       autoFocus
                     />
                     {searchQuery && (
@@ -393,7 +392,7 @@ export default function Header() {
                   </div>
 
                   {searchQuery.trim().length >= 2 ? (
-                    <div className="search-drawer-results" style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '200px', overflowY: 'auto' }}>
+                    <div className="search-drawer-results" style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '240px', overflowY: 'auto', paddingRight: '4px' }}>
                       {products.filter(p => 
                         p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                         p.categories?.some(c => c.toLowerCase().includes(searchQuery.toLowerCase()))
@@ -401,18 +400,19 @@ export default function Header() {
                         <Link
                           key={product.slug}
                           href={`/product/${product.slug}`}
-                          className="search-drawer-result-item"
-                          style={{ display: 'flex', alignItems: 'center', gap: '10px', textDecoration: 'none', color: 'var(--ink)' }}
+                          className="search-result-card"
                           onClick={() => {
                             setIsSearchHovered(false);
                             setIsSearchOpen(false);
                             setSearchQuery("");
                           }}
                         >
-                          <img src={product.image} alt={product.name} style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '4px', border: '1px solid rgba(211,201,189,0.4)' }} />
-                          <div>
-                            <h4 style={{ fontSize: '12.5px', fontWeight: '700', margin: '0 0 2px 0' }}>{product.name}</h4>
-                            <p style={{ fontSize: '11px', color: 'var(--brand-color)', margin: 0 }}>{product.price}</p>
+                          <div className="search-result-image-wrapper">
+                            <img src={product.image} alt={product.name} />
+                          </div>
+                          <div className="search-result-info">
+                            <h4>{product.name}</h4>
+                            <p>{product.price}</p>
                           </div>
                         </Link>
                       ))}
@@ -420,7 +420,7 @@ export default function Header() {
                   ) : (
                     <>
                       <div className="search-drawer-section">
-                        <h3 style={{ fontSize: '12px', fontWeight: '700', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px' }}>Recent searches</h3>
+                        <h3 style={{ fontSize: '11px', fontWeight: '800', color: '#6f8588', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '10px' }}>Recent searches</h3>
                         {recentSearches.length > 0 ? (
                           <div className="search-pills">
                             {recentSearches.map((term) => (
@@ -434,9 +434,8 @@ export default function Header() {
                               </button>
                             ))}
                             <button 
-                              className="search-pill" 
+                              className="search-clear-all" 
                               type="button"
-                              style={{ border: 'none', background: 'transparent', textDecoration: 'underline', color: 'var(--muted)', fontSize: '11px', cursor: 'pointer', padding: '4px' }}
                               onClick={handleClearHistory}
                             >
                               Clear all
@@ -448,7 +447,7 @@ export default function Header() {
                       </div>
 
                       <div className="search-drawer-section">
-                        <h3 style={{ fontSize: '12px', fontWeight: '700', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px' }}>Popular right now</h3>
+                        <h3 style={{ fontSize: '11px', fontWeight: '800', color: '#6f8588', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '10px' }}>Popular right now</h3>
                         <div className="search-pills">
                           {["Neck Fan", "Bottles", "Lunch Box", "Speaker Tumbler", "Wall Mounted AC", "Copper Bottle", "LED Fan"].map((term) => (
                             <button 
@@ -456,9 +455,8 @@ export default function Header() {
                               className="search-pill"
                               type="button"
                               onClick={() => handleSearchSubmit(term)}
-                              style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}
                             >
-                              <TrendingUp size={11} style={{ color: 'var(--brand-color)' }} />
+                              <TrendingUp size={12} style={{ color: '#1b624b' }} />
                               {term}
                             </button>
                           ))}
@@ -468,23 +466,56 @@ export default function Header() {
                   )}
                 </div>
 
-                <div className="search-popup-footer" style={{ display: 'flex', gap: '10px', marginTop: '16px', borderTop: '1px solid rgba(211, 201, 189, 0.4)', paddingTop: '12px' }}>
+                <div className="search-popup-footer" style={{ display: 'flex', gap: '10px', marginTop: '8px', borderTop: '1px solid rgba(211, 201, 189, 0.4)', paddingTop: '12px' }}>
                   <button 
-                    className="returns-btn-primary" 
                     type="button"
                     onClick={() => handleSearchSubmit()}
-                    style={{ flex: 1, padding: '10px', fontSize: '13px', height: 'auto', justifyContent: 'center' }}
+                    style={{ 
+                      flex: 2, 
+                      height: '42px', 
+                      background: '#1b624b', 
+                      color: '#ffffff', 
+                      border: 'none',
+                      borderRadius: '9999px',
+                      fontSize: '13.5px', 
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      transition: 'all 0.2s ease',
+                      fontFamily: 'var(--font-body, sans-serif)',
+                      boxShadow: '0 4px 12px rgba(27, 98, 75, 0.15)'
+                    }}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = '#154d3b'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = '#1b624b'; }}
                   >
                     Search {searchQuery ? `"${searchQuery}"` : '""'}
                   </button>
                   <button 
-                    className="returns-btn-secondary" 
                     type="button"
                     onClick={() => {
                       setIsSearchHovered(false);
                       setIsSearchOpen(false);
                     }}
-                    style={{ padding: '10px 14px', fontSize: '13px' }}
+                    style={{ 
+                      flex: 1, 
+                      height: '42px', 
+                      background: '#ffffff', 
+                      color: '#1b624b', 
+                      border: '1px solid #1b624b',
+                      borderRadius: '9999px',
+                      fontSize: '13.5px', 
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      transition: 'all 0.2s ease',
+                      fontFamily: 'var(--font-body, sans-serif)'
+                    }}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(27, 98, 75, 0.04)'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = '#ffffff'; }}
                   >
                     Close
                   </button>
