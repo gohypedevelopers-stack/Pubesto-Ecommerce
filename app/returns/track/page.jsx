@@ -568,19 +568,46 @@ function TrackContent() {
     setReturnData(null);
 
     try {
-      // ── ORDER ID (PUB-*) → read ONLY from localStorage, never call returns API ──
+      // ── ORDER ID (PUB-*) ──
       if (isOrderId(trimmed)) {
         const saved = JSON.parse(localStorage.getItem("pubesto_orders") || "[]");
         const found = saved.find((o) => o.id.toUpperCase() === trimmed);
         if (found) {
           setMode("order");
           setOrderData(found);
-        } else {
-          setError(
-            `Order "${trimmed}" was not found in your account. Please check the ID — Order IDs look like PUB-2026-7215. If you just placed this order, wait a moment and try again.`
-          );
+          setLoading(false);
+          return;
         }
-        return; // ALWAYS return here — never hit the returns API for a PUB- ID
+
+        // Try to fetch order details from Shopify dynamically
+        try {
+          const res = await fetch(`/api/orders/${encodeURIComponent(trimmed)}`);
+          if (res.ok) {
+            const data = await res.json();
+            if (data.order) {
+              setMode("order");
+              setOrderData(data.order);
+
+              // Cache in localStorage
+              try {
+                const updated = [...saved.filter((o) => o.id.toUpperCase() !== trimmed), data.order];
+                localStorage.setItem("pubesto_orders", JSON.stringify(updated));
+                setOrdersList(updated.slice(0, 10));
+              } catch { /* ignore */ }
+
+              setLoading(false);
+              return;
+            }
+          }
+        } catch (e) {
+          console.error("Failed to fetch order from Shopify:", e);
+        }
+
+        setError(
+          `Order "${trimmed}" was not found in your account. Please check the ID — Order IDs look like PUB-2026-7215. If you just placed this order, wait a moment and try again.`
+        );
+        setLoading(false);
+        return;
       }
 
       // ── RETURN ID (RET-*) → query the server API ──
@@ -624,6 +651,19 @@ function TrackContent() {
         setOrderData(foundOrder);
         return;
       }
+
+      // If unrecognised format and not in localStorage, try looking it up as a potential order
+      try {
+        const res = await fetch(`/api/orders/${encodeURIComponent(trimmed)}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.order) {
+            setMode("order");
+            setOrderData(data.order);
+            return;
+          }
+        }
+      } catch { /* ignore */ }
 
       setError(
         `"${trimmed}" is not a recognised ID format. Enter your Order ID (PUB-YYYY-NNNN) to track shipping, or your Return ID (RET-XXXXXX) to track a return.`

@@ -95,6 +95,9 @@ function generateOrderId() {
 
 // Resolve image live from products context — always returns the latest Shopify CDN URL
 function resolveProductImage(slug, products, fallback = "/images/products/neck-fan.png") {
+  if (fallback && (fallback.startsWith("http") || fallback.startsWith("//"))) {
+    return fallback;
+  }
   if (!slug || !products?.length) return fallback;
   // Try exact slug match first
   let match = products.find((p) => p.slug === slug);
@@ -277,48 +280,32 @@ export default function AccountPage() {
 
   // Load & sync orders — always re-seed mock orders when live products arrive
   // so images are always fresh Shopify CDN URLs, never stale local paths
-  const loadOrders = useCallback(() => {
+  const loadOrders = useCallback(async () => {
+    try {
+      const response = await fetch("/api/account/orders", { cache: "no-store" });
+      if (response.ok) {
+        const data = await response.json();
+        if (data.orders) {
+          setOrders(data.orders);
+          localStorage.setItem("pubesto_orders", JSON.stringify(data.orders));
+          return;
+        }
+      }
+    } catch (e) {
+      console.error("Failed to load real Shopify orders, trying localStorage fallback:", e);
+    }
+
+    // Fallback: load from localStorage if present
     try {
       const saved = localStorage.getItem("pubesto_orders");
-      const parsed = saved ? JSON.parse(saved) : [];
-
-      // If no orders, or if products are now loaded and the saved images look like
-      // stale local paths (not CDN URLs), force-refresh the mock seed
-      const hasStaleImages =
-        parsed.length > 0 &&
-        products?.length > 0 &&
-        parsed.some((o) =>
-          o.items?.some((item) =>
-            item.image && !item.image.startsWith("http") && !item.image.startsWith("//")
-          )
-        );
-
-      // Also force-reseed if these are our known stale mock orders (old IDs)
-      const isOldMockData =
-        products?.length > 0 &&
-        parsed.length > 0 &&
-        parsed.every((o) => ["PUB-2026-8942", "PUB-2026-7215", "PUB-2026-5890"].includes(o.id)) &&
-        parsed.some((o) =>
-          o.items?.some((item) =>
-            item.image &&
-            (item.image.includes("/images/products/speaker-tumbler") ||
-              item.image.includes("/images/products/lunch-box") ||
-              item.image.includes("/images/products/neck-fan.png"))
-          )
-        );
-
-      if (parsed.length === 0 || hasStaleImages || isOldMockData) {
-        const mockOrders = getMockOrders(products);
-        localStorage.setItem("pubesto_orders", JSON.stringify(mockOrders));
-        setOrders(mockOrders);
-      } else {
+      if (saved) {
+        const parsed = JSON.parse(saved);
         setOrders(parsed);
       }
-
     } catch (e) {
       console.error(e);
     }
-  }, [products]);
+  }, []);
 
   useEffect(() => {
     loadOrders();
