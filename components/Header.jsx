@@ -6,7 +6,8 @@ import { useState, useEffect, useRef } from "react";
 import { motion, useScroll, useMotionValueEvent } from "framer-motion";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
-import { Home, ShoppingBag as LucideShoppingBag, User, ShoppingCart, ChevronRight, Eye, EyeOff, Package, Truck, LogOut } from "lucide-react";
+import { Home, ShoppingBag as LucideShoppingBag, User, ShoppingCart, ChevronRight, Eye, EyeOff, Package, Truck, LogOut, TrendingUp, X, Search } from "lucide-react";
+import { formatPrice } from "../lib/utils";
 
 export default function Header() {
   const {
@@ -22,7 +23,14 @@ export default function Header() {
     isLoggedIn,
     user,
     logout,
-    refreshAuthSession
+    refreshAuthSession,
+    cartItems,
+    cartTotal,
+    updateCartQuantity,
+    removeFromCart,
+    checkout,
+    getCartItemTotalPrice,
+    getCartItemDisplayName
   } = useStore();
 
   const { scrollY } = useScroll();
@@ -32,6 +40,48 @@ export default function Header() {
   const router = useRouter();
   const pathname = usePathname();
   const searchInputRef = useRef(null);
+
+  const [isSearchHovered, setIsSearchHovered] = useState(false);
+  const [isCartHovered, setIsCartHovered] = useState(false);
+  const [recentSearches, setRecentSearches] = useState([]);
+
+  useEffect(() => {
+    if (isSearchOpen || isSearchHovered) {
+      const saved = localStorage.getItem("pubesto_recent_searches");
+      if (saved) {
+        try {
+          setRecentSearches(JSON.parse(saved));
+        } catch (e) {
+          console.error(e);
+        }
+      }
+    }
+  }, [isSearchOpen, isSearchHovered]);
+
+  const handleSearchSubmit = (term = searchQuery) => {
+    const trimmed = term.trim();
+    if (!trimmed) return;
+    
+    setSearchQuery(trimmed);
+    setIsSearchOpen(false);
+    setIsSearchHovered(false);
+    setShowAllProducts(true);
+
+    // Save to recent searches
+    const updated = [trimmed, ...recentSearches.filter(t => t.toLowerCase() !== trimmed.toLowerCase())].slice(0, 5);
+    setRecentSearches(updated);
+    localStorage.setItem("pubesto_recent_searches", JSON.stringify(updated));
+
+    if (window.location.pathname !== '/shop') {
+      router.push('/shop');
+    }
+  };
+
+  const handleClearHistory = (e) => {
+    e.stopPropagation();
+    setRecentSearches([]);
+    localStorage.removeItem("pubesto_recent_searches");
+  };
 
   // Filter products based on search query
   const filteredResults = searchQuery.trim().length >= 2
@@ -271,18 +321,177 @@ export default function Header() {
         </Link>
 
         <div className="navbar-actions">
-          <button
-            className="navbar-icon"
-            type="button"
-            aria-label="Search products"
-            aria-expanded={isSearchOpen}
-            onClick={() => {
+          <div 
+            className="search-dropdown-container"
+            onMouseEnter={() => {
               setIsMenuOpen(false);
-              setIsSearchOpen((open) => !open);
+              setIsSearchHovered(true);
             }}
+            onMouseLeave={() => setIsSearchHovered(false)}
+            style={{ position: 'relative' }}
           >
-            <SearchIcon />
-          </button>
+            <button
+              className="navbar-icon"
+              type="button"
+              aria-label="Search products"
+              aria-expanded={isSearchHovered || isSearchOpen}
+              onClick={() => {
+                setIsMenuOpen(false);
+                setIsSearchOpen((open) => !open);
+              }}
+            >
+              <SearchIcon />
+            </button>
+            
+            {(isSearchHovered || isSearchOpen) && (
+              <motion.div 
+                className="search-dropdown-popup"
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 15 }}
+                transition={{ duration: 0.25, ease: "easeOut" }}
+              >
+                <div className="search-popup-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+                  <h3 style={{ fontSize: '15px', fontWeight: '700', margin: 0, color: 'var(--ink)' }}>Search</h3>
+                  <button 
+                    type="button" 
+                    onClick={() => {
+                      setIsSearchHovered(false);
+                      setIsSearchOpen(false);
+                    }} 
+                    style={{ border: 'none', background: 'transparent', padding: '4px', fontSize: '16px', color: 'var(--muted)', cursor: 'pointer' }}
+                  >
+                    ✕
+                  </button>
+                </div>
+
+                <div className="search-popup-body" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                  <div className="search-drawer-input-container" style={{ display: 'flex', alignItems: 'center', gap: '10px', border: '1px solid rgba(211, 201, 189, 0.8)', borderRadius: '8px', padding: '8px 12px', background: '#fff' }}>
+                    <Search size={16} style={{ color: 'var(--muted)' }} />
+                    <input
+                      ref={searchInputRef}
+                      type="search"
+                      placeholder="Search products or collections..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          handleSearchSubmit();
+                        }
+                      }}
+                      style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: '14px', width: '100%', fontFamily: 'inherit' }}
+                      autoFocus
+                    />
+                    {searchQuery && (
+                      <button 
+                        onClick={() => setSearchQuery("")} 
+                        style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: '0 4px', fontSize: '12px', color: 'var(--muted)' }}
+                      >
+                        ✕
+                      </button>
+                    )}
+                  </div>
+
+                  {searchQuery.trim().length >= 2 ? (
+                    <div className="search-drawer-results" style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '200px', overflowY: 'auto' }}>
+                      {products.filter(p => 
+                        p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                        p.categories?.some(c => c.toLowerCase().includes(searchQuery.toLowerCase()))
+                      ).slice(0, 4).map((product) => (
+                        <Link
+                          key={product.slug}
+                          href={`/product/${product.slug}`}
+                          className="search-drawer-result-item"
+                          style={{ display: 'flex', alignItems: 'center', gap: '10px', textDecoration: 'none', color: 'var(--ink)' }}
+                          onClick={() => {
+                            setIsSearchHovered(false);
+                            setIsSearchOpen(false);
+                            setSearchQuery("");
+                          }}
+                        >
+                          <img src={product.image} alt={product.name} style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '4px', border: '1px solid rgba(211,201,189,0.4)' }} />
+                          <div>
+                            <h4 style={{ fontSize: '12.5px', fontWeight: '700', margin: '0 0 2px 0' }}>{product.name}</h4>
+                            <p style={{ fontSize: '11px', color: 'var(--brand-color)', margin: 0 }}>{product.price}</p>
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  ) : (
+                    <>
+                      <div className="search-drawer-section">
+                        <h3 style={{ fontSize: '12px', fontWeight: '700', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px' }}>Recent searches</h3>
+                        {recentSearches.length > 0 ? (
+                          <div className="search-pills">
+                            {recentSearches.map((term) => (
+                              <button 
+                                key={term} 
+                                className="search-pill"
+                                type="button"
+                                onClick={() => handleSearchSubmit(term)}
+                              >
+                                {term}
+                              </button>
+                            ))}
+                            <button 
+                              className="search-pill" 
+                              type="button"
+                              style={{ border: 'none', background: 'transparent', textDecoration: 'underline', color: 'var(--muted)', fontSize: '11px', cursor: 'pointer', padding: '4px' }}
+                              onClick={handleClearHistory}
+                            >
+                              Clear all
+                            </button>
+                          </div>
+                        ) : (
+                          <p className="empty-text" style={{ fontSize: '12px', color: 'var(--muted)', margin: 0 }}>No recent searches yet.</p>
+                        )}
+                      </div>
+
+                      <div className="search-drawer-section">
+                        <h3 style={{ fontSize: '12px', fontWeight: '700', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px' }}>Popular right now</h3>
+                        <div className="search-pills">
+                          {["Neck Fan", "Bottles", "Lunch Box", "Speaker Tumbler", "Wall Mounted AC", "Copper Bottle", "LED Fan"].map((term) => (
+                            <button 
+                              key={term} 
+                              className="search-pill"
+                              type="button"
+                              onClick={() => handleSearchSubmit(term)}
+                              style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                            >
+                              <TrendingUp size={11} style={{ color: 'var(--brand-color)' }} />
+                              {term}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+
+                <div className="search-popup-footer" style={{ display: 'flex', gap: '10px', marginTop: '16px', borderTop: '1px solid rgba(211, 201, 189, 0.4)', paddingTop: '12px' }}>
+                  <button 
+                    className="returns-btn-primary" 
+                    type="button"
+                    onClick={() => handleSearchSubmit()}
+                    style={{ flex: 1, padding: '10px', fontSize: '13px', height: 'auto', justifyContent: 'center' }}
+                  >
+                    Search {searchQuery ? `"${searchQuery}"` : '""'}
+                  </button>
+                  <button 
+                    className="returns-btn-secondary" 
+                    type="button"
+                    onClick={() => {
+                      setIsSearchHovered(false);
+                      setIsSearchOpen(false);
+                    }}
+                    style={{ padding: '10px 14px', fontSize: '13px' }}
+                  >
+                    Close
+                  </button>
+                </div>
+              </motion.div>
+            )}
+          </div>
           <div 
             className="profile-dropdown-container"
             onMouseEnter={handleMouseEnter}
@@ -500,26 +709,413 @@ export default function Header() {
               </div>
             )}
           </div>
-          <button
-            className="navbar-icon navbar-cart cart-action"
-            type="button"
-            aria-label={`Open cart with ${cartCount} item${cartCount === 1 ? "" : "s"}`}
-            onClick={prepareShopifyCartNavigation}
+          <div 
+            className="cart-dropdown-container"
+            onMouseEnter={() => {
+              setIsMenuOpen(false);
+              setIsCartHovered(true);
+            }}
+            onMouseLeave={() => setIsCartHovered(false)}
+            style={{ position: 'relative' }}
           >
-            <motion.div
-              key={cartPulseKey}
-              className="cart-icon-wrapper"
-              animate={
-                cartPulseKey
-                  ? { scale: [1, 1.18, 1], rotate: [0, -5, 4, 0] }
-                  : { scale: 1, rotate: 0 }
-              }
-              transition={{ duration: 0.5, ease: "easeOut" }}
+            <button
+              className="navbar-icon navbar-cart cart-action"
+              type="button"
+              aria-label={`Open cart with ${cartCount} item${cartCount === 1 ? "" : "s"}`}
+              onClick={() => {
+                setIsMenuOpen(false);
+                setIsCartOpen((open) => !open);
+              }}
             >
-              <ShoppingBag />
-              <span className="cart-count">{cartCount}</span>
-            </motion.div>
-          </button>
+              <motion.div
+                key={cartPulseKey}
+                className="cart-icon-wrapper"
+                animate={
+                  cartPulseKey
+                    ? { scale: [1, 1.18, 1], rotate: [0, -5, 4, 0] }
+                    : { scale: 1, rotate: 0 }
+                }
+                transition={{ duration: 0.5, ease: "easeOut" }}
+              >
+                <ShoppingBag />
+                <span className="cart-count">{cartCount}</span>
+              </motion.div>
+            </button>
+            
+            {(isCartHovered || isCartOpen) && (
+              <motion.div 
+                className="cart-dropdown-popup"
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 15 }}
+                transition={{ duration: 0.25, ease: "easeOut" }}
+              >
+                {/* Header */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: '12px', borderBottom: '1px solid rgba(211, 201, 189, 0.4)', marginBottom: '12px' }}>
+                  <h3 style={{ fontSize: '15px', fontWeight: 700, margin: 0, color: 'var(--ink)' }}>
+                    Your Cart {cartCount > 0 && <span style={{ fontSize: '12px', fontWeight: 500, color: 'var(--muted)', marginLeft: '4px' }}>({cartCount})</span>}
+                  </h3>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsCartHovered(false);
+                      setIsCartOpen(false);
+                    }}
+                    style={{ border: 'none', background: 'transparent', padding: '4px', fontSize: '16px', color: 'var(--muted)', cursor: 'pointer', lineHeight: 1 }}
+                  >
+                    ✕
+                  </button>
+                </div>
+
+                {/* Body */}
+                <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', maxHeight: '320px', paddingRight: '4px' }}>
+                  {cartItems.length > 0 ? (
+                    <>
+                      {/* Free Shipping Progress Bar */}
+                      {(() => {
+                        const threshold = 500;
+                        const percent = Math.min(100, (cartTotal / threshold) * 100);
+                        const needed = threshold - cartTotal;
+                        return (
+                          <div style={{ background: 'var(--cream, #f8f6f2)', border: '1px solid rgba(211, 201, 189, 0.5)', borderRadius: '10px', padding: '10px 12px', marginBottom: '14px', display: 'flex', flexDirection: 'column', gap: '6px', flexShrink: 0 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: 600, color: 'var(--ink)' }}>
+                              <span style={{ fontSize: '14px' }}>{percent >= 100 ? '🎉' : '🚚'}</span>
+                              <span>
+                                {percent >= 100 ? (
+                                  <strong style={{ color: 'var(--brand-color)' }}>Free Shipping unlocked!</strong>
+                                ) : (
+                                  <span>Add <strong>{formatPrice(needed)}</strong> more for <strong>Free Shipping</strong></span>
+                                )}
+                              </span>
+                            </div>
+                            <div style={{ width: '100%', height: '5px', background: 'rgba(211, 201, 189, 0.3)', borderRadius: '3px', overflow: 'hidden' }}>
+                              <div style={{ width: `${percent}%`, height: '100%', background: 'var(--brand-color)', transition: 'width 0.3s ease', borderRadius: '3px' }} />
+                            </div>
+                          </div>
+                        );
+                      })()}
+
+                      {/* Items List */}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                        {cartItems.map((item) => (
+                          <article
+                            key={item.id}
+                            style={{ display: 'grid', gridTemplateColumns: '54px 1fr auto', gap: '10px', alignItems: 'start', border: '1px solid rgba(211, 201, 189, 0.3)', borderRadius: '8px', padding: '10px', background: 'rgba(211, 201, 189, 0.05)' }}
+                          >
+                            <Link
+                              href={`/product/${item.product.slug}`}
+                              onClick={() => {
+                                setIsCartHovered(false);
+                                setIsCartOpen(false);
+                              }}
+                              style={{ display: 'block', width: '54px', height: '54px', overflow: 'hidden', borderRadius: '4px', flexShrink: 0 }}
+                            >
+                              <img
+                                src={item.product.image}
+                                alt={item.product.name}
+                                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                              />
+                            </Link>
+
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', minWidth: 0 }}>
+                              <Link
+                                href={`/product/${item.product.slug}`}
+                                onClick={() => {
+                                  setIsCartHovered(false);
+                                  setIsCartOpen(false);
+                                }}
+                                style={{ textDecoration: 'none', color: 'inherit' }}
+                              >
+                                <h4 style={{ fontSize: '12px', fontWeight: 700, margin: 0, color: 'var(--ink)', lineHeight: 1.35, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                  {getCartItemDisplayName(item.product, item.quantity)}
+                                </h4>
+                              </Link>
+                              <p style={{ fontSize: '11px', fontWeight: 800, color: 'var(--brand-color)', margin: 0 }}>
+                                {formatPrice(getCartItemTotalPrice(item.product, item.quantity) / item.quantity)}
+                              </p>
+                              
+                              {/* Quantity Controls */}
+                              <div style={{ display: 'inline-grid', gridTemplateColumns: '20px 24px 20px', alignItems: 'center', border: '1px solid rgba(211, 201, 189, 0.6)', borderRadius: '4px', background: '#fff', width: 'fit-content', marginTop: '2px', overflow: 'hidden' }}>
+                                <button
+                                  type="button"
+                                  onClick={() => updateCartQuantity(item.id, item.quantity - 1)}
+                                  style={{ border: 'none', background: 'transparent', width: '20px', height: '20px', cursor: 'pointer', fontWeight: 'bold', fontSize: '13px', color: 'var(--ink)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                                >
+                                  −
+                                </button>
+                                <span style={{ textAlign: 'center', fontSize: '11px', fontWeight: 700, color: 'var(--ink)', borderLeft: '1px solid rgba(211,201,189,0.4)', borderRight: '1px solid rgba(211,201,189,0.4)', height: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                  {item.quantity}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => updateCartQuantity(item.id, item.quantity + 1)}
+                                  style={{ border: 'none', background: 'transparent', width: '20px', height: '20px', cursor: 'pointer', fontWeight: 'bold', fontSize: '13px', color: 'var(--ink)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                                >
+                                  +
+                                </button>
+                              </div>
+                            </div>
+
+                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '6px', flexShrink: 0 }}>
+                              <span style={{ fontSize: '12px', fontWeight: 800, color: 'var(--ink)' }}>
+                                {formatPrice(getCartItemTotalPrice(item.product, item.quantity))}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => removeFromCart(item.id)}
+                                style={{ border: '1px solid rgba(211,201,189,0.5)', background: 'transparent', borderRadius: '50%', width: '18px', height: '18px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--muted)', fontSize: '9px', padding: 0 }}
+                              >
+                                ✕
+                              </button>
+                            </div>
+                          </article>
+                        ))}
+                      </div>
+                    </>
+                  ) : (
+                    /* Empty State (Matching the User's Screenshot Exactly) */
+                    <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+                      {/* Upper centered content */}
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '24px 10px 12px 10px', textAlign: 'center' }}>
+                        {/* Elegant circle with bag icon */}
+                        <div style={{ 
+                          width: '100px', 
+                          height: '100px', 
+                          borderRadius: '50%', 
+                          border: '1px solid #f0e9df', 
+                          display: 'flex', 
+                          alignItems: 'center', 
+                          justifyContent: 'center', 
+                          marginBottom: '20px', 
+                          background: '#faf8f6' 
+                        }}>
+                          <ShoppingBag size={38} strokeWidth={1.2} style={{ color: 'var(--muted)' }} />
+                        </div>
+                        
+                        {/* Title */}
+                        <h3 style={{ 
+                          fontSize: '22px', 
+                          fontWeight: 700, 
+                          color: '#2a3d40', 
+                          margin: '0 0 8px 0',
+                          fontFamily: 'var(--font-body, sans-serif)',
+                          letterSpacing: '-0.02em'
+                        }}>
+                          Your cart is empty
+                        </h3>
+                        
+                        {/* Subtitle */}
+                        <p style={{ 
+                          fontSize: '14.5px', 
+                          color: 'var(--muted)', 
+                          margin: '0 0 24px 0', 
+                          fontFamily: 'var(--font-body, sans-serif)',
+                          lineHeight: 1.4
+                        }}>
+                          Let's add something you'll love.
+                        </p>
+                        
+                        {/* Inner Continue Shopping Button */}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIsCartHovered(false);
+                            setIsCartOpen(false);
+                            router.push('/shop');
+                          }}
+                          style={{ 
+                            background: '#1b624b', 
+                            color: '#ffffff', 
+                            border: 'none',
+                            borderRadius: '9999px',
+                            padding: '12px 32px', 
+                            fontSize: '15px', 
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            transition: 'all 0.2s ease',
+                            fontFamily: 'var(--font-body, sans-serif)',
+                            boxShadow: '0 4px 12px rgba(27, 98, 75, 0.15)'
+                          }}
+                          onMouseEnter={(e) => { e.currentTarget.style.background = '#154d3b'; }}
+                          onMouseLeave={(e) => { e.currentTarget.style.background = '#1b624b'; }}
+                        >
+                          Continue shopping
+                        </button>
+                      </div>
+
+                      {/* Separator line */}
+                      <hr style={{ border: 'none', borderTop: '1px solid #f0e9df', margin: '8px 0 16px 0' }} />
+
+                      {/* Subtotal section */}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                        <span style={{ fontSize: '15px', fontWeight: 600, color: 'var(--muted)', fontFamily: 'var(--font-body, sans-serif)' }}>Subtotal</span>
+                        <span style={{ fontSize: '17px', fontWeight: 700, color: '#2a3d40', fontFamily: 'var(--font-body, sans-serif)' }}>Rs. 0</span>
+                      </div>
+
+                      {/* Taxes calculated at checkout */}
+                      <p style={{ 
+                        fontSize: '12px', 
+                        color: 'var(--muted)', 
+                        margin: '0 0 20px 0', 
+                        textAlign: 'center',
+                        fontFamily: 'var(--font-body, sans-serif)'
+                      }}>
+                        Taxes calculated at checkout.
+                      </p>
+
+                      {/* Bottom action buttons */}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        <button
+                          type="button"
+                          disabled
+                          style={{ 
+                            width: '100%', 
+                            height: '50px', 
+                            background: '#c3d2cc', 
+                            color: '#ffffff', 
+                            border: 'none',
+                            borderRadius: '9999px',
+                            fontSize: '15px', 
+                            fontWeight: 700,
+                            cursor: 'not-allowed',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontFamily: 'var(--font-body, sans-serif)'
+                          }}
+                        >
+                          Cart is empty
+                        </button>
+                        
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIsCartHovered(false);
+                            setIsCartOpen(false);
+                            router.push('/shop');
+                          }}
+                          style={{ 
+                            width: '100%', 
+                            height: '50px', 
+                            background: '#ffffff', 
+                            color: '#1b624b', 
+                            border: '1px solid #1b624b',
+                            borderRadius: '9999px',
+                            fontSize: '15px', 
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            transition: 'all 0.2s ease',
+                            fontFamily: 'var(--font-body, sans-serif)'
+                          }}
+                          onMouseEnter={(e) => { 
+                            e.currentTarget.style.background = 'rgba(27, 98, 75, 0.04)'; 
+                          }}
+                          onMouseLeave={(e) => { 
+                            e.currentTarget.style.background = '#ffffff'; 
+                          }}
+                        >
+                          Continue shopping
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Footer for active cart items */}
+                {cartItems.length > 0 && (
+                  <div style={{ borderTop: '1px solid rgba(211, 201, 189, 0.4)', paddingTop: '12px', marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--muted)' }}>Subtotal</span>
+                      <span style={{ fontSize: '14px', fontWeight: 700, color: 'var(--ink)' }}>{formatPrice(cartTotal)}</span>
+                    </div>
+                    
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--muted)' }}>Shipping</span>
+                      <span style={{ fontSize: '13px', fontWeight: 700, color: cartTotal >= 500 ? 'var(--brand-color)' : 'var(--ink)' }}>
+                        {cartTotal >= 500 ? 'FREE' : formatPrice(70)}
+                      </span>
+                    </div>
+
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '2px', borderTop: '1px dashed rgba(211, 201, 189, 0.3)', paddingTop: '6px' }}>
+                      <span style={{ fontSize: '14px', fontWeight: 700, color: 'var(--ink)' }}>Total</span>
+                      <strong style={{ fontSize: '17px', fontWeight: 800, color: 'var(--brand-color)' }}>
+                        {formatPrice(cartTotal + (cartTotal >= 500 ? 0 : 70))}
+                      </strong>
+                    </div>
+
+                    <p style={{ fontSize: '11px', color: 'var(--muted)', margin: '2px 0 4px', textAlign: 'center' }}>Taxes calculated at checkout.</p>
+
+                    <div style={{ display: 'flex', gap: '10px', marginTop: '4px' }}>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsCartHovered(false);
+                          setIsCartOpen(false);
+                          checkout();
+                        }}
+                        style={{ 
+                          flex: 2, 
+                          height: '46px', 
+                          background: '#1b624b', 
+                          color: '#ffffff', 
+                          border: 'none',
+                          borderRadius: '9999px',
+                          fontSize: '14px', 
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          transition: 'all 0.2s ease',
+                          fontFamily: 'var(--font-body, sans-serif)',
+                          boxShadow: '0 4px 12px rgba(27, 98, 75, 0.15)'
+                        }}
+                        onMouseEnter={(e) => { e.currentTarget.style.background = '#154d3b'; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.background = '#1b624b'; }}
+                      >
+                        Checkout
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsCartHovered(false);
+                          setIsCartOpen(false);
+                          router.push('/shop');
+                        }}
+                        style={{ 
+                          flex: 1, 
+                          height: '46px', 
+                          background: '#ffffff', 
+                          color: '#1b624b', 
+                          border: '1px solid #1b624b',
+                          borderRadius: '9999px',
+                          fontSize: '14px', 
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          transition: 'all 0.2s ease',
+                          fontFamily: 'var(--font-body, sans-serif)'
+                        }}
+                        onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(27, 98, 75, 0.04)'; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.background = '#ffffff'; }}
+                      >
+                        Shop
+                      </button>
+                    </div>
+                  </div>
+                
+                )}
+              </motion.div>
+            )}
+          </div>
         </div>
 
         <button
