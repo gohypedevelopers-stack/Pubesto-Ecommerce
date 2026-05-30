@@ -4,7 +4,7 @@ import "../../auth.css";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { CheckCircle, Lock, Mail, UserRound, Eye, EyeOff, Phone } from "lucide-react";
+import { Lock, Mail, UserRound, Eye, EyeOff, Phone } from "lucide-react";
 import { useStore } from "../../../components/StoreContext";
 
 const EMPTY_LOGIN = { email: "", password: "" };
@@ -179,20 +179,7 @@ export default function AccountLoginPage() {
 
   return (
     <main className="auth-page">
-      <section className="auth-shell">
-        <div className="auth-panel auth-copy-panel">
-          <span className="auth-eyebrow">Pubesto Account</span>
-          <h1>Sign in without leaving Pubesto.</h1>
-          <p>
-            Manage saved addresses, wishlist, returns, and order preferences from a branded account area on this domain.
-          </p>
-          <div className="auth-benefits">
-            <span><CheckCircle size={16} /> Faster checkout details</span>
-            <span><CheckCircle size={16} /> Saved delivery addresses</span>
-            <span><CheckCircle size={16} /> Account support history</span>
-          </div>
-        </div>
-
+      <section className="auth-shell compact">
         <div className="auth-panel auth-form-panel">
           <div className="auth-tabs" role="tablist" aria-label="Account actions">
             <button className={mode === "login" ? "active" : ""} type="button" role="tab" aria-selected={mode === "login"} onClick={() => switchMode("login")}>
