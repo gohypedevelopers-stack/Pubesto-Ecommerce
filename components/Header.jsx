@@ -1057,7 +1057,12 @@ export default function Header() {
                         onClick={() => {
                           setIsCartHovered(false);
                           setIsCartOpen(false);
-                          checkout();
+                          if (!isLoggedIn) {
+                            setAuthMode("signup");
+                            setIsDropdownOpen(true);
+                          } else {
+                            checkout();
+                          }
                         }}
                         style={{ 
                           flex: 2, 
