@@ -528,6 +528,48 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
     });
   };
 
+  function appendCheckoutPrefillParams(url, currentUser = user) {
+    if (!url || !currentUser) return url;
+    try {
+      const parsedUrl = new URL(url, window.location.origin);
+      
+      if (currentUser.email) {
+        parsedUrl.searchParams.set("checkout[email]", currentUser.email);
+      }
+      
+      // Split name
+      const nameParts = String(currentUser.name || "Customer").trim().split(/\s+/);
+      const firstName = nameParts[0] || "Customer";
+      const lastName = nameParts.slice(1).join(" ") || ".";
+      
+      parsedUrl.searchParams.set("checkout[shipping_address][first_name]", firstName);
+      parsedUrl.searchParams.set("checkout[shipping_address][last_name]", lastName);
+      
+      if (currentUser.phone) {
+        const digits = String(currentUser.phone).replace(/\D/g, "");
+        const formattedPhone = digits.length === 10 ? `+91${digits}` : (currentUser.phone.startsWith("+") ? currentUser.phone : null);
+        if (formattedPhone) {
+          parsedUrl.searchParams.set("checkout[shipping_address][phone]", formattedPhone);
+        }
+      }
+      
+      if (currentUser.addresses && currentUser.addresses.length > 0) {
+        const addr = currentUser.addresses[0];
+        if (addr.line1) parsedUrl.searchParams.set("checkout[shipping_address][address1]", addr.line1);
+        if (addr.line2) parsedUrl.searchParams.set("checkout[shipping_address][address2]", addr.line2);
+        if (addr.city) parsedUrl.searchParams.set("checkout[shipping_address][city]", addr.city);
+        if (addr.state) parsedUrl.searchParams.set("checkout[shipping_address][province]", addr.state);
+        if (addr.pincode) parsedUrl.searchParams.set("checkout[shipping_address][zip]", addr.pincode);
+        parsedUrl.searchParams.set("checkout[shipping_address][country]", "India");
+      }
+      
+      return parsedUrl.toString();
+    } catch (e) {
+      console.error("Failed to append checkout prefill parameters:", e);
+      return url;
+    }
+  }
+
   async function checkout(options = {}) {
     const activeItems = options.items || cartItems;
     const activeAmount = options.amount || cartTotal;
@@ -578,7 +620,7 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
       if (response.ok) {
         const data = await response.json();
         if (data.checkoutUrl) {
-          window.location.href = data.checkoutUrl;
+          window.location.href = appendCheckoutPrefillParams(data.checkoutUrl);
           return;
         }
       }
@@ -594,7 +636,7 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
     });
 
     if (hasVariants && permalinkUrl) {
-      window.location.href = permalinkUrl;
+      window.location.href = appendCheckoutPrefillParams(permalinkUrl);
       return;
     }
 

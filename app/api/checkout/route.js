@@ -1,4 +1,22 @@
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
+import { AUTH_COOKIE_NAME, parseSessionToken } from "../../../lib/auth-session";
+import { getCustomerById } from "../../../lib/auth-store";
+import { getShopifyCustomer } from "../../../lib/shopify-customer";
+
+function formatE164Phone(phone) {
+  const digits = String(phone || "").replace(/\D/g, "");
+  if (digits.length === 10) {
+    return `+91${digits}`;
+  }
+  if (digits.length === 12 && digits.startsWith("91")) {
+    return `+${digits}`;
+  }
+  if (phone && String(phone).trim().startsWith("+")) {
+    return String(phone).trim();
+  }
+  return null;
+}
 
 export async function POST(request) {
   try {
@@ -15,6 +33,23 @@ export async function POST(request) {
     if (!adminToken) {
       console.warn("SHOPIFY_ADMIN_ACCESS_TOKEN is not set. Bypassing to storefront checkout.");
       return NextResponse.json({ fallback: true });
+    }
+
+    // Fetch user details from session if available
+    let customerInfo = null;
+    try {
+      const cookieStore = await cookies();
+      const token = cookieStore.get(AUTH_COOKIE_NAME)?.value;
+      const session = parseSessionToken(token);
+      if (session) {
+        if (session.provider === "shopify" && session.customerAccessToken) {
+          customerInfo = await getShopifyCustomer(session.customerAccessToken);
+        } else {
+          customerInfo = await getCustomerById(session.sub);
+        }
+      }
+    } catch (e) {
+      console.warn("Failed to retrieve user session during checkout pre-fill:", e.message);
     }
 
     // Prepare line items for Shopify Draft Order
@@ -54,6 +89,59 @@ export async function POST(request) {
       price: "70.00"
     };
 
+    const draftOrderInput = {
+      lineItems,
+      shippingLine,
+    };
+
+    if (customerInfo) {
+      if (customerInfo.email) {
+        draftOrderInput.email = customerInfo.email;
+      }
+      
+      const rawPhone = customerInfo.phone;
+      const formattedPhone = formatE164Phone(rawPhone);
+      if (formattedPhone) {
+        draftOrderInput.phone = formattedPhone;
+      }
+
+      // Split name into firstName and lastName
+      const nameParts = String(customerInfo.name || "Customer").trim().split(/\s+/);
+      const firstName = nameParts[0] || "Customer";
+      const lastName = nameParts.slice(1).join(" ") || ".";
+
+      // Check for saved addresses
+      let savedAddress = null;
+      if (customerInfo.addresses && customerInfo.addresses.length > 0) {
+        savedAddress = customerInfo.addresses[0];
+      }
+
+      if (savedAddress) {
+        const addrNameParts = String(savedAddress.name || customerInfo.name || "Customer").trim().split(/\s+/);
+        const addrFirstName = addrNameParts[0] || "Customer";
+        const addrLastName = addrNameParts.slice(1).join(" ") || ".";
+
+        draftOrderInput.shippingAddress = {
+          firstName: addrFirstName,
+          lastName: addrLastName,
+          phone: formatE164Phone(savedAddress.phone || rawPhone) || undefined,
+          address1: savedAddress.line1 || undefined,
+          address2: savedAddress.line2 || undefined,
+          city: savedAddress.city || undefined,
+          province: savedAddress.state || undefined,
+          zip: savedAddress.pincode || undefined,
+          country: "India",
+        };
+      } else {
+        draftOrderInput.shippingAddress = {
+          firstName,
+          lastName,
+          phone: formattedPhone || undefined,
+          country: "India",
+        };
+      }
+    }
+
     const query = `
       mutation draftOrderCreate($input: DraftOrderInput!) {
         draftOrderCreate(input: $input) {
@@ -69,7 +157,7 @@ export async function POST(request) {
       }
     `;
 
-    const response = await fetch(`https://${domain}/admin/api/2023-10/graphql.json`, {
+    let response = await fetch(`https://${domain}/admin/api/2023-10/graphql.json`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -78,19 +166,47 @@ export async function POST(request) {
       body: JSON.stringify({
         query,
         variables: {
-          input: {
-            lineItems,
-            shippingLine,
-          }
+          input: draftOrderInput
         }
       })
     });
 
-    const resJson = await response.json();
+    let resJson = await response.json();
 
     if (resJson.errors) {
       console.error("Shopify GraphQL Errors:", resJson.errors);
       return NextResponse.json({ fallback: true, errors: resJson.errors });
+    }
+
+    // Handle address validation errors, retry without shippingAddress
+    const hasAddressErrors = resJson.data?.draftOrderCreate?.userErrors?.some(
+      err => err.field && err.field.includes("shippingAddress")
+    );
+
+    if (hasAddressErrors && draftOrderInput.shippingAddress) {
+      console.warn("Shopify draftOrderCreate failed with shippingAddress errors; retrying with only contact details...");
+      
+      const retryInput = {
+        lineItems,
+        shippingLine,
+      };
+      if (draftOrderInput.email) retryInput.email = draftOrderInput.email;
+      if (draftOrderInput.phone) retryInput.phone = draftOrderInput.phone;
+      
+      response = await fetch(`https://${domain}/admin/api/2023-10/graphql.json`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Shopify-Access-Token": adminToken,
+        },
+        body: JSON.stringify({
+          query,
+          variables: {
+            input: retryInput
+          }
+        })
+      });
+      resJson = await response.json();
     }
 
     const draftOrderData = resJson.data?.draftOrderCreate;

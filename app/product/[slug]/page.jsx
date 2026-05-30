@@ -51,10 +51,20 @@ function productMatchesRouteSlug(product, routeSlug) {
   return candidates.includes(target) || candidates.some((candidate) => candidate.includes(target));
 }
 
+const parsePrice = (priceStr) => {
+  const num = Number((priceStr || '').replace(/[^\d.]/g, ''));
+  return isNaN(num) || num === 0 ? null : num;
+};
+
+const formatRupeePrice = (priceStr) => {
+  if (!priceStr) return "";
+  return priceStr.replace(/(Rs\.|Rs|RS|INR)\s*/gi, "₹");
+};
+
 function ProductPageContent() {
   const { slug } = useParams();
   const { 
-    addToCart, cartItems, getProductId, getProductPrice, products, updateCartQuantity, checkout, setIsCartOpen
+    addToCart, cartItems, getProductId, getProductPrice, products, updateCartQuantity, checkout, setIsCartOpen, isLoggedIn, isAuthLoading, user
   } = useStore();
   const [activeTab, setActiveTab] = useState("specs");
   const [addEffectKey, setAddEffectKey] = useState(null);
@@ -110,6 +120,13 @@ function ProductPageContent() {
   }, [slug, products]);
 
   const product = products.find((p) => productMatchesRouteSlug(p, slug));
+
+  const productColors = product && Array.isArray(product.colors)
+    ? product.colors.filter((color) => color && color.name && color.hex)
+    : [];
+  const selectedColorName = selectedColor?.name || productColors[0]?.name || "";
+  const basePrice = product ? (product.salePrice || parsePrice(product.price) || 599) : 599;
+  const baseOldPrice = product ? (product.originalPrice || parsePrice(product.oldPrice) || Math.round(basePrice * 1.35)) : 809;
 
   // Initialize and update ticker data based on product
   useEffect(() => {
@@ -175,6 +192,37 @@ function ProductPageContent() {
     return () => clearInterval(interval);
   }, []);
 
+  // Auto-checkout if buy_now query param is present and user is logged in
+  useEffect(() => {
+    if (isAuthLoading || !isLoggedIn || !product) return;
+
+    const params = new URLSearchParams(window.location.search);
+    const buyNow = params.get("buy_now");
+    if (buyNow === "true") {
+      const qtyParam = parseInt(params.get("qty") || "1", 10);
+      const colorParam = params.get("color");
+
+      // Set state to match query parameters so user sees the color & qty they selected
+      if (qtyParam > 0) {
+        setQuantity(qtyParam);
+      }
+      if (colorParam && product.colors) {
+        const matched = product.colors.find(c => c.name.toLowerCase() === colorParam.toLowerCase());
+        if (matched) {
+          setSelectedColor(matched);
+          setActiveImage(matched.image || product.image);
+        }
+      }
+
+      // Clear query parameters from URL so refreshing won't trigger buy now again
+      const newUrl = window.location.pathname;
+      window.history.replaceState(null, "", newUrl);
+
+      // Trigger checkout immediately
+      handleBuyNow(qtyParam, colorParam || selectedColorName);
+    }
+  }, [isAuthLoading, isLoggedIn, product, selectedColorName]);
+
   if (!product) {
     return (
       <div className="error-page">
@@ -202,17 +250,70 @@ function ProductPageContent() {
     });
   }
 
-  async function handleBuyNow() {
+  function appendCheckoutPrefillParams(url, currentUser = user) {
+    if (!url || !currentUser) return url;
+    try {
+      const parsedUrl = new URL(url, window.location.origin);
+      
+      if (currentUser.email) {
+        parsedUrl.searchParams.set("checkout[email]", currentUser.email);
+      }
+      
+      // Split name
+      const nameParts = String(currentUser.name || "Customer").trim().split(/\s+/);
+      const firstName = nameParts[0] || "Customer";
+      const lastName = nameParts.slice(1).join(" ") || ".";
+      
+      parsedUrl.searchParams.set("checkout[shipping_address][first_name]", firstName);
+      parsedUrl.searchParams.set("checkout[shipping_address][last_name]", lastName);
+      
+      if (currentUser.phone) {
+        const digits = String(currentUser.phone).replace(/\D/g, "");
+        const formattedPhone = digits.length === 10 ? `+91${digits}` : (currentUser.phone.startsWith("+") ? currentUser.phone : null);
+        if (formattedPhone) {
+          parsedUrl.searchParams.set("checkout[shipping_address][phone]", formattedPhone);
+        }
+      }
+      
+      if (currentUser.addresses && currentUser.addresses.length > 0) {
+        const addr = currentUser.addresses[0];
+        if (addr.line1) parsedUrl.searchParams.set("checkout[shipping_address][address1]", addr.line1);
+        if (addr.line2) parsedUrl.searchParams.set("checkout[shipping_address][address2]", addr.line2);
+        if (addr.city) parsedUrl.searchParams.set("checkout[shipping_address][city]", addr.city);
+        if (addr.state) parsedUrl.searchParams.set("checkout[shipping_address][province]", addr.state);
+        if (addr.pincode) parsedUrl.searchParams.set("checkout[shipping_address][zip]", addr.pincode);
+        parsedUrl.searchParams.set("checkout[shipping_address][country]", "India");
+      }
+      
+      return parsedUrl.toString();
+    } catch (e) {
+      console.error("Failed to append checkout prefill parameters:", e);
+      return url;
+    }
+  }
+
+  async function handleBuyNow(overrideQty = null, overrideColor = null) {
     if (product.inStock === false || isBuyingNow) return;
+
+    const currentQty = overrideQty !== null ? overrideQty : quantity;
+    const currentColorName = overrideColor !== null ? overrideColor : selectedColorName;
+
+    // Check if user is logged in
+    if (!isLoggedIn) {
+      // Store current product page URL with query params for auto-checkout after signup
+      const redirectUrl = `${window.location.pathname}?buy_now=true&qty=${currentQty}&color=${encodeURIComponent(currentColorName)}`;
+      window.location.href = `/account/login?mode=signup&redirect=${encodeURIComponent(redirectUrl)}`;
+      return;
+    }
 
     const shopifyHandle = product.shopifyHandle || product.slug;
     setIsBuyingNow(true);
 
     try {
-      const variantId = getShopifyVariantIdForColor(product.slug, selectedColorName) || 
+      const variantId = getShopifyVariantIdForColor(product.slug, currentColorName) || 
                         product.shopifyVariantId || product.variantId || product.sku;
-      const name = getSelectedProductName();
-      const totalPrice = basePrice * quantity;
+      const name = currentColorName ? `${product.name} - ${currentColorName}` : product.name;
+      const totalPrice = basePrice * currentQty;
       const discountedUnitPrice = basePrice;
 
       const response = await fetch("/api/checkout", {
@@ -221,7 +322,7 @@ function ProductPageContent() {
         body: JSON.stringify({
           items: [{
             variantId,
-            quantity,
+            quantity: currentQty,
             name,
             discountedUnitPrice
           }]
@@ -231,28 +332,28 @@ function ProductPageContent() {
       if (response.ok) {
         const data = await response.json();
         if (data.checkoutUrl) {
-          window.location.href = data.checkoutUrl;
+          window.location.href = appendCheckoutPrefillParams(data.checkoutUrl);
           return;
         }
       }
 
       // Fallback to standard checkout if dynamic endpoint fails
-      const checkoutUrl = await getShopifyCheckoutUrl(shopifyHandle, quantity);
-      window.location.href = checkoutUrl;
+      const checkoutUrl = await getShopifyCheckoutUrl(shopifyHandle, currentQty);
+      window.location.href = appendCheckoutPrefillParams(checkoutUrl);
     } catch (err) {
       console.warn("Shopify checkout unavailable, falling back to Razorpay:", err.message);
       
       addToCart(product, {
-        color: selectedColorName,
-        quantity: quantity,
+        color: currentColorName,
+        quantity: currentQty,
         openCart: false
       });
-      const fallbackProduct = selectedColorName
-        ? { ...product, selectedColor: selectedColorName }
+      const fallbackProduct = currentColorName
+        ? { ...product, selectedColor: currentColorName }
         : product;
       checkout({
-        items: [{ id: getProductId(fallbackProduct), product: fallbackProduct, quantity }],
-        amount: basePrice * quantity
+        items: [{ id: getProductId(fallbackProduct), product: fallbackProduct, quantity: currentQty }],
+        amount: basePrice * currentQty
       });
     } finally {
       setIsBuyingNow(false);
@@ -299,16 +400,6 @@ function ProductPageContent() {
     relatedProducts = [...relatedProducts, ...remaining].slice(0, 4);
   }
 
-  const parsePrice = (priceStr) => {
-    const num = Number((priceStr || '').replace(/[^\d.]/g, ''));
-    return isNaN(num) || num === 0 ? null : num;
-  };
-
-  const formatRupeePrice = (priceStr) => {
-    if (!priceStr) return "";
-    return priceStr.replace(/(Rs\.|Rs|RS|INR)\s*/gi, "₹");
-  };
-
   const getCompanionDealLabel = (item) => {
     const sale = item.salePrice || parsePrice(item.price);
     const original = item.originalPrice || parsePrice(item.oldPrice);
@@ -324,8 +415,6 @@ function ProductPageContent() {
     return "Premium daily essential";
   };
 
-  const basePrice = product.salePrice || parsePrice(product.price) || 599;
-  const baseOldPrice = product.originalPrice || parsePrice(product.oldPrice) || Math.round(basePrice * 1.35);
   const productHighlights = Array.isArray(product.highlights) && product.highlights.filter(Boolean).length > 0
     ? product.highlights.filter(Boolean)
     : ["Premium Quality", "Artisanal Design", "Durability Guaranteed"];
@@ -342,11 +431,6 @@ function ProductPageContent() {
 
   const displayBadge = product.badge;
   const displayBadgeClass = product.badgeClass || 'badge-discount';
-
-  const productColors = Array.isArray(product.colors)
-    ? product.colors.filter((color) => color && color.name && color.hex)
-    : [];
-  const selectedColorName = selectedColor?.name || productColors[0]?.name || "";
 
   function handleColorSelect(color) {
     if (!color || color.available === false) return;

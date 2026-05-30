@@ -11763,45 +11763,36 @@ body,
 }
 
 .visual-backdrop {
-  position: absolute !important;
-  top: 30px !important;
-  right: -30px !important;
-  width: 100% !important;
-  height: 100% !important;
-  border-radius: 24px !important;
-  background-image: radial-gradient(rgba(63, 100, 105, 0.15) 1.5px, transparent 1.5px) !important;
-  background-size: 16px 16px !important;
-  z-index: 0 !important;
-  pointer-events: none !important;
+  display: none !important;
 }
 
 .visual-main {
   width: 100% !important;
   height: 100% !important;
-  background: #faf8f6 !important;
-  border: 1px solid rgba(63, 100, 105, 0.06) !important;
-  border-radius: 24px !important;
-  overflow: hidden !important;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  overflow: visible !important;
   position: relative !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.02) !important;
+  box-shadow: none !important;
   transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1) !important;
   z-index: 1 !important;
 }
 
 .visual-main:hover {
   transform: translateY(-6px) !important;
-  box-shadow: 0 30px 60px rgba(63, 100, 105, 0.08) !important;
-  border-color: rgba(63, 100, 105, 0.12) !important;
+  box-shadow: none !important;
+  border-color: transparent !important;
 }
 
 .visual-main img {
   width: 100% !important;
   height: 100% !important;
   object-fit: contain !important;
-  padding: 48px !important;
+  padding: 0px !important;
   transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
@@ -11811,8 +11802,8 @@ body,
 
 .floating-badge {
   position: absolute !important;
-  top: 24px !important;
-  right: 24px !important;
+  top: 10px !important;
+  right: 10px !important;
   background: var(--brand-color) !important;
   color: white !important;
   padding: 8px 18px !important;
@@ -11833,8 +11824,7 @@ body,
     margin-top: 40px !important;
   }
   .visual-backdrop {
-    right: 0 !important;
-    top: 20px !important;
+    display: none !important;
   }
   .hero-text-content h1 {
     font-size: 56px !important;
@@ -11930,7 +11920,7 @@ body,
   grid-template-columns: repeat(3, 1fr) !important;
   gap: 24px !important;
   width: 100% !important;
-  max-width: 1100px !important;
+  max-width: var(--about-content-width) !important;
   margin: 0 auto !important;
 }
 

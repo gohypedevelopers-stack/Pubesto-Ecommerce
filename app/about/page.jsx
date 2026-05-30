@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useRef, useState, useEffect } from "react";
-import { ArrowRight, Star, ShieldCheck, Zap, Heart } from "lucide-react";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { ArrowRight, ShieldCheck, Zap, Heart } from "lucide-react";
+import { motion, useScroll } from "framer-motion";
 import Link from "next/link";
 import { pubestoTrustFeatures } from "../../lib/data";
 import { useStore } from "../../components/StoreContext";
@@ -40,16 +40,6 @@ export default function AboutPage() {
     whileInView: { opacity: 1, y: 0 },
     viewport: { once: true, margin: "-100px" },
     transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] },
-  };
-
-  const staggerContainer = {
-    initial: {},
-    whileInView: {
-      transition: {
-        staggerChildren: 0.2,
-      },
-    },
-    viewport: { once: true },
   };
 
   return (
@@ -92,17 +82,16 @@ export default function AboutPage() {
             </motion.div>
 
             <div className="hero-visual-stack">
-              <div className="visual-backdrop" />
               <Link href="/product/adjustable-bladeless-neck-fan" style={{ display: "block", width: "100%", height: "100%", textDecoration: "none", zIndex: 1, position: "relative" }}>
                 <motion.div 
                   className="visual-main"
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ duration: 1.2, delay: 0.2 }}
-                  whileHover={{ y: -5, boxShadow: "0 25px 50px rgba(0,0,0,0.08)" }}
+                  whileHover={{ y: -5 }}
                   style={{ width: "100%", height: "100%", cursor: "pointer" }}
                 >
-                  <img src={neckFanImg} alt="Featured Product" style={{ width: "100%", height: "100%", objectFit: "contain", padding: "40px" }} />
+                  <img src={neckFanImg} alt="Featured Product" style={{ width: "100%", height: "100%", objectFit: "contain", padding: "0px" }} />
                   <div className="floating-badge">Best Seller</div>
                 </motion.div>
               </Link>
@@ -257,7 +246,7 @@ export default function AboutPage() {
 
       <style jsx>{`
         .about-page-v2 {
-          --about-content-width: 1100px;
+          --about-content-width: 1360px;
           background: #fdfdfd;
           color: #333;
           overflow-x: hidden;
@@ -356,11 +345,11 @@ export default function AboutPage() {
         }
 
         .visual-main {
-          width: 80%;
+          width: 100%;
           height: 100%;
-          background: #f6f4f2;
-          border-radius: 40px;
-          overflow: hidden;
+          background: transparent;
+          border-radius: 0;
+          overflow: visible;
           position: relative;
         }
 
@@ -368,13 +357,13 @@ export default function AboutPage() {
           width: 100%;
           height: 100%;
           object-fit: contain;
-          padding: 40px;
+          padding: 0px;
         }
 
         .floating-badge {
           position: absolute;
-          top: 30px;
-          right: 30px;
+          top: 10px;
+          right: 10px;
           background: #3f6469;
           color: white;
           padding: 8px 16px;
@@ -383,9 +372,6 @@ export default function AboutPage() {
           font-weight: 700;
           text-transform: uppercase;
         }
-
-
-        /* About page showcase styles are promoted to globals.css to ensure correct scoping through custom Framer Motion components */
 
         .about-trust {
           background: #f5f5f5; /* Clean soft off-white color */
