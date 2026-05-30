@@ -560,8 +560,8 @@ export default function Header() {
                       My Profile
                     </Link>
                     <Link 
-                      href="/orders/cancel" 
-                      className={`dropdown-item ${pathname === "/orders/cancel" ? "active" : ""}`} 
+                      href="/account?tab=orders#orders" 
+                      className="dropdown-item" 
                       onClick={() => setIsDropdownOpen(false)}
                     >
                       <Package size={15} />

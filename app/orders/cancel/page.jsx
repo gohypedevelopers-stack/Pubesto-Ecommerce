@@ -90,6 +90,16 @@ export default function CancelOrderPage() {
     prefillAccount();
 
     try {
+      const params = new URLSearchParams(window.location.search);
+      const qOrderId = params.get("orderId");
+      if (qOrderId) {
+        setForm((current) => ({ ...current, orderId: qOrderId }));
+      }
+    } catch {
+      // Optional
+    }
+
+    try {
       const saved = JSON.parse(localStorage.getItem("pubesto_cancellations") || "[]");
       setCancellationsList(saved);
     } catch {

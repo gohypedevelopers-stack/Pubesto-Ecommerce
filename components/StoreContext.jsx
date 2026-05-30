@@ -658,6 +658,9 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
       const order = await response.json();
       if (order.error) throw new Error(order.error);
 
+      // Snapshot current cart items for the order record
+      const cartSnapshot = [...cartItems];
+
       const rzpOptions = {
         key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_test_RwcLAPO7q0AESo",
         amount: order.amount,
@@ -666,17 +669,50 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
         description: "Artisanal Ecommerce",
         order_id: order.id,
         handler: function (response) {
-          alert(`Payment Successful! ID: ${response.razorpay_payment_id}`);
+          // Build and persist the new order to pubesto_orders in localStorage
+          try {
+            const year = new Date().getFullYear();
+            const rand = Math.floor(1000 + Math.random() * 9000);
+            const newOrderId = `PUB-${year}-${rand}`;
+            const orderItems = cartSnapshot.map((cartItem) => ({
+              id: cartItem.product?.slug || cartItem.id,
+              name: cartItem.product?.name || "Product",
+              image: cartItem.product?.image || "/images/products/neck-fan.png",
+              price: `Rs. ${((cartItem.product?.salePrice || cartItem.product?.originalPrice || 0)).toLocaleString("en-IN")}`,
+              priceNumber: cartItem.product?.salePrice || cartItem.product?.originalPrice || 0,
+              quantity: cartItem.quantity,
+              slug: cartItem.product?.slug || "",
+              color: cartItem.product?.selectedColor || "",
+            }));
+            const subtotal = orderItems.reduce((s, i) => s + i.priceNumber * i.quantity, 0);
+            const shipping = subtotal >= 999 ? 0 : 99;
+            const newOrder = {
+              id: newOrderId,
+              date: new Date().toISOString(),
+              items: orderItems,
+              subtotal,
+              shipping,
+              total: subtotal + shipping,
+              status: "processing",
+              paymentStatus: "paid",
+              paymentId: response.razorpay_payment_id,
+            };
+            const existingOrders = JSON.parse(localStorage.getItem("pubesto_orders") || "[]");
+            localStorage.setItem("pubesto_orders", JSON.stringify([newOrder, ...existingOrders]));
+          } catch (saveErr) {
+            console.error("Could not save order to history:", saveErr);
+          }
+
           setCartItems([]);
           localStorage.removeItem("shopify_cart");
           setIsCartOpen(false);
-          setProfileNotice("Thank you for your order! Payment successful.");
+          setProfileNotice(`Order placed! 🎉 View it in My Orders.`);
           setIsProfileOpen(true);
         },
         prefill: {
-          name: "Customer",
-          email: "customer@example.com",
-          contact: "9999999999",
+          name: user?.name || "Customer",
+          email: user?.email || "customer@example.com",
+          contact: user?.phone || "9999999999",
         },
         theme: { color: "#1b624b" },
       };
