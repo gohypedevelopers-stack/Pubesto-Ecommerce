@@ -3,7 +3,7 @@
 import "../../auth.css";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Lock } from "lucide-react";
+import { Eye, EyeOff, Lock } from "lucide-react";
 
 export default function ResetPasswordPage() {
   const [token, setToken] = useState("");
@@ -11,10 +11,15 @@ export default function ResetPasswordPage() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [success, setSuccess] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    setToken(params.get("token") || "");
+    const nextToken = params.get("token") || "";
+    setToken(nextToken);
+    if (!nextToken) {
+      setMessage("This reset link is missing a token. Please request a new password reset.");
+    }
   }, []);
 
   async function handleSubmit(event) {
@@ -28,7 +33,7 @@ export default function ResetPasswordPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ token, password }),
       });
-      const data = await response.json();
+      const data = await response.json().catch(() => ({}));
 
       if (!response.ok) {
         setMessage(data.error || "Could not reset password.");
@@ -56,7 +61,7 @@ export default function ResetPasswordPage() {
               <div className="auth-input-wrap">
                 <Lock size={18} />
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
                   placeholder="At least 8 characters"
@@ -64,6 +69,16 @@ export default function ResetPasswordPage() {
                   minLength={8}
                   disabled={!token || success}
                 />
+                <button
+                  className="auth-password-toggle"
+                  type="button"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  aria-pressed={showPassword}
+                  onClick={() => setShowPassword((current) => !current)}
+                  disabled={!token || success}
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
               </div>
             </label>
             {message ? <p className={`auth-message ${success ? "" : "error"}`}>{message}</p> : null}

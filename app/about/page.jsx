@@ -257,6 +257,7 @@ export default function AboutPage() {
 
       <style jsx>{`
         .about-page-v2 {
+          --about-content-width: 1100px;
           background: #fdfdfd;
           color: #333;
           overflow-x: hidden;
@@ -264,7 +265,7 @@ export default function AboutPage() {
 
         .about-hero-v2 {
           padding: 140px 24px 20px;
-          max-width: 1400px;
+          max-width: calc(var(--about-content-width) + 48px);
           margin: 0 auto;
         }
 
@@ -393,7 +394,7 @@ export default function AboutPage() {
         }
 
         .trust-container {
-          max-width: 1200px;
+          max-width: var(--about-content-width);
           margin: 0 auto;
         }
 
@@ -455,7 +456,7 @@ export default function AboutPage() {
           grid-template-columns: 1.2fr 1fr;
           gap: 100px;
           align-items: center;
-          max-width: 1400px;
+          max-width: var(--about-content-width);
           margin: 0 auto;
         }
 
@@ -543,7 +544,7 @@ export default function AboutPage() {
           flex-wrap: wrap;
           justify-content: center;
           gap: 15px;
-          max-width: 1000px;
+          max-width: var(--about-content-width);
           margin: 0 auto;
         }
 

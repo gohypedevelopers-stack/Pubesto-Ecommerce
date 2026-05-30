@@ -7,7 +7,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useStore } from "../../../components/StoreContext";
 import { peopleChoiceVideos } from "../../../lib/data";
-import { getShopifyCheckoutUrl } from "../../../lib/shopify";
+import { getShopifyCheckoutUrl, getShopifyVariantIdForColor } from "../../../lib/shopify";
 
 const INDIAN_NAMES = [
   "Rahul", "Kavya", "Vivek", "Sunita", "Srinivas", "Priya", "Amit", "Riya", 
@@ -209,7 +209,8 @@ function ProductPageContent() {
     setIsBuyingNow(true);
 
     try {
-      const variantId = product.shopifyVariantId || product.variantId || product.sku;
+      const variantId = getShopifyVariantIdForColor(product.slug, selectedColorName) || 
+                        product.shopifyVariantId || product.variantId || product.sku;
       const name = getSelectedProductName();
       const totalPrice = basePrice * quantity;
       const discountedUnitPrice = basePrice;

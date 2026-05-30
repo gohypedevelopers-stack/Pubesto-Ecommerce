@@ -45,7 +45,7 @@ client.request(query)
     data.products.edges.forEach(({ node }) => {
       console.log('Variants for ' + node.title + ' (' + node.handle + '):');
       node.variants.edges.forEach(({ node: v }) => {
-        console.log(`  - Variant: ${v.title}, Image: ${v.image?.url ? 'YES' : 'NO'} (${v.image?.url || ''})`);
+        console.log(`  - Variant: ${v.title}, ID: ${v.id}`);
       });
     });
   })

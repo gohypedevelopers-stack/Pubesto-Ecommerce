@@ -4,11 +4,20 @@ import "../../auth.css";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { CheckCircle, Lock, Mail, UserRound } from "lucide-react";
+import { CheckCircle, Lock, Mail, UserRound, Eye, EyeOff, Phone } from "lucide-react";
 import { useStore } from "../../../components/StoreContext";
 
 const EMPTY_LOGIN = { email: "", password: "" };
 const EMPTY_SIGNUP = { name: "", email: "", phone: "", password: "" };
+const AUTH_MODES = new Set(["login", "signup", "forgot"]);
+
+function getSafeMode(value) {
+  return AUTH_MODES.has(value) ? value : "login";
+}
+
+function getSafeRedirect(value) {
+  return value?.startsWith("/") && !value.startsWith("//") ? value : "/account";
+}
 
 export default function AccountLoginPage() {
   const router = useRouter();
@@ -18,16 +27,22 @@ export default function AccountLoginPage() {
   const [loginForm, setLoginForm] = useState(EMPTY_LOGIN);
   const [signupForm, setSignupForm] = useState(EMPTY_SIGNUP);
   const [forgotEmail, setForgotEmail] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
+  const [messageKind, setMessageKind] = useState("success");
   const [resetUrl, setResetUrl] = useState("");
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const nextMode = params.get("mode");
-    const nextRedirect = params.get("redirect");
-    if (["login", "signup", "forgot"].includes(nextMode)) setMode(nextMode);
-    if (nextRedirect?.startsWith("/")) setRedirectTo(nextRedirect);
+    function syncFromUrl() {
+      const params = new URLSearchParams(window.location.search);
+      setMode(getSafeMode(params.get("mode")));
+      setRedirectTo(getSafeRedirect(params.get("redirect")));
+    }
+
+    syncFromUrl();
+    window.addEventListener("popstate", syncFromUrl);
+    return () => window.removeEventListener("popstate", syncFromUrl);
   }, []);
 
   useEffect(() => {
@@ -37,15 +52,30 @@ export default function AccountLoginPage() {
   }, [isAuthLoading, redirectTo, router, user]);
 
   function switchMode(nextMode) {
-    setMode(nextMode);
+    const safeMode = getSafeMode(nextMode);
+    const knownEmail = loginForm.email || signupForm.email || forgotEmail;
+
+    if (safeMode === "forgot" && knownEmail) {
+      setForgotEmail((current) => current || knownEmail);
+    }
+    if (safeMode === "login" && !loginForm.email && signupForm.email) {
+      setLoginForm((current) => ({ ...current, email: signupForm.email }));
+    }
+    if (safeMode === "signup" && !signupForm.email && loginForm.email) {
+      setSignupForm((current) => ({ ...current, email: loginForm.email }));
+    }
+
+    setMode(safeMode);
     setMessage("");
+    setMessageKind("success");
     setResetUrl("");
+    setShowPassword(false);
 
     const params = new URLSearchParams(window.location.search);
-    if (nextMode === "login") {
+    if (safeMode === "login") {
       params.delete("mode");
     } else {
-      params.set("mode", nextMode);
+      params.set("mode", safeMode);
     }
     if (redirectTo !== "/account") {
       params.set("redirect", redirectTo);
@@ -67,27 +97,47 @@ export default function AccountLoginPage() {
     event.preventDefault();
     setLoading(true);
     setMessage("");
+    setMessageKind("success");
     setResetUrl("");
 
     try {
       const endpoint = mode === "signup" ? "/api/auth/signup" : "/api/auth/login";
-      const payload = mode === "signup" ? signupForm : loginForm;
+      const payload = mode === "signup"
+        ? {
+            ...signupForm,
+            name: signupForm.name.trim(),
+            email: signupForm.email.trim().toLowerCase(),
+            phone: signupForm.phone.trim(),
+          }
+        : {
+            ...loginForm,
+            email: loginForm.email.trim().toLowerCase(),
+          };
       const response = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-      const data = await response.json();
+      const data = await response.json().catch(() => ({}));
 
       if (!response.ok) {
         setMessage(data.error || "Could not continue.");
+        setMessageKind("error");
         return;
       }
 
-      await refreshAuthSession?.();
+      const nextUser = await refreshAuthSession?.();
+      if (!nextUser && !data.user) {
+        setMessage("Account created, but the session could not be loaded. Please log in again.");
+        setMessageKind("error");
+        setMode("login");
+        return;
+      }
+
       router.push(redirectTo);
     } catch {
       setMessage("Network error. Please try again.");
+      setMessageKind("error");
     } finally {
       setLoading(false);
     }
@@ -97,25 +147,31 @@ export default function AccountLoginPage() {
     event.preventDefault();
     setLoading(true);
     setMessage("");
+    setMessageKind("success");
     setResetUrl("");
 
     try {
+      const email = forgotEmail.trim().toLowerCase();
       const response = await fetch("/api/auth/forgot-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: forgotEmail }),
+        body: JSON.stringify({ email }),
       });
-      const data = await response.json();
+      const data = await response.json().catch(() => ({}));
 
       if (!response.ok) {
         setMessage(data.error || "Could not start password reset.");
+        setMessageKind("error");
         return;
       }
 
-      setMessage(data.message);
-      setResetUrl(data.resetUrl || "");
+      setForgotEmail(email);
+      setMessage(data.resetPath ? "Password reset link is ready for local testing." : data.message);
+      setMessageKind("success");
+      setResetUrl(data.resetPath || data.resetUrl || "");
     } catch {
       setMessage("Network error. Please try again.");
+      setMessageKind("error");
     } finally {
       setLoading(false);
     }
@@ -151,7 +207,7 @@ export default function AccountLoginPage() {
           </div>
 
           {mode === "forgot" ? (
-            <form className="auth-form" onSubmit={submitForgot}>
+            <form className="auth-form" onSubmit={submitForgot} noValidate={false}>
               <h2>Reset password</h2>
               <label>
                 <span>Email address</span>
@@ -168,18 +224,27 @@ export default function AccountLoginPage() {
                   />
                 </div>
               </label>
-              {message ? <p className="auth-message">{message}</p> : null}
+              {message ? <p className={`auth-message ${messageKind === "error" ? "error" : ""}`}>{message}</p> : null}
               {resetUrl ? (
-                <Link className="auth-reset-link" href={resetUrl}>
-                  Continue to reset password
-                </Link>
+                resetUrl.startsWith("/") ? (
+                  <Link className="auth-reset-link" href={resetUrl}>
+                    Continue to reset password
+                  </Link>
+                ) : (
+                  <a className="auth-reset-link" href={resetUrl}>
+                    Continue to reset password
+                  </a>
+                )
               ) : null}
-              <button className="auth-submit" type="submit" disabled={loading}>
+              <button className="auth-submit" type="submit" disabled={loading} aria-busy={loading}>
                 {loading ? "Preparing..." : "Send reset link"}
+              </button>
+              <button className="auth-link-button" type="button" onClick={() => switchMode("login")}>
+                Back to login
               </button>
             </form>
           ) : (
-            <form className="auth-form" onSubmit={submitAuth}>
+            <form className="auth-form" onSubmit={submitAuth} noValidate={false}>
               <h2>{mode === "signup" ? "Create your account" : "Welcome back"}</h2>
               {mode === "signup" ? (
                 <>
@@ -200,9 +265,10 @@ export default function AccountLoginPage() {
                   <label>
                     <span>Phone</span>
                     <div className="auth-input-wrap">
-                      <UserRound size={18} />
+                      <Phone size={18} />
                       <input
-                        name="tel"
+                        name="phone"
+                        type="tel"
                         value={signupForm.phone}
                         onChange={(event) => setSignupField("phone", event.target.value)}
                         placeholder="Optional"
@@ -228,13 +294,14 @@ export default function AccountLoginPage() {
                   />
                 </div>
               </label>
-              <label>
-                <span>Password</span>
+              <div className="auth-field">
+                <label htmlFor="account-password">Password</label>
                 <div className="auth-input-wrap">
                   <Lock size={18} />
                   <input
+                    id="account-password"
                     name={mode === "signup" ? "new-password" : "current-password"}
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     value={mode === "signup" ? signupForm.password : loginForm.password}
                     onChange={(event) => mode === "signup" ? setSignupField("password", event.target.value) : setLoginField("password", event.target.value)}
                     placeholder={mode === "signup" ? "At least 8 characters" : "Your password"}
@@ -242,17 +309,30 @@ export default function AccountLoginPage() {
                     required
                     minLength={8}
                   />
+                  <button
+                    className="auth-password-toggle"
+                    type="button"
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                    aria-pressed={showPassword}
+                    onClick={() => setShowPassword((current) => !current)}
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
                 </div>
-              </label>
-              {message ? <p className="auth-message error">{message}</p> : null}
-              <button className="auth-submit" type="submit" disabled={loading}>
+              </div>
+              {message ? <p className={`auth-message ${messageKind === "error" ? "error" : ""}`}>{message}</p> : null}
+              <button className="auth-submit" type="submit" disabled={loading} aria-busy={loading}>
                 {loading ? "Please wait..." : mode === "signup" ? "Create account" : "Login"}
               </button>
               {mode === "login" ? (
                 <button className="auth-link-button" type="button" onClick={() => switchMode("forgot")}>
                   Forgot your password?
                 </button>
-              ) : null}
+              ) : (
+                <button className="auth-link-button" type="button" onClick={() => switchMode("login")}>
+                  Already have an account? Login
+                </button>
+              )}
             </form>
           )}
         </div>
