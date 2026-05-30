@@ -459,3 +459,116 @@
     grid-template-columns: 1fr;
   }
 }
+
+.account-address-list.form-closed {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)) !important;
+  gap: 18px !important;
+}
+
+/* Premium Avatar & Profile Hero styling */
+.account-hero-profile {
+  display: flex !important;
+  align-items: center !important;
+  gap: 16px !important;
+}
+
+.account-avatar {
+  width: 58px !important;
+  height: 58px !important;
+  border-radius: 50% !important;
+  background: var(--brand-color, #3f6469) !important;
+  color: #ffffff !important;
+  font-weight: 800 !important;
+  font-size: 18px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-shadow: 0 8px 24px rgba(63, 100, 105, 0.2) !important;
+  flex-shrink: 0 !important;
+  border: 2px solid #ffffff !important;
+}
+
+.account-hero-email {
+  margin: 4px 0 0 0 !important;
+  color: var(--muted, #7a7266) !important;
+  font-size: 14px !important;
+}
+
+/* Enhancing Account Link List Hover Transitions */
+.account-link-list a {
+  transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.account-link-list a:hover {
+  transform: translateX(6px) !important;
+  border-color: var(--brand-color, #3f6469) !important;
+  box-shadow: 0 6px 20px rgba(63, 100, 105, 0.08) !important;
+  color: var(--brand-color, #3f6469) !important;
+}
+
+/* Premium Empty State Addresses styling */
+.account-empty-card {
+  grid-column: 1 / -1 !important; /* Span full width of grid */
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+  padding: 40px 24px !important;
+  background: rgba(255, 255, 255, 0.8) !important;
+  border: 1px dashed rgba(63, 100, 105, 0.25) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 10px 30px rgba(63, 100, 105, 0.04) !important;
+}
+
+.empty-card-icon {
+  width: 52px !important;
+  height: 52px !important;
+  border-radius: 50% !important;
+  background: rgba(63, 100, 105, 0.08) !important;
+  color: var(--brand-color, #3f6469) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin-bottom: 14px !important;
+}
+
+.account-empty-card h3 {
+  font-family: var(--font-display) !important;
+  font-size: 18px !important;
+  font-weight: 800 !important;
+  color: var(--ink, #2c2520) !important;
+  margin: 0 0 6px 0 !important;
+}
+
+.account-empty-card p {
+  font-size: 13.5px !important;
+  line-height: 1.6 !important;
+  color: var(--muted, #7a7266) !important;
+  max-width: 380px !important;
+  margin: 0 0 16px 0 !important;
+}
+
+/* Styling Logout Button to look extremely clean and premium */
+.account-logout {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  border: 1px solid rgba(197, 48, 48, 0.16) !important;
+  background: rgba(197, 48, 48, 0.04) !important;
+  color: #a12222 !important;
+  font-weight: 700 !important;
+  font-size: 13.5px !important;
+  border-radius: 10px !important;
+  padding: 10px 18px !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+}
+
+.account-logout:hover {
+  background: rgba(197, 48, 48, 0.08) !important;
+  transform: translateY(-1px) !important;
+}
+
+

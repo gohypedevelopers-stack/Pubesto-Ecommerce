@@ -5,8 +5,8 @@ import { SearchIcon, ShoppingBag, UserIcon, MenuIcon } from "./Icons";
 import { useState, useEffect, useRef } from "react";
 import { motion, useScroll, useMotionValueEvent } from "framer-motion";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { Home, ShoppingBag as LucideShoppingBag, User, ShoppingCart, ChevronRight } from "lucide-react";
+import { useRouter, usePathname } from "next/navigation";
+import { Home, ShoppingBag as LucideShoppingBag, User, ShoppingCart, ChevronRight, Eye, EyeOff, Package, Truck, LogOut } from "lucide-react";
 
 export default function Header() {
   const {
@@ -19,7 +19,10 @@ export default function Header() {
     closeUtilityPanels,
     setSelectedCategory, setShowAllProducts,
     products,
-    isLoggedIn
+    isLoggedIn,
+    user,
+    logout,
+    refreshAuthSession
   } = useStore();
 
   const { scrollY } = useScroll();
@@ -27,6 +30,7 @@ export default function Header() {
   const [prevScroll, setPrevScroll] = useState(0);
   const [activeIndex, setActiveIndex] = useState(-1);
   const router = useRouter();
+  const pathname = usePathname();
   const searchInputRef = useRef(null);
 
   // Filter products based on search query
@@ -113,6 +117,120 @@ export default function Header() {
     setShowAllProducts(false);
   }
 
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [authMode, setAuthMode] = useState("login");
+  const [loginForm, setLoginForm] = useState({ email: "", password: "" });
+  const [signupForm, setSignupForm] = useState({ name: "", email: "", phone: "", password: "" });
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [authMessage, setAuthMessage] = useState("");
+  const [authMessageKind, setAuthMessageKind] = useState("success");
+  const [authLoading, setAuthLoading] = useState(false);
+  const [hoverTimeout, setHoverTimeout] = useState(null);
+  const [resetUrl, setResetUrl] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+
+  function handleMouseEnter() {
+    if (hoverTimeout) {
+      clearTimeout(hoverTimeout);
+      setHoverTimeout(null);
+    }
+    setIsDropdownOpen(true);
+  }
+
+  function handleMouseLeave() {
+    const timeout = setTimeout(() => {
+      setIsDropdownOpen(false);
+    }, 300);
+    setHoverTimeout(timeout);
+  }
+
+  async function handlePopupAuth(event) {
+    event.preventDefault();
+    setAuthLoading(true);
+    setAuthMessage("");
+    setAuthMessageKind("success");
+
+    try {
+      const endpoint = authMode === "signup" ? "/api/auth/signup" : "/api/auth/login";
+      const payload = authMode === "signup"
+        ? {
+            ...signupForm,
+            name: signupForm.name.trim(),
+            email: signupForm.email.trim().toLowerCase(),
+            phone: signupForm.phone.trim(),
+          }
+        : {
+            ...loginForm,
+            email: loginForm.email.trim().toLowerCase(),
+          };
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        setAuthMessage(data.error || "Authentication failed.");
+        setAuthMessageKind("error");
+        return;
+      }
+
+      const nextUser = await refreshAuthSession?.();
+      if (!nextUser && !data.user) {
+        setAuthMessage("Account created, but session could not load.");
+        setAuthMessageKind("error");
+        setAuthMode("login");
+        return;
+      }
+
+      setAuthMessage("Successfully signed in!");
+      setAuthMessageKind("success");
+      
+      setTimeout(() => {
+        setIsDropdownOpen(false);
+        setAuthMessage("");
+      }, 1000);
+    } catch {
+      setAuthMessage("Network error. Please try again.");
+      setAuthMessageKind("error");
+    } finally {
+      setAuthLoading(false);
+    }
+  }
+
+  async function handlePopupForgot(event) {
+    event.preventDefault();
+    setAuthLoading(true);
+    setAuthMessage("");
+    setAuthMessageKind("success");
+
+    try {
+      const email = forgotEmail.trim().toLowerCase();
+      const response = await fetch("/api/auth/forgot-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        setAuthMessage(data.error || "Password reset failed.");
+        setAuthMessageKind("error");
+        return;
+      }
+
+      setAuthMessage(data.resetPath ? "Password reset link is ready for local testing." : (data.message || "Reset link prepared!"));
+      setAuthMessageKind("success");
+      setResetUrl(data.resetPath || data.resetUrl || "");
+    } catch {
+      setAuthMessage("Network error. Please try again.");
+      setAuthMessageKind("error");
+    } finally {
+      setAuthLoading(false);
+    }
+  }
+
   function prepareAccountNavigation(e) {
     e?.preventDefault();
     setIsMenuOpen(false);
@@ -165,14 +283,223 @@ export default function Header() {
           >
             <SearchIcon />
           </button>
-          <button
-            className="navbar-icon"
-            type="button"
-            aria-label="Open profile"
-            onClick={prepareAccountNavigation}
+          <div 
+            className="profile-dropdown-container"
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
           >
-            <UserIcon />
-          </button>
+            <button
+              className="navbar-icon"
+              type="button"
+              aria-label="Open profile"
+              onClick={prepareAccountNavigation}
+            >
+              <UserIcon />
+            </button>
+            
+            {isDropdownOpen && (
+              <div className="profile-dropdown-popup">
+                {isLoggedIn && user ? (
+                  <div className="dropdown-authed">
+                    <div className="dropdown-welcome-wrapper">
+                      <div className="dropdown-avatar">
+                        {user.name ? user.name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2) : "C"}
+                      </div>
+                      <div>
+                        <p className="dropdown-welcome-label">Welcome,</p>
+                        <p className="dropdown-welcome-name"><strong>{user.name || "Customer"}</strong></p>
+                      </div>
+                    </div>
+                    <div className="dropdown-divider" />
+                    <Link 
+                      href="/account" 
+                      className={`dropdown-item ${pathname === "/account" ? "active" : ""}`} 
+                      onClick={() => setIsDropdownOpen(false)}
+                    >
+                      <User size={15} />
+                      My Profile
+                    </Link>
+                    <Link 
+                      href="/orders/cancel" 
+                      className={`dropdown-item ${pathname === "/orders/cancel" ? "active" : ""}`} 
+                      onClick={() => setIsDropdownOpen(false)}
+                    >
+                      <Package size={15} />
+                      My Orders
+                    </Link>
+                    <Link 
+                      href="/returns/track" 
+                      className={`dropdown-item ${pathname === "/returns/track" ? "active" : ""}`} 
+                      onClick={() => setIsDropdownOpen(false)}
+                    >
+                      <Truck size={15} />
+                      Track Order
+                    </Link>
+                    <div className="dropdown-divider" />
+                    <button 
+                      className="dropdown-btn-logout" 
+                      type="button" 
+                      onClick={async () => {
+                        await logout();
+                        setIsDropdownOpen(false);
+                        router.push("/");
+                      }}
+                    >
+                      <LogOut size={14} />
+                      Logout
+                    </button>
+                  </div>
+                ) : (
+                  <div className="dropdown-auth">
+                    <div className="dropdown-tabs">
+                      <button 
+                        className={authMode === "login" ? "active" : ""} 
+                        type="button" 
+                        onClick={() => { setAuthMode("login"); setAuthMessage(""); setResetUrl(""); setShowPassword(false); }}
+                      >
+                        Login
+                      </button>
+                      <button 
+                        className={authMode === "signup" ? "active" : ""} 
+                        type="button" 
+                        onClick={() => { setAuthMode("signup"); setAuthMessage(""); setResetUrl(""); setShowPassword(false); }}
+                      >
+                        Signup
+                      </button>
+                      <button 
+                        className={authMode === "forgot" ? "active" : ""} 
+                        type="button" 
+                        onClick={() => { setAuthMode("forgot"); setAuthMessage(""); setResetUrl(""); setShowPassword(false); }}
+                      >
+                        Forgot
+                      </button>
+                    </div>
+
+                    {authMode === "forgot" ? (
+                      <form onSubmit={handlePopupForgot} className="dropdown-form">
+                        <label>
+                          <span>Email address</span>
+                          <input 
+                            type="email" 
+                            value={forgotEmail} 
+                            onChange={(e) => setForgotEmail(e.target.value)} 
+                            placeholder="you@example.com" 
+                            required 
+                          />
+                        </label>
+                        {authMessage && (
+                          <p className={`dropdown-message ${authMessageKind === "error" ? "error" : ""}`}>
+                            {authMessage}
+                          </p>
+                        )}
+                        {resetUrl && (
+                          resetUrl.startsWith("/") ? (
+                            <Link 
+                              className="dropdown-reset-link" 
+                              href={resetUrl} 
+                              onClick={() => {
+                                setIsDropdownOpen(false);
+                                setResetUrl("");
+                              }}
+                            >
+                              Continue to reset password
+                            </Link>
+                          ) : (
+                            <a 
+                              className="dropdown-reset-link" 
+                              href={resetUrl} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              onClick={() => {
+                                setIsDropdownOpen(false);
+                                setResetUrl("");
+                              }}
+                            >
+                              Continue to reset password
+                            </a>
+                          )
+                        )}
+                        <button type="submit" className="dropdown-submit" disabled={authLoading}>
+                          {authLoading ? "Sending..." : "Reset Password"}
+                        </button>
+                      </form>
+                    ) : (
+                      <form onSubmit={handlePopupAuth} className="dropdown-form">
+                        {authMode === "signup" && (
+                          <>
+                            <label>
+                              <span>Full name</span>
+                              <input 
+                                type="text" 
+                                value={signupForm.name} 
+                                onChange={(e) => setSignupForm(prev => ({ ...prev, name: e.target.value }))} 
+                                placeholder="Your name" 
+                                required 
+                              />
+                            </label>
+                            <label>
+                              <span>Phone</span>
+                              <input 
+                                type="tel" 
+                                value={signupForm.phone} 
+                                onChange={(e) => setSignupForm(prev => ({ ...prev, phone: e.target.value }))} 
+                                placeholder="Optional" 
+                              />
+                            </label>
+                          </>
+                        )}
+                        <label>
+                          <span>Email address</span>
+                          <input 
+                            type="email" 
+                            value={authMode === "signup" ? signupForm.email : loginForm.email} 
+                            onChange={(e) => authMode === "signup" 
+                              ? setSignupForm(prev => ({ ...prev, email: e.target.value }))
+                              : setLoginForm(prev => ({ ...prev, email: e.target.value }))
+                            } 
+                            placeholder="you@example.com" 
+                            required 
+                          />
+                        </label>
+                        <label>
+                          <span>Password</span>
+                          <div className="dropdown-password-wrap">
+                            <input 
+                              type={showPassword ? "text" : "password"} 
+                              value={authMode === "signup" ? signupForm.password : loginForm.password} 
+                              onChange={(e) => authMode === "signup" 
+                                ? setSignupForm(prev => ({ ...prev, password: e.target.value }))
+                                : setLoginForm(prev => ({ ...prev, password: e.target.value }))
+                              } 
+                              placeholder="At least 8 chars" 
+                              required 
+                              minLength={8}
+                            />
+                            <button
+                              type="button"
+                              className="dropdown-password-toggle"
+                              onClick={() => setShowPassword(!showPassword)}
+                              aria-label={showPassword ? "Hide password" : "Show password"}
+                            >
+                              {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                            </button>
+                          </div>
+                        </label>
+                        {authMessage && (
+                          <p className={`dropdown-message ${authMessageKind === "error" ? "error" : ""}`}>
+                            {authMessage}
+                          </p>
+                        )}
+                        <button type="submit" className="dropdown-submit" disabled={authLoading}>
+                          {authLoading ? "Please wait..." : authMode === "signup" ? "Create Account" : "Login"}
+                        </button>
+                      </form>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
           <button
             className="navbar-icon navbar-cart cart-action"
             type="button"

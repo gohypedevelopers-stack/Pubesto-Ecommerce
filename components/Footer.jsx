@@ -3,7 +3,7 @@
 import { useStore } from "./StoreContext";
 import { motion } from "framer-motion";
 import { InstagramIcon, FacebookIcon } from "./Icons";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Mail, Phone, Clock } from "lucide-react";
 import React, { useState } from "react";
 import Link from "next/link";
 
@@ -100,6 +100,7 @@ export default function Footer() {
                       initial={{ opacity: 0, x: -10 }}
                       whileInView={{ opacity: 1, x: 0 }}
                       transition={{ delay: 0.3 + idx * 0.1 + lIdx * 0.05 }}
+                      style={{ display: "flex", justifyContent: "center", width: "100%" }}
                     >
                       {link.href ? (
                         <Link
@@ -135,9 +136,33 @@ export default function Footer() {
               transition={{ delay: 0.6 }}
             >
               <h2>Contact Us</h2>
-              <p className="footer-contact-item">support@pubesto.com</p>
-              <p className="footer-contact-item">+91 7056063693</p>
-              <p className="footer-contact-item">Mon - Sat: 10AM - 7PM</p>
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: "100%" }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: "10px", alignItems: "flex-start", width: "fit-content" }}>
+                  <a 
+                    href="mailto:support@pubesto.com" 
+                    className="footer-contact-item"
+                    style={{ display: "inline-flex", alignItems: "center", gap: "10px", textDecoration: "none", margin: 0, textAlign: "left" }}
+                  >
+                    <Mail size={16} style={{ flexShrink: 0, opacity: 0.8 }} />
+                    <span>support@pubesto.com</span>
+                  </a>
+                  <a 
+                    href="tel:+917056063693" 
+                    className="footer-contact-item"
+                    style={{ display: "inline-flex", alignItems: "center", gap: "10px", textDecoration: "none", margin: 0, textAlign: "left" }}
+                  >
+                    <Phone size={16} style={{ flexShrink: 0, opacity: 0.8 }} />
+                    <span>+91 7056063693</span>
+                  </a>
+                  <div 
+                    className="footer-contact-item"
+                    style={{ display: "inline-flex", alignItems: "center", gap: "10px", margin: 0, textAlign: "left" }}
+                  >
+                    <Clock size={16} style={{ flexShrink: 0, opacity: 0.8 }} />
+                    <span>Mon - Sat: 10AM - 7PM</span>
+                  </div>
+                </div>
+              </div>
             </motion.div>
 
             <div className="footer-social-section">

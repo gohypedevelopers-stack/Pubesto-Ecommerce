@@ -1,7 +1,7 @@
 [
   {
     "id": "cus_1780123329690_4f192bd108",
-    "name": "Dheeraj",
+    "name": "Dheeraj Sorout",
     "email": "dheerajsorout16500@gmail.com",
     "phone": "+919518184601",
     "passwordHash": "5b089621cc8b8a0fcfaf0503cba1730d4756daab8c5dffc1865acba279f2965c793a7062a759bc299f2b4d5e0815059d749f9b3aaa8eedb8a55d76aed17f6426",
@@ -10,6 +10,6 @@
     "resetTokenHash": "",
     "resetTokenExpiresAt": "",
     "createdAt": "2026-05-30T06:42:09.690Z",
-    "updatedAt": "2026-05-30T06:42:09.690Z"
+    "updatedAt": "2026-05-30T07:49:40.489Z"
   }
 ]

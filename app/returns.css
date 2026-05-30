@@ -1379,3 +1379,511 @@
     flex-direction: column;
   }
 }
+
+/* ==========================================================================
+   ORDER CANCELLATION LAYOUT & SIDEBAR STYLES
+   ========================================================================== */
+.returns-layout-grid {
+  display: grid !important;
+  grid-template-columns: 1.22fr 0.78fr !important;
+  gap: 24px !important;
+  align-items: flex-start !important;
+}
+
+@media (max-width: 840px) {
+  .returns-layout-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+.returns-sidebar {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 20px !important;
+}
+
+.returns-sidebar-card {
+  background: #ffffff !important;
+  border: 1px solid rgba(211, 201, 189, 0.5) !important;
+  border-radius: 20px !important;
+  padding: 24px !important;
+  box-shadow: 0 10px 30px rgba(63, 100, 105, 0.03) !important;
+}
+
+.returns-sidebar-title {
+  font-size: 16px !important;
+  font-weight: 700 !important;
+  color: var(--ink, #1a1a1a) !important;
+  margin: 0 0 12px 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+.returns-sidebar-title svg {
+  color: var(--brand-color, #1b624b) !important;
+}
+
+.returns-sidebar-desc {
+  font-size: 13px !important;
+  line-height: 1.6 !important;
+  color: var(--muted, #7a7266) !important;
+  margin: 0 0 14px 0 !important;
+}
+
+.cancellation-policy-item {
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 10px !important;
+  padding: 10px 0 !important;
+  border-bottom: 1px solid rgba(211, 201, 189, 0.3) !important;
+}
+
+.cancellation-policy-item:last-child {
+  border: none !important;
+}
+
+.cancellation-policy-bullet {
+  color: var(--brand-color, #1b624b) !important;
+  margin-top: 2px !important;
+  flex-shrink: 0 !important;
+}
+
+.cancellation-policy-text {
+  font-size: 12.5px !important;
+  line-height: 1.5 !important;
+  color: var(--ink, #1a1a1a) !important;
+}
+
+.cancellations-list {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 10px !important;
+}
+
+.cancellation-item-btn {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 4px !important;
+  width: 100% !important;
+  background: var(--cream, #f8f6f2) !important;
+  border: 1px solid rgba(211, 201, 189, 0.4) !important;
+  border-radius: 12px !important;
+  padding: 12px 14px !important;
+  cursor: pointer !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  text-align: left !important;
+}
+
+.cancellation-item-btn:hover {
+  border-color: var(--brand-color, #1b624b) !important;
+  background: rgba(27, 98, 75, 0.03) !important;
+  transform: translateX(3px) !important;
+}
+
+.cancellation-item-btn.selected {
+  border-color: var(--brand-color, #1b624b) !important;
+  background: rgba(27, 98, 75, 0.05) !important;
+  box-shadow: 0 0 0 3px rgba(27, 98, 75, 0.08) !important;
+}
+
+.cancellation-item-header {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  width: 100% !important;
+}
+
+.cancellation-item-id {
+  font-family: monospace !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  color: var(--brand-color, #1b624b) !important;
+  letter-spacing: 0.02em !important;
+}
+
+.cancellation-item-date {
+  font-size: 11px !important;
+  color: var(--muted, #7a7266) !important;
+}
+
+.cancellation-item-detail {
+  font-size: 12px !important;
+  color: var(--ink, #1a1a1a) !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  width: 100% !important;
+}
+
+.cancellation-detail-view {
+  background: var(--cream, #f8f6f2) !important;
+  border: 1.5px solid rgba(27, 98, 75, 0.2) !important;
+  border-radius: 16px !important;
+  padding: 16px !important;
+  animation: returns-fade-in 0.25s ease !important;
+  position: relative !important;
+}
+
+.cancellation-detail-header {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  margin-bottom: 12px !important;
+}
+
+.cancellation-detail-close {
+  background: transparent !important;
+  border: none !important;
+  cursor: pointer !important;
+  color: var(--muted, #7a7266) !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  padding: 2px 6px !important;
+}
+
+.cancellation-detail-close:hover {
+  color: #c53030 !important;
+}
+
+.cancellation-detail-grid {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 10px !important;
+  margin-bottom: 12px !important;
+}
+
+.cancellation-detail-item {
+  background: #ffffff !important;
+  border: 1px solid rgba(211, 201, 189, 0.4) !important;
+  border-radius: 8px !important;
+  padding: 8px 10px !important;
+}
+
+.cancellation-detail-label {
+  font-size: 9.5px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  color: var(--muted, #7a7266) !important;
+  margin-bottom: 2px !important;
+}
+
+.cancellation-detail-val {
+  font-size: 12.5px !important;
+  font-weight: 600 !important;
+  color: var(--ink, #1a1a1a) !important;
+}
+
+/* ── Enhanced Custom Input Icons & Validation ── */
+.cancel-input-wrapper {
+  position: relative !important;
+  display: flex !important;
+  align-items: center !important;
+  width: 100% !important;
+}
+
+.cancel-input-icon {
+  position: absolute !important;
+  left: 14px !important;
+  color: var(--muted, #7a7266) !important;
+  pointer-events: none !important;
+  display: flex !important;
+  align-items: center !important;
+  transition: color 0.25s ease !important;
+  z-index: 5 !important;
+}
+
+.cancel-input-wrapper .returns-input {
+  padding-left: 42px !important;
+}
+
+.cancel-input-wrapper .returns-input:focus ~ .cancel-input-icon {
+  color: var(--brand-color, #1b624b) !important;
+}
+
+.cancel-field-success-icon {
+  position: absolute !important;
+  right: 14px !important;
+  color: #2e7d32 !important;
+  pointer-events: none !important;
+  display: flex !important;
+  align-items: center !important;
+  animation: returns-pop-in 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+  z-index: 5 !important;
+}
+
+/* ── Interactive Reason Cards ── */
+.cancel-reason-grid {
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: 12px !important;
+  margin-bottom: 24px !important;
+  width: 100% !important;
+}
+
+@media (max-width: 680px) {
+  .cancel-reason-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .cancel-reason-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+.cancel-reason-card {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  background: #ffffff !important;
+  border: 1.5px solid rgba(211, 201, 189, 0.5) !important;
+  border-radius: 12px !important;
+  padding: 16px !important;
+  text-align: left !important;
+  cursor: pointer !important;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  font-family: inherit !important;
+  position: relative !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.cancel-reason-card:hover {
+  border-color: var(--brand-color, #1b624b) !important;
+  background: rgba(27, 98, 75, 0.02) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 16px rgba(27, 98, 75, 0.04) !important;
+}
+
+.cancel-reason-card.selected {
+  border-color: var(--brand-color, #1b624b) !important;
+  background: rgba(27, 98, 75, 0.04) !important;
+  box-shadow: 0 0 0 3px rgba(27, 98, 75, 0.08) !important;
+}
+
+.cancel-reason-icon-wrapper {
+  color: var(--muted, #7a7266) !important;
+  background: var(--cream, #f8f6f2) !important;
+  width: 38px !important;
+  height: 38px !important;
+  border-radius: 8px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin-bottom: 12px !important;
+  transition: all 0.25s ease !important;
+}
+
+.cancel-reason-card:hover .cancel-reason-icon-wrapper {
+  color: #fff !important;
+  background: var(--brand-color, #1b624b) !important;
+}
+
+.cancel-reason-card.selected .cancel-reason-icon-wrapper {
+  color: #fff !important;
+  background: var(--brand-color, #1b624b) !important;
+}
+
+.cancel-reason-check {
+  position: absolute !important;
+  top: 16px !important;
+  right: 16px !important;
+  color: var(--brand-color, #1b624b) !important;
+  animation: returns-pop-in 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+}
+
+.cancel-reason-card-title {
+  font-size: 13.5px !important;
+  font-weight: 700 !important;
+  color: var(--ink, #1a1a1a) !important;
+  margin: 0 0 4px 0 !important;
+  line-height: 1.2 !important;
+}
+
+.cancel-reason-card-desc {
+  font-size: 11.5px !important;
+  line-height: 1.4 !important;
+  color: var(--muted, #7a7266) !important;
+  margin: 0 !important;
+}
+
+/* ── Interactive Custom Checkbox ── */
+.cancel-checkbox-wrapper {
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 12px !important;
+  cursor: pointer !important;
+  user-select: none !important;
+  margin: 20px 0 8px 0 !important;
+}
+
+.cancel-checkbox-box {
+  width: 18px !important;
+  height: 18px !important;
+  border: 1.5px solid rgba(211, 201, 189, 0.8) !important;
+  border-radius: 4px !important;
+  background: var(--cream, #f8f6f2) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  color: #ffffff !important;
+  transition: all 0.2s ease !important;
+  flex-shrink: 0 !important;
+  margin-top: 2px !important;
+}
+
+.cancel-checkbox-wrapper:hover .cancel-checkbox-box {
+  border-color: var(--brand-color, #1b624b) !important;
+}
+
+.cancel-checkbox-wrapper.checked .cancel-checkbox-box {
+  background: var(--brand-color, #1b624b) !important;
+  border-color: var(--brand-color, #1b624b) !important;
+}
+
+.cancel-checkbox-label {
+  font-size: 13px !important;
+  line-height: 1.5 !important;
+  color: var(--ink, #1a1a1a) !important;
+}
+
+/* ── Detailed Request Stepper ── */
+.cancel-tracker-timeline {
+  display: flex !important;
+  flex-direction: column !important;
+  position: relative !important;
+  padding-left: 24px !important;
+  margin-top: 20px !important;
+}
+
+.cancel-tracker-timeline::before {
+  content: '' !important;
+  position: absolute !important;
+  left: 7px !important;
+  top: 10px !important;
+  bottom: 10px !important;
+  width: 2px !important;
+  background: rgba(211, 201, 189, 0.4) !important;
+  z-index: 1 !important;
+}
+
+.cancel-tracker-step {
+  display: flex !important;
+  gap: 16px !important;
+  padding-bottom: 24px !important;
+  position: relative !important;
+  z-index: 2 !important;
+}
+
+.cancel-tracker-step:last-child {
+  padding-bottom: 0 !important;
+}
+
+.cancel-tracker-node {
+  width: 16px !important;
+  height: 16px !important;
+  border-radius: 50% !important;
+  background: #ffffff !important;
+  border: 2px solid rgba(211, 201, 189, 0.8) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0 !important;
+  margin-left: -24px !important;
+  z-index: 3 !important;
+  transition: all 0.25s ease !important;
+}
+
+.cancel-tracker-step.completed .cancel-tracker-node {
+  background: var(--brand-color, #1b624b) !important;
+  border-color: var(--brand-color, #1b624b) !important;
+}
+
+.cancel-tracker-step.active .cancel-tracker-node {
+  background: #ffffff !important;
+  border-color: var(--brand-color, #1b624b) !important;
+  box-shadow: 0 0 0 4px rgba(27, 98, 75, 0.15) !important;
+  animation: returns-pulse 2s infinite !important;
+}
+
+.cancel-tracker-step.rejected .cancel-tracker-node {
+  background: #e53e3e !important;
+  border-color: #e53e3e !important;
+}
+
+.cancel-tracker-step.completed .cancel-tracker-node::after {
+  content: '' !important;
+  width: 6px !important;
+  height: 6px !important;
+  background: #ffffff !important;
+  border-radius: 50% !important;
+}
+
+.cancel-tracker-step.active .cancel-tracker-node::after {
+  content: '' !important;
+  width: 6px !important;
+  height: 6px !important;
+  background: var(--brand-color, #1b624b) !important;
+  border-radius: 50% !important;
+}
+
+.cancel-tracker-content {
+  flex: 1 !important;
+}
+
+.cancel-tracker-title {
+  font-size: 13.5px !important;
+  font-weight: 700 !important;
+  color: var(--ink, #1a1a1a) !important;
+  margin: 0 0 2px 0 !important;
+}
+
+.cancel-tracker-date {
+  font-size: 11px !important;
+  color: var(--muted, #7a7266) !important;
+  margin-bottom: 6px !important;
+}
+
+.cancel-tracker-note {
+  font-size: 12.5px !important;
+  line-height: 1.5 !important;
+  color: var(--ink, #1a1a1a) !important;
+  background: #ffffff !important;
+  border: 1px solid rgba(211, 201, 189, 0.4) !important;
+  border-radius: 8px !important;
+  padding: 10px 12px !important;
+  margin-top: 4px !important;
+}
+
+.cancel-tracker-step.rejected .cancel-tracker-note {
+  background: rgba(229, 62, 62, 0.02) !important;
+  border-color: rgba(229, 62, 62, 0.15) !important;
+}
+
+/* ── Copy Action Button ── */
+.cancel-copy-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  background: transparent !important;
+  border: none !important;
+  cursor: pointer !important;
+  padding: 2px 6px !important;
+  border-radius: 4px !important;
+  color: var(--muted, #7a7266) !important;
+  font-size: 11px !important;
+  transition: all 0.2s ease !important;
+  margin-left: 6px !important;
+}
+
+.cancel-copy-btn:hover {
+  background: rgba(27, 98, 75, 0.08) !important;
+  color: var(--brand-color, #1b624b) !important;
+}
+
+

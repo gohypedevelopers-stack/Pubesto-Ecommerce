@@ -4,7 +4,7 @@ import "../auth.css";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Home, LogOut, MapPin, PackageX, Plus, Save, Trash2, UserRound } from "lucide-react";
+import { Home, LogOut, MapPin, PackageX, Plus, Save, Trash2, UserRound, Truck, ShoppingBag, ShoppingCart } from "lucide-react";
 import { useStore } from "../../components/StoreContext";
 
 const EMPTY_ADDRESS = {
@@ -28,6 +28,7 @@ export default function AccountPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
+  const [showForm, setShowForm] = useState(false);
 
   useEffect(() => {
     if (!isAuthLoading && !user) {
@@ -109,6 +110,7 @@ export default function AccountPage() {
       setAddressForm(EMPTY_ADDRESS);
       setEditingAddressId("");
       setMessage(editingAddressId ? "Address updated." : "Address added.");
+      setShowForm(false);
     } catch (error) {
       setMessage(error.message);
     } finally {
@@ -134,6 +136,7 @@ export default function AccountPage() {
 
   function editAddress(address) {
     setEditingAddressId(address.id);
+    setShowForm(true);
     setAddressForm({
       label: address.label || "Home",
       name: address.name || "",
@@ -144,7 +147,9 @@ export default function AccountPage() {
       state: address.state || "",
       pincode: address.pincode || "",
     });
-    document.getElementById("address-form")?.scrollIntoView({ behavior: "smooth", block: "center" });
+    setTimeout(() => {
+      document.getElementById("address-form")?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 100);
   }
 
   async function handleLogout() {
@@ -166,10 +171,15 @@ export default function AccountPage() {
     <main className="account-page">
       <div className="account-container">
         <header className="account-header">
-          <div>
-            <span className="auth-eyebrow">Customer Account</span>
-            <h1>Welcome, {account.name}</h1>
-            <p>{account.email}</p>
+          <div className="account-hero-profile">
+            <div className="account-avatar">
+              {account.name ? account.name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2) : "C"}
+            </div>
+            <div>
+              <span className="auth-eyebrow">Customer Account</span>
+              <h1>Welcome, {account.name}</h1>
+              <p className="account-hero-email">{account.email}</p>
+            </div>
           </div>
           <button className="account-logout" type="button" onClick={handleLogout}>
             <LogOut size={16} />
@@ -219,9 +229,18 @@ export default function AccountPage() {
                 <PackageX size={16} />
                 Cancel product order
               </Link>
-              <Link href="/returns/track">Track a return</Link>
-              <Link href="/shop">Continue shopping</Link>
-              <Link href="/cart">View cart</Link>
+              <Link href="/returns/track">
+                <Truck size={16} />
+                Track your order
+              </Link>
+              <Link href="/shop">
+                <ShoppingBag size={16} />
+                Continue shopping
+              </Link>
+              <Link href="/cart">
+                <ShoppingCart size={16} />
+                View cart
+              </Link>
             </div>
           </section>
         </section>
@@ -232,76 +251,113 @@ export default function AccountPage() {
               <span className="auth-eyebrow">Delivery Details</span>
               <h2>Saved addresses</h2>
             </div>
+            {!showForm && (
+              <button 
+                className="account-primary" 
+                type="button" 
+                style={{ display: "flex", alignItems: "center", gap: "6px", padding: "10px 16px", borderRadius: "10px", fontSize: "14px", fontWeight: "700" }}
+                onClick={() => {
+                  setEditingAddressId("");
+                  setAddressForm(EMPTY_ADDRESS);
+                  setShowForm(true);
+                }}
+              >
+                <Plus size={16} />
+                Add Address
+              </button>
+            )}
           </div>
 
-          <div className="account-address-grid">
-            <form className="account-card" id="address-form" onSubmit={saveAddress}>
-              <div className="account-card-header">
-                <MapPin size={22} />
-                <div>
-                  <h2>{editingAddressId ? "Edit address" : "Add address"}</h2>
-                  <p>Keep delivery details ready for future orders.</p>
+          <div className={showForm ? "account-address-grid" : ""}>
+            {showForm && (
+              <form className="account-card" id="address-form" onSubmit={saveAddress}>
+                <div className="account-card-header">
+                  <MapPin size={22} />
+                  <div>
+                    <h2>{editingAddressId ? "Edit address" : "Add address"}</h2>
+                    <p>Keep delivery details ready for future orders.</p>
+                  </div>
                 </div>
-              </div>
-              <div className="account-two-col">
+                <div className="account-two-col">
+                  <label>
+                    <span>Label</span>
+                    <input value={addressForm.label} onChange={(event) => setAddressField("label", event.target.value)} />
+                  </label>
+                  <label>
+                    <span>Recipient</span>
+                    <input value={addressForm.name} onChange={(event) => setAddressField("name", event.target.value)} required />
+                  </label>
+                </div>
                 <label>
-                  <span>Label</span>
-                  <input value={addressForm.label} onChange={(event) => setAddressField("label", event.target.value)} />
+                  <span>Phone</span>
+                  <input value={addressForm.phone} onChange={(event) => setAddressField("phone", event.target.value)} required />
                 </label>
                 <label>
-                  <span>Recipient</span>
-                  <input value={addressForm.name} onChange={(event) => setAddressField("name", event.target.value)} required />
-                </label>
-              </div>
-              <label>
-                <span>Phone</span>
-                <input value={addressForm.phone} onChange={(event) => setAddressField("phone", event.target.value)} required />
-              </label>
-              <label>
-                <span>Address line 1</span>
-                <input value={addressForm.line1} onChange={(event) => setAddressField("line1", event.target.value)} required />
-              </label>
-              <label>
-                <span>Address line 2</span>
-                <input value={addressForm.line2} onChange={(event) => setAddressField("line2", event.target.value)} />
-              </label>
-              <div className="account-two-col">
-                <label>
-                  <span>City</span>
-                  <input value={addressForm.city} onChange={(event) => setAddressField("city", event.target.value)} required />
+                  <span>Address line 1</span>
+                  <input value={addressForm.line1} onChange={(event) => setAddressField("line1", event.target.value)} required />
                 </label>
                 <label>
-                  <span>State</span>
-                  <input value={addressForm.state} onChange={(event) => setAddressField("state", event.target.value)} required />
+                  <span>Address line 2</span>
+                  <input value={addressForm.line2} onChange={(event) => setAddressField("line2", event.target.value)} />
                 </label>
-              </div>
-              <label>
-                <span>Pincode</span>
-                <input value={addressForm.pincode} onChange={(event) => setAddressField("pincode", event.target.value)} required />
-              </label>
-              <div className="account-actions-row">
-                {editingAddressId ? (
+                <div className="account-two-col">
+                  <label>
+                    <span>City</span>
+                    <input value={addressForm.city} onChange={(event) => setAddressField("city", event.target.value)} required />
+                  </label>
+                  <label>
+                    <span>State</span>
+                    <input value={addressForm.state} onChange={(event) => setAddressField("state", event.target.value)} required />
+                  </label>
+                </div>
+                <label>
+                  <span>Pincode</span>
+                  <input value={addressForm.pincode} onChange={(event) => setAddressField("pincode", event.target.value)} required />
+                </label>
+                <div className="account-actions-row">
                   <button
                     className="account-secondary"
                     type="button"
                     onClick={() => {
                       setEditingAddressId("");
                       setAddressForm(EMPTY_ADDRESS);
+                      setShowForm(false);
                     }}
                   >
                     Cancel
                   </button>
-                ) : null}
-                <button className="account-primary" type="submit" disabled={saving}>
-                  <Plus size={16} />
-                  {editingAddressId ? "Save Address" : "Add Address"}
-                </button>
-              </div>
-            </form>
+                  <button className="account-primary" type="submit" disabled={saving}>
+                    {editingAddressId ? <Save size={16} /> : <Plus size={16} />}
+                    {editingAddressId ? "Save Address" : "Add Address"}
+                  </button>
+                </div>
+              </form>
+            )}
 
-            <div className="account-address-list">
+            <div className={`account-address-list ${showForm ? "form-open" : "form-closed"}`}>
               {(account.addresses || []).length === 0 ? (
-                <div className="account-empty-card">No saved addresses yet.</div>
+                <div className="account-empty-card">
+                  <div className="empty-card-icon">
+                    <MapPin size={24} />
+                  </div>
+                  <h3>No saved addresses</h3>
+                  <p>Save your delivery addresses here for a faster, one-click checkout experience on future orders.</p>
+                  {!showForm && (
+                    <button 
+                      className="account-primary" 
+                      type="button"
+                      style={{ display: "flex", alignItems: "center", gap: "6px", padding: "10px 16px", borderRadius: "10px", fontSize: "14px", fontWeight: "700" }}
+                      onClick={() => {
+                        setEditingAddressId("");
+                        setAddressForm(EMPTY_ADDRESS);
+                        setShowForm(true);
+                      }}
+                    >
+                      <Plus size={16} />
+                      Add New Address
+                    </button>
+                  )}
+                </div>
               ) : (
                 account.addresses.map((address) => (
                   <article className="account-address-card" key={address.id}>
