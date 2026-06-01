@@ -2827,9 +2827,9 @@ main {
 }
 
 .footer-socials a:hover {
-  background: #1b624b;
-  border-color: #1b624b;
-  box-shadow: 0 8px 16px rgba(27, 98, 75, 0.3);
+  background: var(--off-white);
+  border-color: var(--off-white);
+  box-shadow: 0 8px 16px rgba(246, 244, 242, 0.2);
 }
 
 .footer-info-panel {
