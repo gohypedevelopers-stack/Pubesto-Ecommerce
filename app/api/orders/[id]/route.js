@@ -11,7 +11,7 @@ export async function GET(request, { params }) {
       return NextResponse.json({ error: "Order ID is required." }, { status: 400 });
     }
 
-    const domain = process.env.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN || 'my-store-300000000000000009154.myshopify.com';
+    const domain = process.env.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN || 'jjiygt-gt.myshopify.com';
     const adminToken = process.env.SHOPIFY_ADMIN_ACCESS_TOKEN;
 
     if (!adminToken) {
