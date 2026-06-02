@@ -307,7 +307,7 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
     completeRazorpayPayment(
       pendingOrder?.items || [],
       params.get("razorpay_payment_id") || "",
-      { redirectHome: false }
+      { redirectHome: true }
     );
 
     const cleanUrl = `${window.location.pathname}${window.location.hash || ""}` || "/";
