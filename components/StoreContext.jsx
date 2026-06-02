@@ -223,6 +223,17 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
   const [user, setUser] = useState(null);
   const [wishlist, setWishlist] = useState([]);
   const shopifyCartQueueRef = useRef(Promise.resolve());
+  const cartLoadedRef = useRef(false);
+
+  useEffect(() => {
+    if (cartLoadedRef.current) {
+      try {
+        localStorage.setItem("pubesto_cart", JSON.stringify(cartItems));
+      } catch (err) {
+        console.error("Error saving cart items to localStorage:", err);
+      }
+    }
+  }, [cartItems]);
 
   function getRazorpayCallbackUrl() {
     const callbackUrl = new URL("/api/razorpay/callback", window.location.origin);
@@ -283,6 +294,7 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
 
     localStorage.removeItem(PENDING_RAZORPAY_ORDER_KEY);
     localStorage.removeItem("shopify_cart");
+    localStorage.removeItem("pubesto_cart");
     setCartItems([]);
     setIsCartOpen(false);
     setIsProfileOpen(false);
@@ -368,6 +380,17 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
         console.error("Error parsing Shopify cart", e);
       }
     }
+
+    // Load Local Cart Items
+    const savedCart = localStorage.getItem("pubesto_cart");
+    if (savedCart) {
+      try {
+        setCartItems(JSON.parse(savedCart));
+      } catch (e) {
+        console.error("Error parsing cart items:", e);
+      }
+    }
+    cartLoadedRef.current = true;
 
     handleRazorpayReturn();
   }, []);
@@ -781,7 +804,7 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
         },
         prefill: {
           name: user?.name || "Customer",
-          email: user?.email || "customer@example.com",
+          email: user?.email || "pubesto.in@gmail.com",
           contact: user?.phone || "9999999999",
         },
         theme: { color: "#1b624b" },

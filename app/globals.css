@@ -22,9 +22,6 @@
   --clay: var(--brand-color);
   --shadow: 0 22px 60px rgba(63, 100, 105, 0.14);
   --primary-color: #1b624b;
-  --font-body: "Inter", "Outfit", "Segoe UI Variable", -apple-system, BlinkMacSystemFont,
-    "Helvetica Neue", Arial, sans-serif;
-  --font-display: "Cormorant Garamond", "Playfair Display", Georgia, "Times New Roman", serif;
 
   /* ── shadcn/ui CSS variables (light mode) ── */
   --background: 0 0% 100%;
@@ -1998,17 +1995,76 @@ main {
   }
 
   .product-body h3 {
-    font-size: 14px;
+    font-size: 12.5px !important;
     margin-bottom: 4px;
+    -webkit-line-clamp: 2 !important;
+    min-height: 34px; /* Proportional height for 2 lines to align price & buttons perfectly */
   }
 
   .product-body .price {
-    font-size: 15px;
+    font-size: 14px;
   }
 
   .quick-add {
-    padding: 8px 12px;
-    font-size: 12px;
+    width: calc(100% + 24px) !important;
+    margin-left: -12px !important;
+    margin-bottom: -12px !important;
+    min-height: 38px !important;
+    font-size: 11px !important;
+    padding: 8px 10px !important;
+    border-radius: 0;
+  }
+
+  .product-media {
+    aspect-ratio: 1 / 1 !important; /* Perfect square media container on mobile */
+  }
+
+  .card-quick-add-plus {
+    top: 8px !important;
+    right: 8px !important;
+    width: 30px !important;
+    height: 30px !important;
+  }
+
+  .card-quick-add-plus svg {
+    width: 14px !important;
+    height: 14px !important;
+  }
+
+  .badge {
+    top: 8px !important;
+    left: 8px !important;
+    padding: 4px 8px !important;
+    font-size: 8px !important;
+  }
+
+  /* Compact and refined quantity selector for phone views */
+  .product-quantity-selector {
+    height: 36px !important;
+    grid-template-columns: 32px 1fr 32px !important;
+    margin-top: auto;
+  }
+
+  .product-quantity-selector button {
+    height: 100% !important;
+  }
+
+  .product-quantity-selector button svg {
+    width: 14px !important;
+    height: 14px !important;
+  }
+
+  .product-quantity-selector span {
+    font-size: 13px !important;
+  }
+
+  .category-tile {
+    min-height: 170px !important;
+    padding: 16px !important;
+  }
+
+  .category-tile span {
+    font-size: 20px !important;
   }
 }
 

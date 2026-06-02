@@ -281,13 +281,31 @@ export default function AccountPage() {
   // Load & sync orders — always re-seed mock orders when live products arrive
   // so images are always fresh Shopify CDN URLs, never stale local paths
   const loadOrders = useCallback(async () => {
+    // 1. Load existing local orders first
+    let localSavedOrders = [];
+    try {
+      const saved = localStorage.getItem("pubesto_orders");
+      if (saved) {
+        localSavedOrders = JSON.parse(saved);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+
     try {
       const response = await fetch("/api/account/orders", { cache: "no-store" });
       if (response.ok) {
         const data = await response.json();
         if (data.orders) {
-          setOrders(data.orders);
-          localStorage.setItem("pubesto_orders", JSON.stringify(data.orders));
+          // Merge Shopify orders and local orders (avoiding duplicates)
+          const mergedOrders = [...data.orders];
+          for (const localOrd of localSavedOrders) {
+            if (!mergedOrders.some(o => o.id === localOrd.id)) {
+              mergedOrders.push(localOrd);
+            }
+          }
+          setOrders(mergedOrders);
+          localStorage.setItem("pubesto_orders", JSON.stringify(mergedOrders));
           return;
         }
       }
@@ -295,16 +313,8 @@ export default function AccountPage() {
       console.error("Failed to load real Shopify orders, trying localStorage fallback:", e);
     }
 
-    // Fallback: load from localStorage if present
-    try {
-      const saved = localStorage.getItem("pubesto_orders");
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        setOrders(parsed);
-      }
-    } catch (e) {
-      console.error(e);
-    }
+    // Fallback: load from localStorage if fetch failed
+    setOrders(localSavedOrders);
   }, []);
 
   useEffect(() => {
