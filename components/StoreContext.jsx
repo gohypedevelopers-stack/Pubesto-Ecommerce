@@ -10,6 +10,7 @@ import {
 } from "../lib/shopify";
 
 const StoreContext = createContext();
+const PENDING_RAZORPAY_ORDER_KEY = "pubesto_pending_razorpay_order";
 
 function normalizeProductText(value) {
   return String(value || "")
@@ -223,6 +224,96 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
   const [wishlist, setWishlist] = useState([]);
   const shopifyCartQueueRef = useRef(Promise.resolve());
 
+  function getRazorpayCallbackUrl() {
+    const callbackUrl = new URL("/api/razorpay/callback", window.location.origin);
+    callbackUrl.searchParams.set("redirect", "/");
+    return callbackUrl.toString();
+  }
+
+  function buildRazorpayOrderItems(cartSnapshot) {
+    return cartSnapshot.map((cartItem) => {
+      const product = cartItem.product || cartItem;
+      const priceNumber = getProductBasePrice(product) || product.salePrice || product.originalPrice || 0;
+
+      return {
+        id: product.slug || cartItem.id,
+        name: product.name || "Product",
+        image: product.image || "/images/products/neck-fan.png",
+        price: `Rs. ${priceNumber.toLocaleString("en-IN")}`,
+        priceNumber,
+        quantity: Math.max(1, Number(cartItem.quantity) || 1),
+        slug: product.slug || "",
+        color: product.selectedColor || cartItem.color || "",
+      };
+    });
+  }
+
+  function persistRazorpayOrder(cartSnapshot, paymentId) {
+    const orderItems = buildRazorpayOrderItems(cartSnapshot || []);
+    if (orderItems.length === 0) return;
+
+    const year = new Date().getFullYear();
+    const rand = Math.floor(1000 + Math.random() * 9000);
+    const subtotal = orderItems.reduce((sum, item) => sum + item.priceNumber * item.quantity, 0);
+    const shipping = subtotal >= 999 ? 0 : 99;
+    const newOrder = {
+      id: `PUB-${year}-${rand}`,
+      date: new Date().toISOString(),
+      items: orderItems,
+      subtotal,
+      shipping,
+      total: subtotal + shipping,
+      status: "processing",
+      paymentStatus: "paid",
+      paymentId,
+    };
+
+    const existingOrders = JSON.parse(localStorage.getItem("pubesto_orders") || "[]");
+    localStorage.setItem("pubesto_orders", JSON.stringify([newOrder, ...existingOrders]));
+  }
+
+  function completeRazorpayPayment(cartSnapshot, paymentId, options = {}) {
+    const { redirectHome = true } = options;
+
+    try {
+      persistRazorpayOrder(cartSnapshot, paymentId);
+    } catch (saveErr) {
+      console.error("Could not save order to history:", saveErr);
+    }
+
+    localStorage.removeItem(PENDING_RAZORPAY_ORDER_KEY);
+    localStorage.removeItem("shopify_cart");
+    setCartItems([]);
+    setIsCartOpen(false);
+    setIsProfileOpen(false);
+    setProfileNotice("Order placed successfully.");
+
+    if (redirectHome) {
+      window.location.href = "/";
+    }
+  }
+
+  function handleRazorpayReturn() {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("payment") !== "razorpay_success") return;
+
+    let pendingOrder = null;
+    try {
+      pendingOrder = JSON.parse(localStorage.getItem(PENDING_RAZORPAY_ORDER_KEY) || "null");
+    } catch (error) {
+      console.error("Could not read pending Razorpay order:", error);
+    }
+
+    completeRazorpayPayment(
+      pendingOrder?.items || [],
+      params.get("razorpay_payment_id") || "",
+      { redirectHome: false }
+    );
+
+    const cleanUrl = `${window.location.pathname}${window.location.hash || ""}` || "/";
+    window.history.replaceState(null, "", cleanUrl);
+  }
+
   useEffect(() => {
     async function syncShopify() {
       try {
@@ -277,6 +368,8 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
         console.error("Error parsing Shopify cart", e);
       }
     }
+
+    handleRazorpayReturn();
   }, []);
   const [footerPanel, setFooterPanel] = useState(null);
 
@@ -658,8 +751,21 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
       const order = await response.json();
       if (order.error) throw new Error(order.error);
 
-      // Snapshot current cart items for the order record
-      const cartSnapshot = [...cartItems];
+      const cartSnapshot = activeItems.map((item) => ({
+        ...item,
+        product: item.product ? { ...item.product } : item.product,
+      }));
+
+      try {
+        localStorage.setItem(PENDING_RAZORPAY_ORDER_KEY, JSON.stringify({
+          razorpayOrderId: order.id,
+          amount: finalAmount,
+          items: cartSnapshot,
+          createdAt: new Date().toISOString(),
+        }));
+      } catch (saveErr) {
+        console.error("Could not save pending Razorpay order:", saveErr);
+      }
 
       const rzpOptions = {
         key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_test_RwcLAPO7q0AESo",
@@ -668,46 +774,10 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
         name: "Pubesto",
         description: "Artisanal Ecommerce",
         order_id: order.id,
+        callback_url: getRazorpayCallbackUrl(),
+        redirect: true,
         handler: function (response) {
-          // Build and persist the new order to pubesto_orders in localStorage
-          try {
-            const year = new Date().getFullYear();
-            const rand = Math.floor(1000 + Math.random() * 9000);
-            const newOrderId = `PUB-${year}-${rand}`;
-            const orderItems = cartSnapshot.map((cartItem) => ({
-              id: cartItem.product?.slug || cartItem.id,
-              name: cartItem.product?.name || "Product",
-              image: cartItem.product?.image || "/images/products/neck-fan.png",
-              price: `Rs. ${((cartItem.product?.salePrice || cartItem.product?.originalPrice || 0)).toLocaleString("en-IN")}`,
-              priceNumber: cartItem.product?.salePrice || cartItem.product?.originalPrice || 0,
-              quantity: cartItem.quantity,
-              slug: cartItem.product?.slug || "",
-              color: cartItem.product?.selectedColor || "",
-            }));
-            const subtotal = orderItems.reduce((s, i) => s + i.priceNumber * i.quantity, 0);
-            const shipping = subtotal >= 999 ? 0 : 99;
-            const newOrder = {
-              id: newOrderId,
-              date: new Date().toISOString(),
-              items: orderItems,
-              subtotal,
-              shipping,
-              total: subtotal + shipping,
-              status: "processing",
-              paymentStatus: "paid",
-              paymentId: response.razorpay_payment_id,
-            };
-            const existingOrders = JSON.parse(localStorage.getItem("pubesto_orders") || "[]");
-            localStorage.setItem("pubesto_orders", JSON.stringify([newOrder, ...existingOrders]));
-          } catch (saveErr) {
-            console.error("Could not save order to history:", saveErr);
-          }
-
-          setCartItems([]);
-          localStorage.removeItem("shopify_cart");
-          setIsCartOpen(false);
-          setProfileNotice(`Order placed! 🎉 View it in My Orders.`);
-          setIsProfileOpen(true);
+          completeRazorpayPayment(cartSnapshot, response.razorpay_payment_id);
         },
         prefill: {
           name: user?.name || "Customer",
