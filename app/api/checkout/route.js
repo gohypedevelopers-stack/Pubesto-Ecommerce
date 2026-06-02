@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { AUTH_COOKIE_NAME, parseSessionToken } from "../../../lib/auth-session";
 import { getCustomerById } from "../../../lib/auth-store";
+import { fixShopifyCheckoutUrl, getShopifyStoreDomain } from "../../../lib/shopify-domains";
 import { getShopifyCustomer } from "../../../lib/shopify-customer";
 
 function formatE164Phone(phone) {
@@ -27,7 +28,7 @@ export async function POST(request) {
       return NextResponse.json({ error: "Cart is empty" }, { status: 400 });
     }
 
-    const domain = process.env.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN || 'my-store-300000000000000009154.myshopify.com';
+    const domain = getShopifyStoreDomain();
     const adminToken = process.env.SHOPIFY_ADMIN_ACCESS_TOKEN;
 
     if (!adminToken) {
@@ -221,7 +222,7 @@ export async function POST(request) {
       return NextResponse.json({ fallback: true });
     }
 
-    return NextResponse.json({ checkoutUrl });
+    return NextResponse.json({ checkoutUrl: fixShopifyCheckoutUrl(checkoutUrl) });
 
   } catch (error) {
     console.error("Checkout API route error:", error);
