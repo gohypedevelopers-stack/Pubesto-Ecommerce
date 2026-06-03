@@ -9,7 +9,7 @@ import GoogleAuthButton from "../../../components/GoogleAuthButton";
 import { useStore } from "../../../components/StoreContext";
 
 const EMPTY_LOGIN = { email: "", password: "" };
-const EMPTY_SIGNUP = { name: "", email: "", phone: "", password: "" };
+const EMPTY_SIGNUP = { firstName: "", lastName: "", email: "", phone: "", password: "" };
 const AUTH_MODES = new Set(["login", "signup", "forgot"]);
 
 function getSafeMode(value) {
@@ -121,7 +121,7 @@ export default function AccountLoginPage() {
       const payload = mode === "signup"
         ? {
             ...signupForm,
-            name: signupForm.name.trim(),
+            name: `${signupForm.firstName || ""} ${signupForm.lastName || ""}`.trim(),
             email: signupForm.email.trim().toLowerCase(),
             phone: signupForm.phone.trim(),
           }
@@ -253,20 +253,36 @@ export default function AccountLoginPage() {
               <div className="auth-oauth-divider"><span>or</span></div>
               {mode === "signup" ? (
                 <>
-                  <label>
-                    <span>Full name</span>
-                    <div className="auth-input-wrap">
-                      <UserRound size={18} />
-                      <input
-                        name="name"
-                        value={signupForm.name}
-                        onChange={(event) => setSignupField("name", event.target.value)}
-                        placeholder="Your name"
-                        autoComplete="name"
-                        required
-                      />
-                    </div>
-                  </label>
+                  <div style={{ display: "flex", gap: "12px", width: "100%" }}>
+                    <label style={{ flex: 1, minWidth: 0 }}>
+                      <span>First name</span>
+                      <div className="auth-input-wrap">
+                        <UserRound size={18} />
+                        <input
+                          name="firstName"
+                          value={signupForm.firstName || ""}
+                          onChange={(event) => setSignupField("firstName", event.target.value)}
+                          placeholder="First name"
+                          autoComplete="given-name"
+                          required
+                        />
+                      </div>
+                    </label>
+                    <label style={{ flex: 1, minWidth: 0 }}>
+                      <span>Last name</span>
+                      <div className="auth-input-wrap">
+                        <UserRound size={18} />
+                        <input
+                          name="lastName"
+                          value={signupForm.lastName || ""}
+                          onChange={(event) => setSignupField("lastName", event.target.value)}
+                          placeholder="Last name"
+                          autoComplete="family-name"
+                          required
+                        />
+                      </div>
+                    </label>
+                  </div>
                   <label>
                     <span>Phone</span>
                     <div className="auth-input-wrap">

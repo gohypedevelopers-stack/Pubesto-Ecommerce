@@ -29,6 +29,22 @@
     "resetTokenHash": "",
     "resetTokenExpiresAt": "",
     "createdAt": "2026-06-03T05:50:16.063Z",
-    "updatedAt": "2026-06-03T05:51:50.396Z"
+    "updatedAt": "2026-06-03T06:04:06.229Z"
+  },
+  {
+    "id": "cus_1780466540774_44f4a7a21e",
+    "name": "Pubesto_in",
+    "email": "pubesto.in@gmail.com",
+    "phone": "+919518184601",
+    "passwordHash": "290fa10f2016683e1951b294c07565e4206f26ad0a792e6a2c238ccf4ccd88350570d0d7b219658db7ac2f099863a65652bc76d2a35954d39c19c071212edda9",
+    "passwordSalt": "8ba1b2fd7479ee20f6b51d05f8802193",
+    "googleId": "",
+    "avatarUrl": "",
+    "shopifyCustomerId": "",
+    "addresses": [],
+    "resetTokenHash": "",
+    "resetTokenExpiresAt": "",
+    "createdAt": "2026-06-03T06:02:20.774Z",
+    "updatedAt": "2026-06-03T06:22:19.308Z"
   }
 ]

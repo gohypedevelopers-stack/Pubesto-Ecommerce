@@ -171,7 +171,7 @@ export default function Header() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [authMode, setAuthMode] = useState("login");
   const [loginForm, setLoginForm] = useState({ email: "", password: "" });
-  const [signupForm, setSignupForm] = useState({ name: "", email: "", phone: "", password: "" });
+  const [signupForm, setSignupForm] = useState({ firstName: "", lastName: "", email: "", phone: "", password: "" });
   const [forgotEmail, setForgotEmail] = useState("");
   const [authMessage, setAuthMessage] = useState("");
   const [authMessageKind, setAuthMessageKind] = useState("success");
@@ -188,6 +188,22 @@ export default function Header() {
     };
   }, []);
 
+  useEffect(() => {
+    function handleClickOutside(event) {
+      const container = document.querySelector(".profile-dropdown-container");
+      if (container && !container.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+    }
+
+    if (isDropdownOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isDropdownOpen]);
+
   function handleMouseEnter() {
     if (hoverTimeoutRef.current) {
       clearTimeout(hoverTimeoutRef.current);
@@ -198,8 +214,13 @@ export default function Header() {
 
   function handleMouseLeave() {
     hoverTimeoutRef.current = setTimeout(() => {
-      setIsDropdownOpen(false);
-    }, 300);
+      // Do not close dropdown if any input or button inside the dropdown is focused
+      const activeEl = document.activeElement;
+      const isFocusedInside = activeEl && activeEl.closest(".profile-dropdown-popup");
+      if (!isFocusedInside) {
+        setIsDropdownOpen(false);
+      }
+    }, 350);
   }
 
   function handleDropdownBlur(event) {
@@ -220,17 +241,25 @@ export default function Header() {
     setAuthMessageKind("success");
 
     try {
+      const formData = new FormData(event.currentTarget);
+      const email = (formData.get("email") || "").toString().trim().toLowerCase();
+      const password = (formData.get("password") || "").toString();
+      const firstName = (formData.get("firstName") || "").toString().trim();
+      const lastName = (formData.get("lastName") || "").toString().trim();
+      const name = `${firstName} ${lastName}`.trim();
+      const phone = (formData.get("phone") || "").toString().trim();
+
       const endpoint = authMode === "signup" ? "/api/auth/signup" : "/api/auth/login";
       const payload = authMode === "signup"
         ? {
-            ...signupForm,
-            name: signupForm.name.trim(),
-            email: signupForm.email.trim().toLowerCase(),
-            phone: signupForm.phone.trim(),
+            name,
+            email,
+            phone,
+            password,
           }
         : {
-            ...loginForm,
-            email: loginForm.email.trim().toLowerCase(),
+            email,
+            password,
           };
       const response = await fetch(endpoint, {
         method: "POST",
@@ -275,7 +304,8 @@ export default function Header() {
     setAuthMessageKind("success");
 
     try {
-      const email = forgotEmail.trim().toLowerCase();
+      const formData = new FormData(event.currentTarget);
+      const email = (formData.get("email") || "").toString().trim().toLowerCase();
       const response = await fetch("/api/auth/forgot-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -643,6 +673,8 @@ export default function Header() {
                           <span>Email address</span>
                           <input 
                             type="email" 
+                            name="email"
+                            autoComplete="email"
                             value={forgotEmail} 
                             onChange={(e) => setForgotEmail(e.target.value)} 
                             placeholder="you@example.com" 
@@ -691,20 +723,38 @@ export default function Header() {
                         <div className="dropdown-oauth-divider"><span>or</span></div>
                         {authMode === "signup" && (
                           <>
-                            <label>
-                              <span>Full name</span>
-                              <input 
-                                type="text" 
-                                value={signupForm.name} 
-                                onChange={(e) => setSignupForm(prev => ({ ...prev, name: e.target.value }))} 
-                                placeholder="Your name" 
-                                required 
-                              />
-                            </label>
+                            <div style={{ display: "flex", gap: "8px", width: "100%" }}>
+                              <label style={{ flex: 1, minWidth: 0 }}>
+                                <span>First Name</span>
+                                <input 
+                                  type="text" 
+                                  name="firstName"
+                                  autoComplete="given-name"
+                                  value={signupForm.firstName || ""} 
+                                  onChange={(e) => setSignupForm(prev => ({ ...prev, firstName: e.target.value }))} 
+                                  placeholder="First name" 
+                                  required 
+                                />
+                              </label>
+                              <label style={{ flex: 1, minWidth: 0 }}>
+                                <span>Last Name</span>
+                                <input 
+                                  type="text" 
+                                  name="lastName"
+                                  autoComplete="family-name"
+                                  value={signupForm.lastName || ""} 
+                                  onChange={(e) => setSignupForm(prev => ({ ...prev, lastName: e.target.value }))} 
+                                  placeholder="Last name" 
+                                  required 
+                                />
+                              </label>
+                            </div>
                             <label>
                               <span>Phone</span>
                               <input 
                                 type="tel" 
+                                name="phone"
+                                autoComplete="tel"
                                 value={signupForm.phone} 
                                 onChange={(e) => setSignupForm(prev => ({ ...prev, phone: e.target.value }))} 
                                 placeholder="Optional" 
@@ -716,6 +766,8 @@ export default function Header() {
                           <span>Email address</span>
                           <input 
                             type="email" 
+                            name="email"
+                            autoComplete="email"
                             value={authMode === "signup" ? signupForm.email : loginForm.email} 
                             onChange={(e) => authMode === "signup" 
                               ? setSignupForm(prev => ({ ...prev, email: e.target.value }))
@@ -730,6 +782,8 @@ export default function Header() {
                           <div className="dropdown-password-wrap">
                             <input 
                               type={showPassword ? "text" : "password"} 
+                              name="password"
+                              autoComplete={authMode === "signup" ? "new-password" : "current-password"}
                               value={authMode === "signup" ? signupForm.password : loginForm.password} 
                               onChange={(e) => authMode === "signup" 
                                 ? setSignupForm(prev => ({ ...prev, password: e.target.value }))
