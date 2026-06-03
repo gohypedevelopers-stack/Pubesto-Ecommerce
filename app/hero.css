@@ -153,7 +153,7 @@
     animation: none;
     align-items: center;
     margin-top: 0;
-    gap: 12px;
+    gap: 8px;
   }
 
   .hero-eyebrow-tag {
@@ -163,9 +163,9 @@
   }
 
   .hero-title {
-    font-size: clamp(1.6rem, 7vw, 2.2rem) !important;
-    line-height: 1.2 !important;
-    max-width: 90%;
+    font-size: clamp(1.1rem, 5.5vw, 1.5rem) !important;
+    line-height: 1.25 !important;
+    max-width: 95%;
     margin-inline: auto;
     text-align: center;
   }
@@ -175,7 +175,7 @@
     display: inline-flex !important;
     padding: 10px 24px !important;
     font-size: 0.85rem !important;
-    margin-top: 16px;
+    margin-top: 10px;
   }
 }
 
