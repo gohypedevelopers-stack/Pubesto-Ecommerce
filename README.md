@@ -28,6 +28,22 @@ SHOPIFY_STOREFRONT_ACCESS_TOKEN=<storefront-token>
 NEXT_PUBLIC_SHOPIFY_CHECKOUT_DOMAIN=www.pubesto.com
 ```
 
+Google login uses the same `pubesto_session` cookie as local and Shopify login. Create a Google OAuth web client and allow this redirect URI:
+
+```text
+https://www.pubesto.com/api/auth/google/callback
+```
+
+Then set:
+
+```env
+GOOGLE_CLIENT_ID=<google-oauth-client-id>
+GOOGLE_CLIENT_SECRET=<google-oauth-client-secret>
+GOOGLE_REDIRECT_URI=https://www.pubesto.com/api/auth/google/callback
+```
+
+For local testing, register and set the matching local callback, for example `http://127.0.0.1:3000/api/auth/google/callback`.
+
 `NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN` is the real Shopify shop used for Admin and Storefront API calls.
 `NEXT_PUBLIC_SHOPIFY_CHECKOUT_DOMAIN` is only for customer-facing Shopify cart, checkout, and draft-order invoice URLs.
 

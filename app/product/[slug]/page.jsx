@@ -64,7 +64,7 @@ const formatRupeePrice = (priceStr) => {
 function ProductPageContent() {
   const { slug } = useParams();
   const { 
-    addToCart, cartItems, getProductId, getProductPrice, products, updateCartQuantity, checkout, setIsCartOpen, isLoggedIn, isAuthLoading, user
+    addToCart, cartItems, getProductId, getProductPrice, products, updateCartQuantity, checkout, setIsCartOpen, isLoggedIn, isAuthLoading, user, refreshAuthSession
   } = useStore();
   const [activeTab, setActiveTab] = useState("specs");
   const [addEffectKey, setAddEffectKey] = useState(null);
@@ -310,6 +310,8 @@ function ProductPageContent() {
     setIsBuyingNow(true);
 
     try {
+      const refreshedUser = await refreshAuthSession?.();
+      const checkoutUser = refreshedUser || user;
       const variantId = getShopifyVariantIdForColor(product.slug, currentColorName) || 
                         product.shopifyVariantId || product.variantId || product.sku;
       const name = currentColorName ? `${product.name} - ${currentColorName}` : product.name;
@@ -332,14 +334,14 @@ function ProductPageContent() {
       if (response.ok) {
         const data = await response.json();
         if (data.checkoutUrl) {
-          window.location.href = appendCheckoutPrefillParams(data.checkoutUrl);
+          window.location.href = appendCheckoutPrefillParams(data.checkoutUrl, checkoutUser);
           return;
         }
       }
 
       // Fallback to standard checkout if dynamic endpoint fails
       const checkoutUrl = await getShopifyCheckoutUrl(shopifyHandle, currentQty);
-      window.location.href = appendCheckoutPrefillParams(checkoutUrl);
+      window.location.href = appendCheckoutPrefillParams(checkoutUrl, checkoutUser);
     } catch (err) {
       console.warn("Shopify checkout unavailable, falling back to Razorpay:", err.message);
       

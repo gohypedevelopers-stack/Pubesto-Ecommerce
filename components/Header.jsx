@@ -7,6 +7,7 @@ import { motion, useScroll, useMotionValueEvent } from "framer-motion";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { Home, ShoppingBag as LucideShoppingBag, User, ShoppingCart, ChevronRight, Eye, EyeOff, Package, Truck, LogOut, TrendingUp, X, Search } from "lucide-react";
+import GoogleAuthButton from "./GoogleAuthButton";
 import { formatPrice } from "../lib/utils";
 
 export default function Header() {
@@ -175,23 +176,41 @@ export default function Header() {
   const [authMessage, setAuthMessage] = useState("");
   const [authMessageKind, setAuthMessageKind] = useState("success");
   const [authLoading, setAuthLoading] = useState(false);
-  const [hoverTimeout, setHoverTimeout] = useState(null);
   const [resetUrl, setResetUrl] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const hoverTimeoutRef = useRef(null);
+
+  useEffect(() => {
+    return () => {
+      if (hoverTimeoutRef.current) {
+        clearTimeout(hoverTimeoutRef.current);
+      }
+    };
+  }, []);
 
   function handleMouseEnter() {
-    if (hoverTimeout) {
-      clearTimeout(hoverTimeout);
-      setHoverTimeout(null);
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+      hoverTimeoutRef.current = null;
     }
     setIsDropdownOpen(true);
   }
 
   function handleMouseLeave() {
-    const timeout = setTimeout(() => {
+    hoverTimeoutRef.current = setTimeout(() => {
       setIsDropdownOpen(false);
     }, 300);
-    setHoverTimeout(timeout);
+  }
+
+  function handleDropdownBlur(event) {
+    if (!event.currentTarget.contains(event.relatedTarget)) {
+      handleMouseLeave();
+    }
+  }
+
+  function startPopupGoogleAuth() {
+    const redirect = `${window.location.pathname}${window.location.search || ""}`;
+    window.location.href = `/api/auth/google?redirect=${encodeURIComponent(redirect)}`;
   }
 
   async function handlePopupAuth(event) {
@@ -527,11 +546,14 @@ export default function Header() {
             className="profile-dropdown-container"
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
+            onFocus={handleMouseEnter}
+            onBlur={handleDropdownBlur}
           >
             <button
               className="navbar-icon"
               type="button"
               aria-label="Open profile"
+              aria-expanded={isDropdownOpen}
               onClick={prepareAccountNavigation}
             >
               <UserIcon />
@@ -665,6 +687,8 @@ export default function Header() {
                       </form>
                     ) : (
                       <form onSubmit={handlePopupAuth} className="dropdown-form">
+                        <GoogleAuthButton className="google-auth-button--dropdown" onClick={startPopupGoogleAuth} disabled={authLoading} />
+                        <div className="dropdown-oauth-divider"><span>or</span></div>
                         {authMode === "signup" && (
                           <>
                             <label>

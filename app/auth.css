@@ -203,6 +203,24 @@
   outline-offset: 2px;
 }
 
+.auth-oauth-divider {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 10px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.auth-oauth-divider::before,
+.auth-oauth-divider::after {
+  content: "";
+  height: 1px;
+  background: rgba(63, 100, 105, 0.14);
+}
+
 .account-card input {
   border: 1px solid rgba(63, 100, 105, 0.2);
   border-radius: 10px;

@@ -96,6 +96,11 @@ export async function POST(request) {
     };
 
     if (customerInfo) {
+      const shopifyCustomerId = customerInfo.shopifyCustomerId || (String(customerInfo.id).startsWith("gid://shopify/Customer/") ? customerInfo.id : null);
+      if (shopifyCustomerId) {
+        draftOrderInput.customerId = shopifyCustomerId;
+      }
+
       if (customerInfo.email) {
         draftOrderInput.email = customerInfo.email;
       }

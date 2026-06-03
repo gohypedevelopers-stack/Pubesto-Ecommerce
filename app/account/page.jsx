@@ -261,7 +261,7 @@ function PaymentBadge({ status }) {
 
 export default function AccountPage() {
   const router = useRouter();
-  const { user, isAuthLoading, refreshAuthSession, logout, products } = useStore();
+  const { user, setUser, isAuthLoading, refreshAuthSession, logout, products } = useStore();
   const [account, setAccount] = useState(null);
   const [profileForm, setProfileForm] = useState({ name: "", phone: "" });
   const [addressForm, setAddressForm] = useState(EMPTY_ADDRESS);
@@ -384,6 +384,7 @@ export default function AccountPage() {
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || "Could not update account.");
     setAccount(data.user);
+    setUser?.(data.user);
     await refreshAuthSession?.();
     return data.user;
   }

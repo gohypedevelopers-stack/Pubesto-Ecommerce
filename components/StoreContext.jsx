@@ -692,6 +692,9 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
 
     if (activeItems.length === 0) return;
 
+    const refreshedUser = await refreshAuthSession();
+    const checkoutUser = refreshedUser || user;
+
     // Try dynamic Shopify checkout creation first
     try {
       const payloadItems = [];
@@ -736,7 +739,7 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
       if (response.ok) {
         const data = await response.json();
         if (data.checkoutUrl) {
-          window.location.href = appendCheckoutPrefillParams(data.checkoutUrl);
+          window.location.href = appendCheckoutPrefillParams(data.checkoutUrl, checkoutUser);
           return;
         }
       }
@@ -752,7 +755,7 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
     });
 
     if (hasVariants && permalinkUrl) {
-      window.location.href = appendCheckoutPrefillParams(permalinkUrl);
+      window.location.href = appendCheckoutPrefillParams(permalinkUrl, checkoutUser);
       return;
     }
 
@@ -803,9 +806,9 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
           completeRazorpayPayment(cartSnapshot, response.razorpay_payment_id);
         },
         prefill: {
-          name: user?.name || "Customer",
-          email: user?.email || "pubesto.in@gmail.com",
-          contact: user?.phone || "9999999999",
+          name: checkoutUser?.name || "Customer",
+          email: checkoutUser?.email || "pubesto.in@gmail.com",
+          contact: checkoutUser?.phone || "9999999999",
         },
         theme: { color: "#1b624b" },
       };

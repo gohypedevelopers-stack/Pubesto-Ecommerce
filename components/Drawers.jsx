@@ -9,6 +9,7 @@ import { motion } from "framer-motion";
 import { ChevronRight, LogIn, LogOut, MapPin, Package, TrendingUp, ShoppingBag } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import GoogleAuthButton from "./GoogleAuthButton";
 
 
 export default function Drawers() {
@@ -69,6 +70,11 @@ export default function Drawers() {
   const handleDrawerLogout = async () => {
     await logout();
     setIsProfileOpen(false);
+  };
+
+  const handleDrawerGoogleAuth = () => {
+    setIsProfileOpen(false);
+    window.location.href = "/api/auth/google?redirect=/account";
   };
 
 
@@ -184,6 +190,7 @@ export default function Drawers() {
                         <LogIn size={16} />
                         <span>Create account</span>
                       </Link>
+                      <GoogleAuthButton className="google-auth-button--drawer" onClick={handleDrawerGoogleAuth} />
                     </div>
                   </>
                 )}

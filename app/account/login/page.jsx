@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Lock, Mail, UserRound, Eye, EyeOff, Phone } from "lucide-react";
+import GoogleAuthButton from "../../../components/GoogleAuthButton";
 import { useStore } from "../../../components/StoreContext";
 
 const EMPTY_LOGIN = { email: "", password: "" };
@@ -38,6 +39,17 @@ export default function AccountLoginPage() {
       const params = new URLSearchParams(window.location.search);
       setMode(getSafeMode(params.get("mode")));
       setRedirectTo(getSafeRedirect(params.get("redirect")));
+      const authError = params.get("authError");
+      if (authError) {
+        const messages = {
+          google_config: "Google login is not configured yet.",
+          google_denied: "Google login was cancelled.",
+          google_state: "Google login expired. Please try again.",
+          google_failed: "Google login failed. Please try again.",
+        };
+        setMessage(messages[authError] || "Google login failed. Please try again.");
+        setMessageKind("error");
+      }
     }
 
     syncFromUrl();
@@ -91,6 +103,10 @@ export default function AccountLoginPage() {
 
   function setSignupField(field, value) {
     setSignupForm((current) => ({ ...current, [field]: value }));
+  }
+
+  function startGoogleAuth() {
+    window.location.href = `/api/auth/google?redirect=${encodeURIComponent(redirectTo)}`;
   }
 
   async function submitAuth(event) {
@@ -233,6 +249,8 @@ export default function AccountLoginPage() {
           ) : (
             <form className="auth-form" onSubmit={submitAuth} noValidate={false}>
               <h2>{mode === "signup" ? "Create your account" : "Welcome back"}</h2>
+              <GoogleAuthButton onClick={startGoogleAuth} disabled={loading} />
+              <div className="auth-oauth-divider"><span>or</span></div>
               {mode === "signup" ? (
                 <>
                   <label>

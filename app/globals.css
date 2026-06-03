@@ -12324,6 +12324,15 @@ body,
   animation: dropdownFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
+.profile-dropdown-popup::before {
+  content: "" !important;
+  position: absolute !important;
+  top: -12px !important;
+  left: 0 !important;
+  right: 0 !important;
+  height: 12px !important;
+}
+
 @keyframes dropdownFadeIn {
   from {
     opacity: 0;
@@ -12443,6 +12452,232 @@ body,
   display: flex !important;
   flex-direction: column !important;
   gap: 12px !important;
+}
+
+.google-auth-button {
+  --google-blue: #4285f4;
+  --google-red: #ea4335;
+  --google-yellow: #fbbc05;
+  --google-green: #34a853;
+  position: relative !important;
+  isolation: isolate !important;
+  overflow: hidden !important;
+  width: 100% !important;
+  min-height: 48px !important;
+  border: 1px solid transparent !important;
+  border-radius: 14px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 11px !important;
+  padding: 0 18px !important;
+  background:
+    linear-gradient(#ffffff, #ffffff) padding-box,
+    linear-gradient(115deg, rgba(66, 133, 244, 0.55), rgba(52, 168, 83, 0.28), rgba(251, 188, 5, 0.34), rgba(234, 67, 53, 0.5)) border-box !important;
+  color: #27484d !important;
+  font-size: 14px !important;
+  font-weight: 850 !important;
+  letter-spacing: 0 !important;
+  cursor: pointer !important;
+  box-shadow: 0 12px 30px rgba(39, 72, 77, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+  transform: translateY(0) scale(1) !important;
+  transition: transform 0.22s ease, box-shadow 0.22s ease, filter 0.22s ease !important;
+}
+
+.google-auth-button::before {
+  content: "" !important;
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: -1 !important;
+  background:
+    radial-gradient(circle at 18% 22%, rgba(66, 133, 244, 0.12), transparent 33%),
+    radial-gradient(circle at 82% 18%, rgba(234, 67, 53, 0.12), transparent 34%),
+    radial-gradient(circle at 50% 100%, rgba(52, 168, 83, 0.13), transparent 42%) !important;
+  opacity: 0 !important;
+  transition: opacity 0.25s ease !important;
+}
+
+.google-auth-button::after {
+  content: "" !important;
+  position: absolute !important;
+  top: -42% !important;
+  bottom: -42% !important;
+  left: -55% !important;
+  width: 42% !important;
+  z-index: 0 !important;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.82), rgba(66, 133, 244, 0.14), transparent) !important;
+  transform: translateX(-130%) skewX(-18deg) !important;
+  transition: transform 0.65s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.google-auth-button:hover,
+.google-auth-button:focus-visible {
+  box-shadow:
+    0 18px 42px rgba(66, 133, 244, 0.16),
+    0 8px 24px rgba(52, 168, 83, 0.1),
+    0 0 0 4px rgba(66, 133, 244, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95) !important;
+  transform: translateY(-2px) scale(1.01) !important;
+}
+
+.google-auth-button:hover::before,
+.google-auth-button:focus-visible::before,
+.google-auth-button.is-loading::before {
+  opacity: 1 !important;
+}
+
+.google-auth-button:hover::after,
+.google-auth-button:focus-visible::after,
+.google-auth-button.is-loading::after {
+  transform: translateX(360%) skewX(-18deg) !important;
+}
+
+.google-auth-button:active {
+  transform: translateY(0) scale(0.985) !important;
+  box-shadow: 0 8px 20px rgba(39, 72, 77, 0.1), 0 0 0 4px rgba(66, 133, 244, 0.05) !important;
+}
+
+.google-auth-button:disabled {
+  cursor: not-allowed !important;
+}
+
+.google-auth-button:not(.is-loading):disabled {
+  opacity: 0.65 !important;
+}
+
+.google-auth-icon-shell,
+.google-auth-label,
+.google-auth-dots {
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+.google-auth-icon-shell {
+  width: 30px !important;
+  height: 30px !important;
+  border-radius: 999px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0 !important;
+  background: rgba(255, 255, 255, 0.9) !important;
+  box-shadow: inset 0 0 0 1px rgba(39, 72, 77, 0.08), 0 6px 16px rgba(39, 72, 77, 0.08) !important;
+}
+
+.google-auth-icon {
+  width: 18px !important;
+  height: 18px !important;
+  display: block !important;
+  transform-origin: 50% 50% !important;
+  transition: transform 0.25s ease !important;
+}
+
+.google-auth-orbit {
+  position: absolute !important;
+  inset: -4px !important;
+  border-radius: inherit !important;
+  border: 2px solid transparent !important;
+  border-top-color: var(--google-blue) !important;
+  border-right-color: var(--google-green) !important;
+  border-bottom-color: rgba(251, 188, 5, 0.55) !important;
+  opacity: 0 !important;
+  transform: rotate(0deg) !important;
+}
+
+.google-auth-label {
+  line-height: 1 !important;
+  white-space: nowrap !important;
+}
+
+.google-auth-dots {
+  display: none !important;
+  align-items: center !important;
+  gap: 3px !important;
+  margin-left: -5px !important;
+}
+
+.google-auth-dots span {
+  width: 4px !important;
+  height: 4px !important;
+  border-radius: 999px !important;
+  background: var(--google-blue) !important;
+  opacity: 0.35 !important;
+  animation: googleDotPulse 0.9s ease-in-out infinite !important;
+}
+
+.google-auth-dots span:nth-child(2) {
+  background: var(--google-red) !important;
+  animation-delay: 0.12s !important;
+}
+
+.google-auth-dots span:nth-child(3) {
+  background: var(--google-green) !important;
+  animation-delay: 0.24s !important;
+}
+
+.google-auth-button.is-loading {
+  box-shadow:
+    0 18px 42px rgba(66, 133, 244, 0.18),
+    0 0 0 4px rgba(66, 133, 244, 0.07),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95) !important;
+}
+
+.google-auth-button.is-loading .google-auth-icon {
+  animation: googleIconSpin 0.95s cubic-bezier(0.68, -0.2, 0.32, 1.2) infinite !important;
+}
+
+.google-auth-button.is-loading .google-auth-orbit {
+  opacity: 1 !important;
+  animation: googleOrbitSpin 0.85s linear infinite !important;
+}
+
+.google-auth-button.is-loading .google-auth-dots {
+  display: inline-flex !important;
+}
+
+.google-auth-button--dropdown {
+  min-height: 42px !important;
+  border-radius: 12px !important;
+  font-size: 13px !important;
+  padding: 0 14px !important;
+}
+
+.google-auth-button--drawer {
+  min-height: 46px !important;
+}
+
+@keyframes googleIconSpin {
+  0% { transform: rotate(0deg) scale(1); }
+  50% { transform: rotate(180deg) scale(1.08); }
+  100% { transform: rotate(360deg) scale(1); }
+}
+
+@keyframes googleOrbitSpin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes googleDotPulse {
+  0%, 100% { opacity: 0.35; transform: translateY(0); }
+  50% { opacity: 1; transform: translateY(-2px); }
+}
+
+.dropdown-oauth-divider {
+  display: grid !important;
+  grid-template-columns: 1fr auto 1fr !important;
+  align-items: center !important;
+  gap: 8px !important;
+  color: #8c9ea0 !important;
+  font-size: 10px !important;
+  font-weight: 800 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.06em !important;
+}
+
+.dropdown-oauth-divider::before,
+.dropdown-oauth-divider::after {
+  content: "" !important;
+  height: 1px !important;
+  background: rgba(63, 100, 105, 0.12) !important;
 }
 
 .dropdown-form label {

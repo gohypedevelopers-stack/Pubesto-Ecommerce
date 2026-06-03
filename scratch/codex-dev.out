@@ -1,0 +1,5 @@
+
+> pubesto-ecom@0.1.0 dev
+> node scripts/dev-local.js
+
+Port 3000 is already open; keeping the localhost:300 redirect active.
