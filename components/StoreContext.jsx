@@ -645,23 +645,25 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
   };
 
   function appendCheckoutPrefillParams(url, currentUser = user) {
-    if (!url || !currentUser) return url;
+    if (!url) return url;
     try {
       const parsedUrl = new URL(url, window.location.origin);
       
-      if (currentUser.email) {
-        parsedUrl.searchParams.set("checkout[email]", currentUser.email);
+      let email = currentUser?.email;
+      if (!email || email === "amitsharma500677@gmail.com") {
+        email = "pubesto.in@gmail.com";
       }
+      parsedUrl.searchParams.set("checkout[email]", email);
       
       // Split name
-      const nameParts = String(currentUser.name || "Customer").trim().split(/\s+/);
+      const nameParts = String(currentUser?.name || "Customer").trim().split(/\s+/);
       const firstName = nameParts[0] || "Customer";
       const lastName = nameParts.slice(1).join(" ") || ".";
       
       parsedUrl.searchParams.set("checkout[shipping_address][first_name]", firstName);
       parsedUrl.searchParams.set("checkout[shipping_address][last_name]", lastName);
       
-      if (currentUser.phone) {
+      if (currentUser?.phone) {
         const digits = String(currentUser.phone).replace(/\D/g, "");
         const formattedPhone = digits.length === 10 ? `+91${digits}` : (currentUser.phone.startsWith("+") ? currentUser.phone : null);
         if (formattedPhone) {
@@ -669,7 +671,7 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
         }
       }
       
-      if (currentUser.addresses && currentUser.addresses.length > 0) {
+      if (currentUser?.addresses && currentUser.addresses.length > 0) {
         const addr = currentUser.addresses[0];
         if (addr.line1) parsedUrl.searchParams.set("checkout[shipping_address][address1]", addr.line1);
         if (addr.line2) parsedUrl.searchParams.set("checkout[shipping_address][address2]", addr.line2);
@@ -807,7 +809,7 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
         },
         prefill: {
           name: checkoutUser?.name || "Customer",
-          email: checkoutUser?.email || "pubesto.in@gmail.com",
+          email: checkoutUser?.email === "amitsharma500677@gmail.com" ? "pubesto.in@gmail.com" : (checkoutUser?.email || "pubesto.in@gmail.com"),
           contact: checkoutUser?.phone || "9999999999",
         },
         theme: { color: "#1b624b" },

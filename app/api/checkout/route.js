@@ -102,7 +102,9 @@ export async function POST(request) {
       }
 
       if (customerInfo.email) {
-        draftOrderInput.email = customerInfo.email;
+        draftOrderInput.email = customerInfo.email === "amitsharma500677@gmail.com" ? "pubesto.in@gmail.com" : customerInfo.email;
+      } else {
+        draftOrderInput.email = "pubesto.in@gmail.com";
       }
       
       const rawPhone = customerInfo.phone;
@@ -146,6 +148,8 @@ export async function POST(request) {
           country: "India",
         };
       }
+    } else {
+      draftOrderInput.email = "pubesto.in@gmail.com";
     }
 
     const query = `

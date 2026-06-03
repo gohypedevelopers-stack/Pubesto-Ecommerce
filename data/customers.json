@@ -29,7 +29,7 @@
     "resetTokenHash": "",
     "resetTokenExpiresAt": "",
     "createdAt": "2026-06-03T05:50:16.063Z",
-    "updatedAt": "2026-06-03T06:04:06.229Z"
+    "updatedAt": "2026-06-03T09:13:50.381Z"
   },
   {
     "id": "cus_1780466540774_44f4a7a21e",
@@ -42,9 +42,9 @@
     "avatarUrl": "",
     "shopifyCustomerId": "",
     "addresses": [],
-    "resetTokenHash": "",
-    "resetTokenExpiresAt": "",
+    "resetTokenHash": "4619fbb319b4a0e85ffe50c665673c3161cadfd3ffc4b0102d686b1dff135034",
+    "resetTokenExpiresAt": "2026-06-03T07:29:51.147Z",
     "createdAt": "2026-06-03T06:02:20.774Z",
-    "updatedAt": "2026-06-03T06:22:19.308Z"
+    "updatedAt": "2026-06-03T06:29:51.147Z"
   }
 ]

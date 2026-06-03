@@ -22,6 +22,14 @@ export async function POST(request) {
 
     const message = "If an account exists for that email, password reset instructions are ready.";
 
+    console.log("POST /api/auth/forgot-password config:", {
+      PUBESTO_CUSTOMER_AUTH_MODE: process.env.PUBESTO_CUSTOMER_AUTH_MODE,
+      isLocalCustomerAuthMode: isLocalCustomerAuthMode(),
+      NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN: process.env.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN,
+      NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN: process.env.NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN,
+      SHOPIFY_STOREFRONT_ACCESS_TOKEN: process.env.SHOPIFY_STOREFRONT_ACCESS_TOKEN,
+    });
+
     if (!isLocalCustomerAuthMode()) {
       try {
         await recoverShopifyCustomerPassword(email);
@@ -36,6 +44,7 @@ export async function POST(request) {
         }
 
         if (!canUseLocalCustomerAuthFallback()) {
+          console.error("Shopify password recovery failed (503):", error);
           return NextResponse.json({ error: "Account service is temporarily unavailable." }, { status: 503 });
         }
 
