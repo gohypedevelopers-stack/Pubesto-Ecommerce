@@ -2613,8 +2613,8 @@ main {
 .social-gallery-card-num {
   font-size: 11px;
   font-weight: 700;
-  color: var(--brand-color);
-  opacity: 0.55;
+  color: #000000;
+  opacity: 0.8;
   letter-spacing: 0.15em;
   margin-bottom: 6px;
   text-transform: uppercase;
@@ -2627,7 +2627,7 @@ main {
   font-style: italic;
   font-size: 22px;
   font-weight: 600;
-  color: var(--deep);
+  color: #000000;
   margin: 0 0 6px 0;
   line-height: 1.2;
   transition: color 0.3s ease;
@@ -2639,7 +2639,7 @@ main {
 
 .social-gallery-card-caption {
   font-size: 13px;
-  color: var(--muted);
+  color: #000000;
   line-height: 1.45;
   margin: 0 0 20px 0;
   font-weight: 500;
