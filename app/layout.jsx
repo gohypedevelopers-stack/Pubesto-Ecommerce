@@ -15,7 +15,11 @@ const cormorant = Cormorant_Garamond({
   variable: "--font-display",
 });
 
-const metaPixelId = "358677750473605";
+const metaPixelIds = ["358677750473605", "27881346908132910"];
+
+const metaPixelInitScript = metaPixelIds
+  .map((pixelId) => `fbq('init', '${pixelId}');`)
+  .join("\n");
 
 const metaPixelScript = `
 !function(f,b,e,v,n,t,s)
@@ -26,7 +30,7 @@ n.queue=[];t=b.createElement(e);t.async=!0;
 t.src=v;s=b.getElementsByTagName(e)[0];
 s.parentNode.insertBefore(t,s)}(window, document,'script',
 'https://connect.facebook.net/en_US/fbevents.js');
-fbq('init', '${metaPixelId}');
+${metaPixelInitScript}
 fbq('track', 'PageView');
 `;
 
@@ -52,24 +56,25 @@ import MetaPixelRouteTracker from "../components/MetaPixelRouteTracker";
 export default function RootLayout({ children }) {
   return (
     <html lang="en" className={`${inter.variable} ${cormorant.variable}`} data-scroll-behavior="smooth" suppressHydrationWarning>
-      <head>
+      <body suppressHydrationWarning>
         <Script
           id="meta-pixel"
-          strategy="beforeInteractive"
+          strategy="afterInteractive"
           dangerouslySetInnerHTML={{
             __html: metaPixelScript,
           }}
         />
-      </head>
-      <body suppressHydrationWarning>
         <noscript>
-          <img
-            height="1"
-            width="1"
-            style={{ display: "none" }}
-            src={`https://www.facebook.com/tr?id=${metaPixelId}&ev=PageView&noscript=1`}
-            alt=""
-          />
+          {metaPixelIds.map((pixelId) => (
+            <img
+              key={pixelId}
+              height="1"
+              width="1"
+              style={{ display: "none" }}
+              src={`https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1`}
+              alt=""
+            />
+          ))}
         </noscript>
         <MetaPixelRouteTracker />
         <Providers>
