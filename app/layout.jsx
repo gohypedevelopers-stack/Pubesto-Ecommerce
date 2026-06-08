@@ -15,7 +15,7 @@ const cormorant = Cormorant_Garamond({
   variable: "--font-display",
 });
 
-const metaPixelId = "358677750473605";
+const metaPixelIds = ["358677750473605", "27881346908132910"];
 
 const metaPixelScript = `
 !function(f,b,e,v,n,t,s)
@@ -26,7 +26,7 @@ n.queue=[];t=b.createElement(e);t.async=!0;
 t.src=v;s=b.getElementsByTagName(e)[0];
 s.parentNode.insertBefore(t,s)}(window, document,'script',
 'https://connect.facebook.net/en_US/fbevents.js');
-${metaPixelInitScript}
+${metaPixelIds.map((pixelId) => `fbq('init', '${pixelId}');`).join("\n")}
 fbq('track', 'PageView');
 `;
 
