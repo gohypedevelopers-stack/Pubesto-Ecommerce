@@ -15,11 +15,7 @@ const cormorant = Cormorant_Garamond({
   variable: "--font-display",
 });
 
-const metaPixelIds = ["358677750473605", "27881346908132910"];
-
-const metaPixelInitScript = metaPixelIds
-  .map((pixelId) => `fbq('init', '${pixelId}');`)
-  .join("\n");
+const metaPixelId = "358677750473605";
 
 const metaPixelScript = `
 !function(f,b,e,v,n,t,s)
