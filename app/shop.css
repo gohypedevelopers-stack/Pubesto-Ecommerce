@@ -496,9 +496,42 @@
 
 @media (max-width: 600px) {
   .products-grid-v2 {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px 12px;
+  }
+  .card-visual img {
+    padding: 12px;
+  }
+  .card-body {
+    padding: 12px;
+  }
+  .card-name {
+    font-size: 14px;
+    margin-bottom: 8px;
+  }
+  .card-price-area {
+    margin-bottom: 12px;
+    gap: 6px;
+  }
+  .current-price {
+    font-size: 16px;
+  }
+  .old-price {
+    font-size: 12px;
+  }
+  .card-action-btn {
+    padding: 8px;
+    font-size: 12px;
+    border-radius: var(--radius-md);
+  }
+  .card-cart-manager {
+    padding: 6px 10px;
+    border-radius: var(--radius-md);
   }
   .hero-title {
     font-size: 36px;
+  }
+  .shop-main-layout {
+    padding: 30px 12px;
   }
 }

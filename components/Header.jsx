@@ -357,15 +357,15 @@ export default function Header() {
     >
       <div className="navbar-container">
         <nav className="navbar-links" aria-label="Primary navigation">
-          <Link href="/" onClick={resetStoreView}>
+          <Link href="/" onClick={resetStoreView} prefetch={false}>
             Home
           </Link>
-          <Link href="/shop" onClick={() => setIsMenuOpen(false)}>
+          <Link href="/shop" onClick={() => setIsMenuOpen(false)} prefetch={false}>
             Shop
           </Link>
         </nav>
 
-        <Link href="/" className="brand navbar-brand" aria-label="Pubesto home" onClick={resetStoreView}>
+        <Link href="/" className="brand navbar-brand" aria-label="Pubesto home" onClick={resetStoreView} prefetch={false}>
           Pubesto
         </Link>
 

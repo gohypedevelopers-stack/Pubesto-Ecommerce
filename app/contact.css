@@ -259,3 +259,15 @@
     padding: 32px 24px;
   }
 }
+
+@media (max-width: 480px) {
+  .pubesto-contact-page-v2 {
+    padding: 30px 12px;
+  }
+  .contact-title {
+    font-size: 28px;
+  }
+  .contact-form-card-v2 {
+    padding: 24px 16px;
+  }
+}

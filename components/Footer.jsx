@@ -107,6 +107,7 @@ export default function Footer() {
                           href={link.href}
                           className="footer-link-button"
                           style={{ textDecoration: 'none' }}
+                          prefetch={false}
                         >
                           {link.label}
                         </Link>

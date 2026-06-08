@@ -108,8 +108,7 @@
 /* ── Mobile hero ── */
 @media (max-width: 768px) {
   .hero-slide-item {
-    /* Scale height beautifully based on screen size to prevent extreme cropping */
-    height: clamp(400px, 60dvh, 520px);
+    height: calc(100dvh - var(--hero-header-offset)) !important;
     padding-top: 0;
     padding-bottom: 0;
     align-items: center;
@@ -157,14 +156,14 @@
   }
 
   .hero-eyebrow-tag {
-    font-size: 9px;
-    padding: 4px 10px;
+    font-size: 11px;
+    padding: 6px 12px;
     letter-spacing: 0.15em;
   }
 
   .hero-title {
-    font-size: clamp(1.1rem, 5.5vw, 1.5rem) !important;
-    line-height: 1.25 !important;
+    font-size: clamp(1.8rem, 8vw, 2.6rem) !important;
+    line-height: 1.2 !important;
     max-width: 95%;
     margin-inline: auto;
     text-align: center;
@@ -173,17 +172,12 @@
   /* Show CTA button on mobile */
   .hero-primary-cta {
     display: inline-flex !important;
-    padding: 10px 24px !important;
-    font-size: 0.85rem !important;
-    margin-top: 10px;
+    padding: 12px 28px !important;
+    font-size: 0.95rem !important;
+    margin-top: 14px;
   }
 }
 
-@media (max-width: 480px) {
-  .hero-slide-item {
-    height: clamp(340px, 50dvh, 440px) !important;
-  }
-}
 
 .hero-eyebrow-tag {
   display: inline-block;

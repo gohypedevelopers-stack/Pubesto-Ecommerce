@@ -77,7 +77,7 @@ function ProductCard({ product, index = 0 }) {
       viewport={{ once: true, margin: "-50px" }}
     >
       <div className="product-media">
-        <Link className="product-media-link" href={`/product/${product.slug}`} aria-label={`View ${product.name}`}>
+        <Link className="product-media-link" href={`/product/${product.slug}`} aria-label={`View ${product.name}`} prefetch={false}>
           <img src={product.image} alt={product.name} loading="lazy" decoding="async" />
         </Link>
         {activeBadge ? (
@@ -128,7 +128,7 @@ function ProductCard({ product, index = 0 }) {
         </AnimatePresence>
       </div>
       <div className="product-body">
-        <Link href={`/product/${product.slug}`}>
+        <Link href={`/product/${product.slug}`} prefetch={false}>
           <h3>{product.name}</h3>
         </Link>
         <p className="price">
