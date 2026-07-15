@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { AUTH_COOKIE_NAME, parseSessionToken } from "../../../lib/auth-session";
 import { fixShopifyCheckoutUrl, getShopifyStoreDomain } from "../../../lib/shopify-domains";
-import { getShopifyCustomer } from "../../../lib/shopify-customer";
+import { getShopifyCustomer, getShopifyCustomerAdmin } from "../../../lib/shopify-customer";
 
 function formatE164Phone(phone) {
   const digits = String(phone || "").replace(/\D/g, "");
@@ -41,8 +41,12 @@ export async function POST(request) {
       const cookieStore = await cookies();
       const token = cookieStore.get(AUTH_COOKIE_NAME)?.value;
       const session = parseSessionToken(token);
-      if (session && session.provider === "shopify" && session.customerAccessToken) {
-        customerInfo = await getShopifyCustomer(session.customerAccessToken);
+      if (session) {
+        if (session.provider === "shopify" && session.customerAccessToken) {
+          customerInfo = await getShopifyCustomer(session.customerAccessToken);
+        } else if (session.provider === "google" && session.id) {
+          customerInfo = await getShopifyCustomerAdmin(session.id);
+        }
       }
     } catch (e) {
       console.warn("Failed to retrieve user session during checkout pre-fill:", e.message);

@@ -16,6 +16,18 @@ async function getCurrentUser() {
     return user ? { user, session } : null;
   }
 
+  if (session.provider === "google" && session.sub) {
+    return { 
+      user: {
+        id: session.sub,
+        name: session.name,
+        email: session.email,
+        provider: "google"
+      }, 
+      session 
+    };
+  }
+
   return null;
 }
 
@@ -269,6 +281,12 @@ export async function GET() {
 
     if (resJson.errors) {
       console.error("Shopify orders query errors:", resJson.errors);
+      
+      if (process.env.NODE_ENV !== "production") {
+        console.warn("Dev Mode: Failed to fetch orders from Shopify Admin API. Returning mock orders.");
+        return NextResponse.json({ orders: [] });
+      }
+
       const isAccessDenied = resJson.errors.some(
         (e) => e.extensions?.code === "ACCESS_DENIED" || e.message?.toLowerCase().includes("access denied")
       );

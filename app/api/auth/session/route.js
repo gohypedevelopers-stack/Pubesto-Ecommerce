@@ -22,6 +22,15 @@ export async function GET() {
       console.error("GET /api/auth/session Shopify error:", error);
       return NextResponse.json({ user: null });
     }
+  } else if (session.provider === "google") {
+    return NextResponse.json({
+      user: {
+        id: session.sub,
+        name: session.name,
+        email: session.email,
+        provider: "google",
+      }
+    });
   }
 
   return NextResponse.json({ user: null });

@@ -84,8 +84,38 @@ export async function GET(request) {
       const tokenData = await exchangeGoogleCode({ code, clientId, clientSecret, redirectUri });
       profile = await fetchGoogleProfile(tokenData.access_token);
     }
+    
+    // Import findOrCreateShopifyAdminCustomer
+    const { findOrCreateShopifyAdminCustomer } = require("../../../../../lib/shopify-customer");
+    let shopifyCustomerId = await findOrCreateShopifyAdminCustomer({
+      name: profile.name,
+      email: profile.email,
+    });
+    
+    if (!shopifyCustomerId) {
+      if (isDev) {
+        console.warn("Dev Mode: Failed to link Google account to Shopify Admin. Using mock ID.");
+        shopifyCustomerId = "gid://shopify/Customer/mock_123456789";
+      } else {
+        throw new Error("Failed to link Google account to Shopify.");
+      }
+    }
+    
+    // Set the auth cookie
+    cookieStore.set(
+      AUTH_COOKIE_NAME,
+      createSessionToken(
+        {
+          id: shopifyCustomerId,
+          name: profile.name,
+          email: profile.email,
+        },
+        { provider: "google" }
+      ),
+      getSessionCookieOptions()
+    );
 
-    const response = NextResponse.redirect(loginRedirect(request, "Google OAuth is disabled when using strict Shopify authentication. Please use standard email and password to log in or create an account."));
+    const response = NextResponse.redirect(new URL(redirectTo, request.url));
     clearGoogleCookies(response);
     return response;
   } catch (callbackError) {

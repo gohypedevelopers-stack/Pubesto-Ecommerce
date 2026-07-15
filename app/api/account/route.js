@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { AUTH_COOKIE_NAME, createSessionToken, getSessionCookieOptions, parseSessionToken } from "../../../lib/auth-session";
-import { getShopifyCustomer, updateShopifyCustomer } from "../../../lib/shopify-customer";
+import { getShopifyCustomer, updateShopifyCustomer, getShopifyCustomerAdmin, updateShopifyCustomerAdmin } from "../../../lib/shopify-customer";
 
 export const dynamic = "force-dynamic";
 
@@ -14,6 +14,15 @@ async function getCurrentUser() {
   if (session.provider === "shopify" && session.customerAccessToken) {
     const user = await getShopifyCustomer(session.customerAccessToken);
     return user ? { user, session } : null;
+  }
+  if (session.provider === "google" && session.sub) {
+    const user = (await getShopifyCustomerAdmin(session.sub)) || {
+      id: session.sub,
+      name: session.name,
+      email: session.email,
+      provider: "google",
+    };
+    return { user, session };
   }
 
   return null;
@@ -64,6 +73,28 @@ export async function PATCH(request) {
       );
 
       return NextResponse.json({ success: true, user: result.user });
+    }
+    
+    if (account.session.provider === "google" && account.session.id) {
+      const user = await updateShopifyCustomerAdmin(account.session.id, {
+        name: body.name,
+        phone: body.phone,
+      });
+
+      if (!user) {
+        return NextResponse.json({ error: "Could not update account." }, { status: 400 });
+      }
+
+      const cookieStore = await cookies();
+      cookieStore.set(
+        AUTH_COOKIE_NAME,
+        createSessionToken(user, {
+          provider: "google",
+        }),
+        getSessionCookieOptions()
+      );
+
+      return NextResponse.json({ success: true, user });
     }
 
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
