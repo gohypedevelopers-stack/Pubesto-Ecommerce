@@ -15,7 +15,7 @@ const cormorant = Cormorant_Garamond({
   variable: "--font-display",
 });
 
-const metaPixelIds = ["358677750473605", "27881346908132910"];
+const metaPixelIds = ["27881346908132910"];
 
 const metaPixelScript = `
 !function(f,b,e,v,n,t,s)
@@ -28,6 +28,22 @@ s.parentNode.insertBefore(t,s)}(window, document,'script',
 'https://connect.facebook.net/en_US/fbevents.js');
 ${metaPixelIds.map((pixelId) => `fbq('init', '${pixelId}');`).join("\n")}
 fbq('track', 'PageView');
+fbq('track', 'AddToCart');
+fbq('track', 'Purchase');
+fbq('track', 'Lead');
+fbq('track', 'CompleteRegistration');
+fbq('track', 'Search');
+fbq('track', 'InitiateCheckout');
+fbq('track', 'AddPaymentInfo');
+fbq('track', 'Contact');
+fbq('track', 'CustomizeProduct');
+fbq('track', 'Donate');
+fbq('track', 'FindLocation');
+fbq('track', 'Schedule');
+fbq('track', 'StartTrial');
+fbq('track', 'SubmitApplication');
+fbq('track', 'Subscribe');
+fbq('trackCustom', 'ViewCategory');
 `;
 
 export const metadata = {
