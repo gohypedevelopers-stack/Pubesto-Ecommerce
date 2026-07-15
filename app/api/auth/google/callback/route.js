@@ -1,8 +1,6 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { upsertGoogleCustomer } from "../../../../../lib/auth-store";
 import { AUTH_COOKIE_NAME, createSessionToken, getSessionCookieOptions } from "../../../../../lib/auth-session";
-import { findOrCreateShopifyAdminCustomer } from "../../../../../lib/shopify-customer";
 import {
   exchangeGoogleCode,
   fetchGoogleProfile,
@@ -87,33 +85,7 @@ export async function GET(request) {
       profile = await fetchGoogleProfile(tokenData.access_token);
     }
 
-    // Sync logging-in Google customer with Shopify customer profile
-    let shopifyCustomerId = null;
-    try {
-      if (process.env.SHOPIFY_ADMIN_ACCESS_TOKEN) {
-        shopifyCustomerId = await findOrCreateShopifyAdminCustomer({
-          name: profile.name,
-          email: profile.email,
-        });
-      }
-    } catch (syncError) {
-      console.error("Failed to sync Google customer with Shopify:", syncError);
-    }
-
-    const user = await upsertGoogleCustomer({
-      googleId: profile.sub,
-      name: profile.name,
-      email: profile.email,
-      avatarUrl: profile.picture,
-      shopifyCustomerId,
-    });
-
-    const response = NextResponse.redirect(new URL(redirectTo, request.url));
-    response.cookies.set(
-      AUTH_COOKIE_NAME,
-      createSessionToken(user, { provider: "google" }),
-      getSessionCookieOptions()
-    );
+    const response = NextResponse.redirect(loginRedirect(request, "Google OAuth is disabled when using strict Shopify authentication. Please use standard email and password to log in or create an account."));
     clearGoogleCookies(response);
     return response;
   } catch (callbackError) {

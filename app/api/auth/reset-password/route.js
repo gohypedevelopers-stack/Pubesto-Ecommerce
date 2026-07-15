@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { resetCustomerPassword } from "../../../../lib/auth-store";
 import { readAuthJson } from "../../../../lib/auth-validation";
 
 export const dynamic = "force-dynamic";
@@ -15,13 +14,7 @@ export async function POST(request) {
       return NextResponse.json({ error: "Password must be at least 8 characters." }, { status: 400 });
     }
 
-    const user = await resetCustomerPassword(body);
-
-    if (!user) {
-      return NextResponse.json({ error: "This reset link is invalid or expired." }, { status: 400 });
-    }
-
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ error: "Password reset is handled directly via the Shopify email link. Please check your email." }, { status: 400 });
   } catch (error) {
     return NextResponse.json({ error: error.message || "Could not reset password." }, { status: 400 });
   }

@@ -1,6 +1,5 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { getCustomerById, updateCustomerProfile } from "../../../lib/auth-store";
 import { AUTH_COOKIE_NAME, createSessionToken, getSessionCookieOptions, parseSessionToken } from "../../../lib/auth-session";
 import { getShopifyCustomer, updateShopifyCustomer } from "../../../lib/shopify-customer";
 
@@ -17,8 +16,7 @@ async function getCurrentUser() {
     return user ? { user, session } : null;
   }
 
-  const user = await getCustomerById(session.sub);
-  return user ? { user, session } : null;
+  return null;
 }
 
 export async function GET() {
@@ -68,13 +66,7 @@ export async function PATCH(request) {
       return NextResponse.json({ success: true, user: result.user });
     }
 
-    const updatedUser = await updateCustomerProfile(account.user.id, {
-      name: body.name,
-      phone: body.phone,
-      addresses: body.addresses,
-    });
-
-    return NextResponse.json({ success: true, user: updatedUser });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   } catch (error) {
     console.error("PATCH /api/account error:", error);
     return NextResponse.json({ error: error.message || "Could not update account." }, { status: 400 });

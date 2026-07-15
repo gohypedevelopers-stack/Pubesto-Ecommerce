@@ -29,7 +29,7 @@
     "resetTokenHash": "",
     "resetTokenExpiresAt": "",
     "createdAt": "2026-06-03T05:50:16.063Z",
-    "updatedAt": "2026-06-03T09:13:50.381Z"
+    "updatedAt": "2026-07-15T06:25:45.195Z"
   },
   {
     "id": "cus_1780466540774_44f4a7a21e",
@@ -46,5 +46,21 @@
     "resetTokenExpiresAt": "2026-06-03T07:29:51.147Z",
     "createdAt": "2026-06-03T06:02:20.774Z",
     "updatedAt": "2026-06-03T06:29:51.147Z"
+  },
+  {
+    "id": "cus_1784096682618_80bdb1f54c",
+    "name": "ravindra jha",
+    "email": "ravindranathjha76@gmail.com",
+    "phone": "9354156323",
+    "passwordHash": "03c3271accffce32b2b2d8bea8223b6a79eb0c11c330768339c8c40cd981c8bd6be53cc2c4dd88924da33ce3d684163b847b963618b8944c7f403a80dc6ec39b",
+    "passwordSalt": "5d83e85da206d29a5eb0a34b29a57ac3",
+    "googleId": "",
+    "avatarUrl": "",
+    "shopifyCustomerId": "",
+    "addresses": [],
+    "resetTokenHash": "",
+    "resetTokenExpiresAt": "",
+    "createdAt": "2026-07-15T06:24:42.619Z",
+    "updatedAt": "2026-07-15T06:24:42.619Z"
   }
 ]

@@ -1,9 +1,7 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { verifyCustomerLogin } from "../../../../lib/auth-store";
-import { canUseLocalCustomerAuthFallback, isLocalCustomerAuthMode } from "../../../../lib/auth-mode";
 import { AUTH_COOKIE_NAME, createSessionToken, getSessionCookieOptions } from "../../../../lib/auth-session";
-import { isRecoverableShopifyCustomerError, loginShopifyCustomer } from "../../../../lib/shopify-customer";
+import { loginShopifyCustomer } from "../../../../lib/shopify-customer";
 import { isValidAuthEmail, normalizeAuthEmail, readAuthJson } from "../../../../lib/auth-validation";
 
 export const dynamic = "force-dynamic";
@@ -20,38 +18,11 @@ export async function POST(request) {
       return NextResponse.json({ error: "Enter your email and password." }, { status: 400 });
     }
 
-    let authResult = null;
-    const allowLocalFallback = canUseLocalCustomerAuthFallback();
-
-    if (isLocalCustomerAuthMode()) {
-      const localUser = await verifyCustomerLogin(credentials);
-      if (localUser) {
-        authResult = { user: localUser };
-      }
-    } else {
-      try {
-        authResult = await loginShopifyCustomer(credentials);
-      } catch (error) {
-        if (isRecoverableShopifyCustomerError(error) && !allowLocalFallback) {
-          return NextResponse.json({ error: "Account service is temporarily unavailable." }, { status: 503 });
-        }
-
-        if (!isRecoverableShopifyCustomerError(error) && allowLocalFallback) {
-          const localUser = await verifyCustomerLogin(credentials);
-          if (localUser) {
-            authResult = { user: localUser };
-          }
-        } else if (isRecoverableShopifyCustomerError(error)) {
-          console.error("Shopify customer login unavailable, using local fallback:", error.message);
-        }
-      }
-    }
-
-    if (!authResult && allowLocalFallback) {
-      const localUser = await verifyCustomerLogin(credentials);
-      if (localUser) {
-        authResult = { user: localUser };
-      }
+    let authResult;
+    try {
+      authResult = await loginShopifyCustomer(credentials);
+    } catch (error) {
+      return NextResponse.json({ error: error.message || "Invalid email or password." }, { status: 401 });
     }
 
     if (!authResult?.user) {
@@ -62,7 +33,7 @@ export async function POST(request) {
     cookieStore.set(
       AUTH_COOKIE_NAME,
       createSessionToken(authResult.user, {
-        provider: authResult.customerAccessToken ? "shopify" : "local",
+        provider: "shopify",
         customerAccessToken: authResult.customerAccessToken,
         expiresAt: authResult.expiresAt,
       }),

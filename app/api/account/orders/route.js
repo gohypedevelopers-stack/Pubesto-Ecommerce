@@ -1,6 +1,5 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { getCustomerById } from "../../../../lib/auth-store";
 import { AUTH_COOKIE_NAME, parseSessionToken } from "../../../../lib/auth-session";
 import { getShopifyCustomer } from "../../../../lib/shopify-customer";
 
@@ -17,8 +16,7 @@ async function getCurrentUser() {
     return user ? { user, session } : null;
   }
 
-  const user = await getCustomerById(session.sub);
-  return user ? { user, session } : null;
+  return null;
 }
 
 export async function GET() {

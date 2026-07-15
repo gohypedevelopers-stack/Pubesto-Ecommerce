@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { AUTH_COOKIE_NAME, parseSessionToken } from "../../../lib/auth-session";
-import { getCustomerById } from "../../../lib/auth-store";
 import { fixShopifyCheckoutUrl, getShopifyStoreDomain } from "../../../lib/shopify-domains";
 import { getShopifyCustomer } from "../../../lib/shopify-customer";
 
@@ -42,12 +41,8 @@ export async function POST(request) {
       const cookieStore = await cookies();
       const token = cookieStore.get(AUTH_COOKIE_NAME)?.value;
       const session = parseSessionToken(token);
-      if (session) {
-        if (session.provider === "shopify" && session.customerAccessToken) {
-          customerInfo = await getShopifyCustomer(session.customerAccessToken);
-        } else {
-          customerInfo = await getCustomerById(session.sub);
-        }
+      if (session && session.provider === "shopify" && session.customerAccessToken) {
+        customerInfo = await getShopifyCustomer(session.customerAccessToken);
       }
     } catch (e) {
       console.warn("Failed to retrieve user session during checkout pre-fill:", e.message);
