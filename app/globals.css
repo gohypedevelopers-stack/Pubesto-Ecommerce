@@ -12421,7 +12421,7 @@ body,
 /* Tabs Styling */
 .dropdown-tabs {
   display: grid !important;
-  grid-template-columns: repeat(3, 1fr) !important;
+  grid-template-columns: repeat(2, 1fr) !important;
   gap: 4px !important;
   background: #f6f4f2 !important;
   border-radius: 10px !important;

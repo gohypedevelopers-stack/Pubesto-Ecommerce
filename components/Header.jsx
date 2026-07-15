@@ -658,13 +658,6 @@ export default function Header() {
                       >
                         Signup
                       </button>
-                      <button 
-                        className={authMode === "forgot" ? "active" : ""} 
-                        type="button" 
-                        onClick={() => { setAuthMode("forgot"); setAuthMessage(""); setResetUrl(""); setShowPassword(false); }}
-                      >
-                        Forgot
-                      </button>
                     </div>
 
                     {authMode === "forgot" ? (

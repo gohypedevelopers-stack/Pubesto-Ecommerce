@@ -204,9 +204,6 @@ export default function AccountLoginPage() {
             <button className={mode === "signup" ? "active" : ""} type="button" role="tab" aria-selected={mode === "signup"} onClick={() => switchMode("signup")}>
               Signup
             </button>
-            <button className={mode === "forgot" ? "active" : ""} type="button" role="tab" aria-selected={mode === "forgot"} onClick={() => switchMode("forgot")}>
-              Forgot
-            </button>
           </div>
 
           {mode === "forgot" ? (
