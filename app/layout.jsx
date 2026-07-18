@@ -15,7 +15,7 @@ const cormorant = Cormorant_Garamond({
   variable: "--font-display",
 });
 
-const metaPixelIds = ["358677750473605", "27881346908132910"];
+const metaPixelIds = ["1229284689266211"];
 
 const metaPixelScript = `
 !function(f,b,e,v,n,t,s)
