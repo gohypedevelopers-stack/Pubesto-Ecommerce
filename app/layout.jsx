@@ -28,7 +28,6 @@ s.parentNode.insertBefore(t,s)}(window, document,'script',
 'https://connect.facebook.net/en_US/fbevents.js');
 ${metaPixelIds.map((pixelId) => `fbq('init', '${pixelId}');`).join("\n")}
 fbq('track', 'PageView');
-fbq('track', 'Purchase');
 `;
 
 export const metadata = {
