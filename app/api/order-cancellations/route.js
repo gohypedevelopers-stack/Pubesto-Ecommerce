@@ -6,6 +6,7 @@ import {
   sanitizeOrderCancellation,
   writeOrderCancellations,
 } from "../../../lib/order-cancellations-store";
+import { getShopifyOrderByName, cancelShopifyOrder } from "../../../lib/shopify-admin";
 
 export const dynamic = "force-dynamic";
 
@@ -91,7 +92,46 @@ export async function POST(request) {
       );
     }
 
+    // 1. Check order in Shopify
+    let shopifyOrder;
+    try {
+      shopifyOrder = await getShopifyOrderByName(body.orderId);
+    } catch (e) {
+      console.error("Shopify Admin API Error:", e);
+      return NextResponse.json({ error: `Unable to reach Shopify at this time: ${e.message || e.toString()}` }, { status: 502 });
+    }
+
+    if (!shopifyOrder) {
+      return NextResponse.json({ error: "Order not found in our system. Please check your Order ID." }, { status: 404 });
+    }
+
+    // 2. Validate email
+    if (shopifyOrder.email.toLowerCase() !== body.customerEmail.trim().toLowerCase()) {
+      return NextResponse.json({ error: "The provided email does not match the order." }, { status: 403 });
+    }
+
+    // 3. Check fulfillment status (FULFILLED or PARTIAL means it's shipped)
+    if (shopifyOrder.displayFulfillmentStatus === "FULFILLED" || shopifyOrder.displayFulfillmentStatus === "PARTIALLY_FULFILLED") {
+      return NextResponse.json({ error: "This order has already been dispatched and cannot be cancelled." }, { status: 403 });
+    }
+
+    // 4. Execute cancellation on Shopify
+    try {
+      await cancelShopifyOrder(shopifyOrder.id, body.reason);
+    } catch (e) {
+      return NextResponse.json({ error: `Failed to cancel order: ${e.message}` }, { status: 400 });
+    }
+
+    // 5. Save to local store with "approved" status
     const cancellation = makeOrderCancellation(body);
+    cancellation.status = "approved"; // Override default "requested"
+    cancellation.timeline.push({
+      status: "approved",
+      label: "Order Cancelled Successfully",
+      date: new Date().toISOString(),
+      note: "Your order has been cancelled and a refund has been initiated for prepaid items.",
+    });
+
     await writeOrderCancellations([...cancellations, cancellation]);
 
     return NextResponse.json(
@@ -99,7 +139,7 @@ export async function POST(request) {
         success: true,
         cancellationId: cancellation.id,
         request: sanitizeOrderCancellation(cancellation),
-        message: "Cancellation request submitted successfully.",
+        message: "Order cancelled successfully.",
       },
       { status: 201 }
     );

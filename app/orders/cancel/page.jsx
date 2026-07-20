@@ -219,7 +219,7 @@ export default function CancelOrderPage() {
             <div className="returns-confirm-icon">
               <CheckCircle2 size={34} />
             </div>
-            <h1 className="returns-card-title">Cancellation Request Submitted</h1>
+            <h1 className="returns-card-title">Order Cancelled Successfully</h1>
             <p style={{ fontSize: "14px", color: "var(--muted, #7a7266)", marginBottom: "8px" }}>
               Your cancellation request ID is:
             </p>
@@ -245,8 +245,8 @@ export default function CancelOrderPage() {
                 margin: "0 auto 24px",
               }}
             >
-              Our team will verify your order status against dispatch schedules.
-              If approved, eligible prepaid transactions are automatically reimbursed in 5-7 business days.
+              Your order has been successfully cancelled in our system.
+              If you paid online, a full refund has been initiated and will reflect in your original payment method within 5-7 business days.
             </p>
             <div style={{ display: "flex", gap: "12px", justifyContent: "center", flexWrap: "wrap" }}>
               <Link href="/account" className="returns-btn-primary" style={{ textDecoration: "none" }}>
@@ -273,7 +273,7 @@ export default function CancelOrderPage() {
           <h1 className="returns-page-title">Cancel an Order</h1>
           <p className="returns-page-subtitle">
             Submit your cancellation request with the order details from your confirmation email.
-            Our team will verify dispatch status and respond as soon as possible.
+            Eligible unfulfilled orders will be cancelled instantly and refunds initiated automatically.
           </p>
         </header>
 
@@ -650,7 +650,7 @@ export default function CancelOrderPage() {
                 Cancellation Policy
               </h3>
               <p className="returns-sidebar-desc">
-                Cancellations are verified against dispatch tracking before final approval.
+                Cancellations are automatically verified against real-time dispatch tracking.
               </p>
               <div className="cancellation-policy-item">
                 <ShieldCheck size={16} className="cancellation-policy-bullet" />

@@ -966,19 +966,19 @@ export default function AccountPage() {
                 { icon: ShoppingBag, label: "Shop Now", href: "/shop", color: "#7c3aed" },
               ].map(({ icon: Icon, label, count, onClick, href, color }) => {
                 const content = (
-                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "8px", padding: "18px 12px", borderRadius: "14px", border: "1px solid rgba(211,201,189,0.4)", background: "#fff", textDecoration: "none", cursor: "pointer", transition: "all 0.18s ease", textAlign: "center" }}
+                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "8px", padding: "18px 12px", borderRadius: "14px", border: "1px solid rgba(211,201,189,0.4)", background: "#fff", textDecoration: "none", cursor: "pointer", transition: "all 0.18s ease", textAlign: "center", height: "100%" }}
                     onMouseEnter={(e) => { e.currentTarget.style.borderColor = color; e.currentTarget.style.boxShadow = `0 4px 20px ${color}15`; }}
                     onMouseLeave={(e) => { e.currentTarget.style.borderColor = "rgba(211,201,189,0.4)"; e.currentTarget.style.boxShadow = "none"; }}
                   >
-                    <div style={{ width: "38px", height: "38px", borderRadius: "10px", background: `${color}12`, display: "flex", alignItems: "center", justifyContent: "center", color }}>
+                    <div style={{ width: "38px", height: "38px", borderRadius: "10px", background: `${color}12`, display: "flex", alignItems: "center", justifyContent: "center", color, flexShrink: 0 }}>
                       <Icon size={18} />
                     </div>
                     <span style={{ fontSize: "12.5px", fontWeight: 700, color: "var(--ink)" }}>{label}</span>
                     {count !== undefined && <span style={{ fontSize: "10px", color, fontWeight: 800 }}>{count} orders</span>}
                   </div>
                 );
-                if (href) return <Link key={label} href={href}>{content}</Link>;
-                return <div key={label} role="button" onClick={onClick}>{content}</div>;
+                if (href) return <Link key={label} href={href} style={{ display: 'block', textDecoration: 'none', height: '100%' }}>{content}</Link>;
+                return <div key={label} role="button" onClick={onClick} style={{ display: 'block', textDecoration: 'none', height: '100%' }}>{content}</div>;
               })}
             </div>
 
