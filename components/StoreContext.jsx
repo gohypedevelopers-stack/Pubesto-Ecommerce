@@ -649,11 +649,10 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
     try {
       const parsedUrl = new URL(url, window.location.origin);
       
-      let email = currentUser?.email;
-      if (!email || email === "amitsharma500677@gmail.com") {
-        email = "pubesto.in@gmail.com";
+      const email = currentUser?.email;
+      if (email) {
+        parsedUrl.searchParams.set("checkout[email]", email);
       }
-      parsedUrl.searchParams.set("checkout[email]", email);
       
       // Split name
       const nameParts = String(currentUser?.name || "Customer").trim().split(/\s+/);

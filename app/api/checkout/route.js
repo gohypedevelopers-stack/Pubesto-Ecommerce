@@ -47,6 +47,15 @@ export async function POST(request) {
         } else if (session.provider === "google" && session.id) {
           customerInfo = await getShopifyCustomerAdmin(session.id);
         }
+
+        // Always fallback to session details if customer object wasn't found in Shopify API
+        if (!customerInfo && (session.email || session.sub)) {
+          customerInfo = {
+            id: session.sub,
+            email: session.email,
+            name: session.name,
+          };
+        }
       }
     } catch (e) {
       console.warn("Failed to retrieve user session during checkout pre-fill:", e.message);
@@ -101,9 +110,7 @@ export async function POST(request) {
       }
 
       if (customerInfo.email) {
-        draftOrderInput.email = customerInfo.email === "amitsharma500677@gmail.com" ? "pubesto.in@gmail.com" : customerInfo.email;
-      } else {
-        draftOrderInput.email = "pubesto.in@gmail.com";
+        draftOrderInput.email = customerInfo.email;
       }
       
       const rawPhone = customerInfo.phone;
@@ -147,8 +154,6 @@ export async function POST(request) {
           country: "India",
         };
       }
-    } else {
-      draftOrderInput.email = "pubesto.in@gmail.com";
     }
 
     const query = `
