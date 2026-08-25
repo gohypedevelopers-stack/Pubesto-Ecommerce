@@ -628,7 +628,7 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
           }
         }
       } catch (error) {
-        console.error("Shopify Add to Cart Error:", error);
+        console.warn("Shopify Storefront Cart API unavailable (bypassed):", error.message || error);
       }
     });
     return shopifyCartQueueRef.current;
@@ -696,68 +696,16 @@ export function StoreProvider({ children, categories: initialCategories = [], pr
     const refreshedUser = await refreshAuthSession();
     const checkoutUser = refreshedUser || user;
 
-    // Try dynamic Shopify checkout creation first
+    // Generate standard Storefront Cart permalink checkout (/cart/variantId:qty)
+    // This forces Shopify to display the native "Discount code" box on the checkout page
     try {
-      const payloadItems = [];
-
-      for (const item of activeItems) {
-        const qty = Math.max(1, Number(item.quantity) || 1);
-        const color = item.product?.selectedColor;
-        let variantId = null;
-        if (color && item.product?.variants && item.product.variants.length > 0) {
-          const matchedVariant = item.product.variants.find(v => {
-            const vColor = getVariantColorName(v, item.product.slug || item.product.shopifyHandle);
-            return vColor && vColor.toLowerCase() === color.toLowerCase();
-          });
-          if (matchedVariant) {
-            variantId = matchedVariant.id;
-          }
-        }
-        if (!variantId) {
-          variantId = getShopifyVariantIdForColor(item.product?.slug, color) ||
-                      item.product?.shopifyVariantId || item.product?.variantId || item.product?.sku || item.variantId;
-        }
-
-        const existing = payloadItems.find(e => e.variantId === variantId);
-        if (existing) {
-          existing.quantity += qty;
-        } else {
-          payloadItems.push({
-            variantId,
-            quantity: qty,
-            name: getCartItemDisplayName(item.product, qty),
-            discountedUnitPrice: getProductBasePrice(item.product)
-          });
-        }
-      }
-
-      const response = await fetch("/api/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ items: payloadItems }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        if (data.checkoutUrl) {
-          window.location.href = appendCheckoutPrefillParams(data.checkoutUrl, checkoutUser);
-          return;
-        }
+      const permalinkUrl = getShopifyCartPermalink(activeItems);
+      if (permalinkUrl) {
+        window.location.href = appendCheckoutPrefillParams(permalinkUrl, checkoutUser);
+        return;
       }
     } catch (error) {
-      console.error("Dynamic Shopify checkout failed:", error);
-    }
-
-    // Fallback 1: Build a Shopify cart permalink from variant IDs
-    const permalinkUrl = getShopifyCartPermalink(activeItems);
-    const hasVariants = activeItems.some(item => {
-      const variantId = item.product?.shopifyVariantId || item.product?.variantId || item.product?.sku || item.variantId;
-      return variantId && String(variantId).includes('gid://shopify/');
-    });
-
-    if (hasVariants && permalinkUrl) {
-      window.location.href = appendCheckoutPrefillParams(permalinkUrl, checkoutUser);
-      return;
+      console.error("Shopify cart permalink redirect failed:", error);
     }
 
     // Fallback 2: Fallback to Razorpay for local-only items

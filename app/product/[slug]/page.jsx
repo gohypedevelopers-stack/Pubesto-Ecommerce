@@ -7,7 +7,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useStore } from "../../../components/StoreContext";
 import { peopleChoiceVideos } from "../../../lib/data";
-import { getShopifyCheckoutUrl, getShopifyVariantIdForColor } from "../../../lib/shopify";
+import { getShopifyCheckoutUrl, getShopifyVariantIdForColor, getShopifyCartPermalink } from "../../../lib/shopify";
 
 const INDIAN_NAMES = [
   "Rahul", "Kavya", "Vivek", "Sunita", "Srinivas", "Priya", "Amit", "Riya", 
@@ -73,6 +73,10 @@ function ProductPageContent() {
   const [activeImage, setActiveImage] = useState(null);
   const [videoSoundOn, setVideoSoundOn] = useState(false);
   const [isBuyingNow, setIsBuyingNow] = useState(false);
+  const [couponInput, setCouponInput] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState(null);
+  const [couponError, setCouponError] = useState("");
+  const [couponSuccess, setCouponSuccess] = useState("");
 
   // Dynamic ticker states
   const [unitsSold, setUnitsSold] = useState(1100);
@@ -313,38 +317,19 @@ function ProductPageContent() {
     try {
       const refreshedUser = await refreshAuthSession?.();
       const checkoutUser = refreshedUser || user;
-      const variantId = getShopifyVariantIdForColor(product.slug, currentColorName) || 
-                        product.shopifyVariantId || product.variantId || product.sku;
-      const name = currentColorName ? `${product.name} - ${currentColorName}` : product.name;
-      const totalPrice = basePrice * currentQty;
-      const discountedUnitPrice = basePrice;
 
-      const response = await fetch("/api/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          items: [{
-            variantId,
-            quantity: currentQty,
-            name,
-            discountedUnitPrice
-          }]
-        }),
-      });
+      // Generate standard Storefront Cart permalink checkout (/cart/variantId:qty)
+      // This forces Shopify to display the native "Discount code" box on the checkout page
+      const permalinkUrl = getShopifyCartPermalink([{
+        product,
+        color: currentColorName,
+        quantity: currentQty
+      }]);
 
-      if (response.ok) {
-        const data = await response.json();
-        if (data.checkoutUrl) {
-          window.location.href = appendCheckoutPrefillParams(data.checkoutUrl, checkoutUser);
-          return;
-        }
-      }
-
-      // Fallback to standard checkout if dynamic endpoint fails
-      const checkoutUrl = await getShopifyCheckoutUrl(shopifyHandle, currentQty);
-      window.location.href = appendCheckoutPrefillParams(checkoutUrl, checkoutUser);
+      window.location.href = appendCheckoutPrefillParams(permalinkUrl, checkoutUser);
+      return;
     } catch (err) {
-      console.warn("Shopify checkout unavailable, falling back to Razorpay:", err.message);
+      console.warn("Shopify checkout error:", err.message);
       
       addToCart(product, {
         color: currentColorName,
