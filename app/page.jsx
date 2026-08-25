@@ -58,6 +58,7 @@ function ProductCard({ product, index = 0 }) {
   };
 
   const getDynamicBadge = () => {
+    if (product.inStock === false) return "Out of Stock";
     const sale = product.salePrice || parsePrice(product.price);
     const original = product.originalPrice || parsePrice(product.oldPrice);
     if (sale && original && original > sale) {
@@ -67,6 +68,7 @@ function ProductCard({ product, index = 0 }) {
   };
 
   const activeBadge = getDynamicBadge();
+  const badgeClass = product.inStock === false ? "badge-out-of-stock" : (product.badgeClass || "badge-discount");
 
   return (
     <motion.article
@@ -81,7 +83,7 @@ function ProductCard({ product, index = 0 }) {
           <img src={product.image} alt={product.name} loading="lazy" decoding="async" />
         </Link>
         {activeBadge ? (
-          <span className={`badge ${product.badgeClass || "badge-discount"}`}>{activeBadge}</span>
+          <span className={`badge ${badgeClass}`}>{activeBadge}</span>
         ) : null}
         {product.inStock !== false && (
           <button

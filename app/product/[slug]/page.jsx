@@ -417,8 +417,8 @@ function ProductPageContent() {
     return label ? `${label} | ${shippingText}` : shippingText;
   };
 
-  const displayBadge = product.badge;
-  const displayBadgeClass = product.badgeClass || 'badge-discount';
+  const displayBadge = product.inStock === false ? 'OUT OF STOCK' : product.badge;
+  const displayBadgeClass = product.inStock === false ? 'badge-out-of-stock' : (product.badgeClass || 'badge-discount');
 
   function handleColorSelect(color) {
     if (!color || color.available === false) return;
@@ -675,6 +675,7 @@ function ProductPageContent() {
                   className="block-btn"
                   type="button"
                   onClick={() => handleAddToCart()}
+                  disabled={product.inStock === false}
                 >
                   <ShoppingBag size={18} strokeWidth={2.2} />
                   <span>Add to cart</span>
@@ -684,7 +685,7 @@ function ProductPageContent() {
                   className={`buy-now-btn ${isBuyingNow ? 'loading' : ''}`} 
                   type="button"
                   onClick={() => handleBuyNow()}
-                  disabled={isBuyingNow}
+                  disabled={isBuyingNow || product.inStock === false}
                 >
                   <span className="buy-text">{isBuyingNow ? 'Redirecting...' : 'BUY NOW'}</span>
                   {isBuyingNow ? (
@@ -693,6 +694,12 @@ function ProductPageContent() {
                     <ChevronRight size={20} />
                   )}
                 </button>
+
+                {product.inStock === false && (
+                  <div className="out-of-stock-notice-banner">
+                    ⚠️ Out of Stock — Currently Unavailable
+                  </div>
+                )}
               </div>
             </div>
 

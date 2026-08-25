@@ -13117,8 +13117,243 @@ body,
   }
 }
 
+/* Out of Stock & Grey Disabled Buttons Styling */
+.badge-out-of-stock {
+  background-color: #6b7280 !important;
+  color: #ffffff !important;
+  border: 1px solid #4b5563 !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+}
 
+.is-out-of-stock img {
+  filter: grayscale(0.5) opacity(0.85);
+}
 
+.card-action-btn:disabled,
+.card-action-btn.disabled,
+.quick-add:disabled,
+.quick-add.disabled,
+.product-buy-actions .block-btn:disabled,
+.product-buy-actions .buy-now-btn:disabled {
+  background: rgba(220, 38, 38, 0.04) !important;
+  color: #dc2626 !important;
+}
 
+/* ── Search Results List ── */
+.search-result-card {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  text-decoration: none !important;
+  color: #1a1a1a !important;
+  padding: 8px 12px !important;
+  border: 1px solid rgba(63, 100, 105, 0.08) !important;
+  border-radius: 12px !important;
+  background: #ffffff !important;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
 
+.search-result-card:hover {
+  background: #f5f8f7 !important;
+  border-color: #1b624b !important;
+  box-shadow: 0 4px 12px rgba(27, 98, 75, 0.06) !important;
+  transform: translateY(-1px) !important;
+}
 
+.search-result-image-wrapper {
+  width: 44px !important;
+  height: 44px !important;
+  overflow: hidden !important;
+  border-radius: 8px !important;
+  border: 1px solid rgba(63, 100, 105, 0.1) !important;
+  flex-shrink: 0 !important;
+}
+
+.search-result-card img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  transition: transform 0.3s ease !important;
+}
+
+.search-result-card:hover img {
+  transform: scale(1.08) !important;
+}
+
+.search-result-info {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 2px !important;
+  min-width: 0 !important;
+}
+
+.search-result-info h4 {
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  color: #2a3d40 !important;
+  margin: 0 !important;
+  line-height: 1.3 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.search-result-info p {
+  font-size: 11.5px !important;
+  font-weight: 700 !important;
+  color: #1b624b !important;
+  margin: 0 !important;
+}
+
+.search-popup-footer button {
+  font-family: var(--font-body, sans-serif) !important;
+}
+
+/* ── Header Cart Hover Dropdown Popup ── */
+.cart-dropdown-container {
+  position: relative !important;
+  display: inline-block !important;
+}
+
+.cart-dropdown-popup {
+  position: absolute !important;
+  top: 100% !important;
+  right: 0 !important;
+  margin-top: 10px !important;
+  width: 380px !important;
+  background: #ffffff !important;
+  border: 1px solid rgba(63, 100, 105, 0.15) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 15px 35px rgba(63, 100, 105, 0.12) !important;
+  padding: 20px !important;
+  z-index: 1000 !important;
+  text-align: left !important;
+  animation: dropdownFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  max-height: 80vh !important;
+}
+
+@media (max-width: 480px) {
+  .cart-dropdown-popup {
+    width: 320px !important;
+  }
+}
+
+/* Mobile Footer Layout - Align Columns in a Single Line */
+@media (max-width: 600px) {
+  .footer-grid {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 16px 4px !important;
+    text-align: center !important;
+    align-items: start !important;
+  }
+  .footer-column {
+    min-width: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border-top: 0 !important;
+    border-left: 0 !important;
+    align-items: center !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+  .footer-column h2 {
+    font-size: 13px !important;
+    margin-bottom: 8px !important;
+    white-space: nowrap !important;
+  }
+  .footer-links-list {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 6px !important;
+    width: 100% !important;
+  }
+  .footer-link-button {
+    font-size: 10.5px !important;
+    white-space: nowrap !important;
+  }
+  .footer-contact-info {
+    width: 100% !important;
+  }
+  .footer-contact-item {
+    font-size: 9px !important;
+    gap: 4px !important;
+    margin-bottom: 6px !important;
+    white-space: nowrap !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 100% !important;
+  }
+  .footer-contact-item svg {
+    width: 11px !important;
+    height: 11px !important;
+  }
+  .footer-social-section {
+    margin-top: 10px !important;
+  }
+  .footer-social-label {
+    font-size: 10px !important;
+    margin-bottom: 6px !important;
+  }
+  .footer-socials {
+    gap: 8px !important;
+  }
+  .footer-socials a svg {
+    width: 16px !important;
+    height: 16px !important;
+  }
+  .footer-v-divider {
+    display: none !important;
+  }
+}
+
+/* Out of Stock & Grey Disabled Buttons Styling */
+.badge-out-of-stock {
+  background-color: #6b7280 !important;
+  color: #ffffff !important;
+  border: 1px solid #4b5563 !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+}
+
+.is-out-of-stock img {
+  filter: grayscale(0.5) opacity(0.85);
+}
+
+.card-action-btn:disabled,
+.card-action-btn.disabled,
+.quick-add:disabled,
+.quick-add.disabled,
+.product-buy-actions .block-btn:disabled,
+.product-buy-actions .buy-now-btn:disabled {
+  background: #808080 !important;
+  border-color: #808080 !important;
+  color: #ffffff !important;
+  cursor: not-allowed !important;
+  opacity: 0.85 !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+.product-buy-actions .buy-now-btn:disabled .buy-text {
+  color: #ffffff !important;
+}
+
+.out-of-stock-notice-banner {
+  margin-top: 6px;
+  padding: 10px 14px;
+  background: #fef2f2;
+  border: 1px dashed #ef4444;
+  border-radius: 8px;
+  color: #dc2626;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+  letter-spacing: 0.02em;
+}

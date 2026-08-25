@@ -180,8 +180,11 @@ function ShopContent() {
                     variants={itemVariants}
                     layout
                   >
-                    <div className="card-visual">
+                    <div className={`card-visual ${product.inStock === false ? 'is-out-of-stock' : ''}`}>
                       {(() => {
+                        if (product.inStock === false) {
+                          return <span className="card-badge badge-out-of-stock">Out of Stock</span>;
+                        }
                         const parsePrice = (priceStr) => {
                           const num = Number((priceStr || '').replace(/[^\d.]/g, ''));
                           return isNaN(num) || num === 0 ? null : num;
@@ -197,9 +200,11 @@ function ShopContent() {
                         <img src={product.image} alt={product.name} loading="lazy" decoding="async" />
                         <div className="image-overlay" />
                       </Link>
-                      <button className="quick-add-circle" onClick={() => handleAddToCart(product)}>
-                        <ShoppingBag size={20} />
-                      </button>
+                      {product.inStock !== false && (
+                        <button className="quick-add-circle" onClick={() => handleAddToCart(product)}>
+                          <ShoppingBag size={20} />
+                        </button>
+                      )}
                     </div>
 
                     <div className="card-body">
@@ -219,6 +224,13 @@ function ShopContent() {
                       </div>
                       
                       {(() => {
+                        if (product.inStock === false) {
+                          return (
+                            <button className="card-action-btn disabled" disabled>
+                              Out of Stock
+                            </button>
+                          );
+                        }
                         const cartQuantity = cartItems.find((item) => item.id === getProductId(product))?.quantity || 0;
                         return cartQuantity > 0 ? (
                           <div className="card-cart-manager">
