@@ -3,7 +3,7 @@
 import "../shop.css";
 import { useState, useMemo, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Minus, Filter, X as CloseIcon, ShoppingBag, Search, ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
+import { Plus, Minus, Filter, X as CloseIcon, ShoppingBag, Search, ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { useStore } from "../../components/StoreContext";
 
@@ -207,7 +207,7 @@ function ShopContent() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1 }}
         >
-          <span className="hero-subtitle"><Sparkles size={14} /> Curated Collections</span>
+          <span className="hero-subtitle">Curated Collections</span>
           <h1 className="hero-title">The Art of <span>Everyday Living.</span></h1>
           <p className="hero-desc">
             Explore our artisanal collections rail by rail. Scroll left and right to discover premium essentials tailored for your home.
@@ -283,7 +283,7 @@ function ShopContent() {
                 {/* All Products Rail */}
                 {selectedCategories.length === 0 && (
                   <ProductRail
-                    title="🛍️ All Products Collection"
+                    title="All Products Collection"
                     subtitle={`Browse our entire catalog of ${categoryGroupedProducts.allProducts.length} items`}
                     products={categoryGroupedProducts.allProducts}
                     addToCart={handleAddToCart}
